@@ -22,3 +22,15 @@ alias pip="pip3"
 
 
 alias dots='/usr/bin/git --git-dir=$HOME/dots/ --work-tree=$HOME'
+
+
+alias g='git'
+alias gs='git status'
+alias gc='git checkout'
+alias gl='git log'
+alias gb='git branch'
+alias g trash='git reset HEAD && git checkout -- .'
+
+alias d='docker'
+alias dc='docker-compose'
+
