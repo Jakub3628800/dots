@@ -19,3 +19,6 @@ alias cd..="cd .."
 
 alias python="python3"
 alias pip="pip3"
+
+
+alias dots='/usr/bin/git --git-dir=$HOME/dots/ --work-tree=$HOME'
