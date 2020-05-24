@@ -179,3 +179,7 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 }
+
+
+exec nitrogen --restore
+exec compton -o 75 -b
