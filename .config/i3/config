@@ -182,4 +182,4 @@ bar {
 
 
 exec nitrogen --restore
-exec compton -o 75 -b
+exec compton -b
