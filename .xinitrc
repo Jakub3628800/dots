@@ -1,5 +1,1 @@
 xmodmap ~/.Xmodmap
-
-
-
-
