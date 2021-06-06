@@ -12,21 +12,19 @@ alias soundmute="~/.sound.sh -100"
 
 alias lock="i3lock"
 
-# typos
+# Typos
 alias dc='cd'
 alias grpe='grep'
+alias cd..="cd .."
 
+# Adding extra arguments
 alias ls="ls -G -CF"
 alias la="ls -a"
 alias ll="ls -lG -la"
-alias cd..="cd .."
 alias grep='grep --color=auto --line-buffered'
 
 alias python="python3"
 alias pip="pip3"
-
-
-alias dots='/usr/bin/git --git-dir=$HOME/dots/ --work-tree=$HOME'
 
 # git shortcuts
 alias g='git'
