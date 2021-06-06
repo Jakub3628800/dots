@@ -1,12 +1,6 @@
-alias monitor2on="xrandr --output HDMI-1 --mode 1920x1080 --auto"
-alias monitor1off="xrandr --output eDP-1 --off"
-alias monitor1on="xrandr --output eDP-1 --mode 1920x1080 --auto"
-alias monitor2off="xrandr --output HDMI-1 --off"
-alias monitor2l="xrandr --output HDMI-1 --mode 1920x1080 --left-of eDP-1"
-alias monitor2r="xrandr --output HDMI-1 --mode 1920x1080 --right-of eDP-1"
-alias monitor2r="xrandr --output HDMI-1 --mode 1920x1080 --same-as eDP-1"
 
-
+# custom scripts for various things
+alias monitor="~/.monitor.sh"
 alias sound="~/.sound.sh"
 alias soundmute="~/.sound.sh -100"
 
