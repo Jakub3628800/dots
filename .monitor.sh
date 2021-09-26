@@ -36,5 +36,5 @@ esac
 if [ "$off_flag" = "--off" ]; then resolution=""; fi
 
 commnd="xrandr --output $monitor $resolution $position $off_flag"
-echo $commnd
+echo "$commnd"
 eval " $commnd"

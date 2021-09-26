@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/sh
 # Run this to install brave
 # https://brave.com/linux/
 

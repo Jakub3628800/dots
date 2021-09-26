@@ -1,3 +1,4 @@
+#!/bin/bash
 # custom scripts for various things
 alias monitor="~/.monitor.sh"
 alias sound="~/.sound.sh"
