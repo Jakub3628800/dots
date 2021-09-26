@@ -33,6 +33,3 @@ Disable all except lock screen, log out
 |--------------|-----------|----------|
 |rofi run | rofi -show run | Super+D |
 | rofi show window | rofi -show window | Alt+Tab |
-
-
-

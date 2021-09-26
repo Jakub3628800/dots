@@ -15,4 +15,3 @@ Plug 'https://github.com/gruvbox-community/gruvbox' "For color scheme
 call plug#end()
 
 colorscheme gruvbox
-

@@ -48,14 +48,16 @@ sudo apt-get upgrade -y
 # install rofi launcher
 # https://github.com/davatorium/rofi
 sudoapt install rofi
-sudo apt install python3-virtualenv
+
 
 # 6. Generate ssh key
 
 ssh-keygen
 
+# 7. Install python stuff
 
+sudo apt install python3-virtualenv
+sudo apt install python3.9-venv
 
-
-
-
+# 8.
+sudo apt-get install xclip

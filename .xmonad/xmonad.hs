@@ -60,14 +60,14 @@ myFocusedBorderColor = "#ff0000"
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- Basic
-    [ 
+    [
 	-- open terminal
 	  ((modm,		    xK_Return), spawn $ XMonad.terminal conf)
-    	-- open dmenu 
+    	-- open dmenu
 	, ((modm,                   xK_d     ), spawn "dmenu_run")
 	-- kill focused window
 	, ((modm,                   xK_c     ), kill)
-	-- quit Xmonad	
+	-- quit Xmonad
 	, ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 	-- restart Xmonad
 	, ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
@@ -90,7 +90,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     	, ((modm,               xK_Left     ), windows W.focusUp)
     	-- Move focus to the master window
     	, ((modm,               xK_m     ), windows W.focusMaster  )
-    	-- Swap the focused window and the master window   	
+    	-- Swap the focused window and the master window
     	, ((modm, xK_Up), windows W.swapMaster)
     	, ((modm .|. shiftMask, xK_m), windows W.swapMaster)
 	-- Swap the focused window with the next window
@@ -107,7 +107,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     	, ((modm              , xK_comma ), sendMessage (IncMasterN 1))
     	-- Deincrement the number of windows in the master area
     	, ((modm              , xK_period), sendMessage (IncMasterN (-1)))
-    
+
 
 
 
@@ -119,7 +119,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     , ((modm,               xK_Page_Up ), spawn "sound +5")
     , ((modm,               xK_F11 ), spawn "amixer -D pulse sset Master -5")
-   
+
 
 
     ]
@@ -339,4 +339,3 @@ help = unlines ["The default modifier key is 'alt'. Default keybindings:",
     "mod-button1  Set the window to floating mode and move by dragging",
     "mod-button2  Raise the window to the top of the stack",
     "mod-button3  Set the window to floating mode and resize by dragging"]
-
