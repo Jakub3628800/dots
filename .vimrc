@@ -1,4 +1,3 @@
-
 set number "Display line numbers
 syntax on "Highlight syntax
 

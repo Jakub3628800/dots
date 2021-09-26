@@ -11,3 +11,6 @@
 3. Set up pre-commit
 
     `pre-commit install`
+4. Init links between files
+
+   `./init_links.sh`
