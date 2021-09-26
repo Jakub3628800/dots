@@ -33,3 +33,7 @@ alias dc='docker-compose'
 
 # pre-commit
 alias prec='pre-commit run --all-files'
+
+# pycharm
+alias charm='pycharm.sh'
+alias pycharm='pycharm.sh'
