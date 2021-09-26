@@ -7,7 +7,6 @@ alias soundmute="~/.sound.sh -100"
 alias lock="i3lock"
 
 # Typos
-alias dc='cd'
 alias grpe='grep'
 alias cd..="cd .."
 
