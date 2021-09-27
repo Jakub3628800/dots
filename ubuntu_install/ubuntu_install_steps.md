@@ -62,7 +62,8 @@ sudo apt install python3.9-venv
 # 8.
 sudo apt-get install xclip
 
-# 9. Install docker
+# 9. Install docker and docker-compose
 And make sure it can be run without root
 https://docs.docker.com/engine/install/ubuntu/
 https://docs.docker.com/engine/install/linux-postinstall/
+https://docs.docker.com/compose/install/
