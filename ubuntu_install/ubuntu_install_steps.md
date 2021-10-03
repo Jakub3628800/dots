@@ -26,10 +26,9 @@ Hide dock:
 
 # 3. Install other stuff
 
-https://github.com/davatorium/rofi
-`sudo apt install rofi`
-sudo apt install python3-virtualenv
-sudo apt install vlc
+```sh
+sudo apt install -y rofi vlc curl python3-virtualenv
+```
 
 
 
@@ -67,3 +66,6 @@ And make sure it can be run without root
 https://docs.docker.com/engine/install/ubuntu/
 https://docs.docker.com/engine/install/linux-postinstall/
 https://docs.docker.com/compose/install/
+
+
+sudo apt install postgresql-client-common

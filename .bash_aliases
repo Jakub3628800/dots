@@ -10,6 +10,9 @@ alias lock="i3lock"
 alias grpe='grep'
 alias cd..="cd .."
 
+# clipboard with xclip
+alias xclipb='xclip -selection clipboard'
+
 # Adding extra arguments
 alias ls="ls -G -CF"
 alias la="ls -a"
