@@ -7,5 +7,5 @@ do
     echo "$element  does not exists, creating now."
     cp "$PWD$element" ~/$element
   fi
-  ln -f ~/$element "$PWD$element"
+  ln -f ~/$element "$PWD/$element"
 done
