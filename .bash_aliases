@@ -19,9 +19,6 @@ alias la="ls -a"
 alias ll="ls -lG -la"
 alias grep='grep --color=auto --line-buffered'
 
-alias python="python3"
-alias pip="pip3"
-
 # git shortcuts
 alias g='git'
 alias gs='git status'
@@ -29,6 +26,7 @@ alias gc='git checkout'
 alias gl='git log'
 alias gb='git branch'
 alias gtrash='git reset HEAD && git checkout -- .'
+alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 
 # docker shortcuts
 alias d='docker'
