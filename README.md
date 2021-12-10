@@ -5,6 +5,9 @@
 ## Setup
 1. Create and activate python virtual environment
 
+	`python3 -m venv env`
+	`source env/bin/activate`
+
 2. Install requirements
 
     `pip install -r requirements.txt`
