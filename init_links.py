@@ -1,8 +1,10 @@
 import os
 
 cwd = os.getcwd()
-for dotfile in [".bash_aliases",".monitor.sh",".sound.sh ",".vimrc ",".xinitrc",".Xmodmap"]:
+dotfiles = [".bash_aliases",".monitor.sh",".sound.sh ",".vimrc ",".xinitrc",".Xmodmap", ".config/i3/config"]
+dotfiles = [".config/i3/config"]
 
+for dotfile in dotfiles:
     if not os.path.exists(f"~/{dotfile}"):
         os.system(f"cp '{cwd}/{dotfile}' ~/{dotfile}")
     else:
