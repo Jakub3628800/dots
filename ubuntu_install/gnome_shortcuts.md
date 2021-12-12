@@ -25,6 +25,10 @@ Disable all except lock screen, log out
 | Action       | Shortcut  |
 |--------------|-----------|
 |Close window | Super + C |
+|View split on left | Super + H |
+|View split on right | Super + L |
+|Maximize window | Super + K |
+|Restore window | Super + J |
 
 
 
