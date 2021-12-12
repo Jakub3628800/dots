@@ -1,8 +1,8 @@
 #!/bin/bash
 # custom scripts for various things
-alias monitor="~/.monitor.sh"
-alias sound="~/.sound.sh"
-alias soundmute="~/.sound.sh -100"
+#alias monitor="~/.monitor.sh"
+#alias sound="~/.sound.sh"
+#alias soundmute="~/.sound.sh -100"
 
 alias lock="i3lock"
 
