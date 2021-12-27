@@ -206,3 +206,4 @@ exec "monitor 2 on right"
 exec --no-startup-id nitrogen --restore
 #	exec --no-startup-id compton
 exec xcompmgr -c -f -n
+exec "stretching_notif &"
