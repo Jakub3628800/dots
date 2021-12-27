@@ -41,8 +41,7 @@ https://www.jetbrains.com/help/pycharm/installation-guide.html#toolbox
 
 # 5. Update &  Upgrade
 
-sudo apt-get update
-sudo apt-get upgrade -y
+sudo apt-get update && sudo apt-get upgrade -y
 
 # install rofi launcher
 # https://github.com/davatorium/rofi
@@ -55,8 +54,7 @@ ssh-keygen
 
 # 7. Install python stuff
 
-sudo apt install python3-virtualenv
-sudo apt install python3.9-venv
+sudo apt install python3-virtualenv && sudo apt install python3.9-venv
 
 # 8.
 sudo apt-get install xclip

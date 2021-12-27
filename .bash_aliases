@@ -1,8 +1,4 @@
 #!/bin/bash
-# custom scripts for various things
-#alias monitor="~/.monitor.sh"
-#alias sound="~/.sound.sh"
-#alias soundmute="~/.sound.sh -100"
 
 alias lock="i3lock"
 
@@ -11,7 +7,7 @@ alias grpe='grep'
 alias cd..="cd .."
 
 # clipboard with xclip
-alias xclipb='xclip -selection clipboard'
+alias xcc='xclip -selection clipboard'
 
 # Adding extra arguments
 alias ls="ls -G -CF"
