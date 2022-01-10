@@ -1,0 +1,12 @@
+flameshot
+slack
+pavucontrol-qt
+vim
+xclip
+python3-virtualenv
+python3.9-venv
+vlc
+curl
+nitrogen
+postgresql-client-common
+docker.io
