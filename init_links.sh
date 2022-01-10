@@ -5,7 +5,7 @@ for element in .bash_aliases .local/bin/monitor.sh .local/bin/sound.sh .vimrc .x
 do
   if ! [ -f ~/$element ]; then
     echo "$element  does not exists, creating now."
-    cp "$PWD/$element" ~/$element
+    cp "$PWD/home/$element" ~/$element
   fi
-  ln -f ~/$element "$PWD/$element"
+  ln -f ~/$element "$PWD/home/$element"
 done
