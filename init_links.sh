@@ -1,11 +1,13 @@
 #!/bin/bash
 # Initiate links between files.
 
-for element in .bash_aliases .local/bin/monitor.sh .local/bin/sound.sh .vimrc .xinitrc .Xmodmap .config/i3/config .local/bin/restore_workspaces
+elements=$(find home -type f| xargs -n 1 | sed 's|home/||g' | xargs)
+for element in $elements
 do
   if ! [ -f ~/$element ]; then
     echo "$element  does not exists, creating now."
     cp "$PWD/home/$element" ~/$element
   fi
   ln -f ~/$element "$PWD/home/$element"
+  echo "linked $element"
 done
