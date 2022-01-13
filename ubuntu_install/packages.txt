@@ -10,3 +10,5 @@ curl
 nitrogen
 postgresql-client-common
 docker.io
+docker-compose
+redshift
