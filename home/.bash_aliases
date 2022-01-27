@@ -3,6 +3,7 @@
 # Basics - navigation
 alias ls="ls -a --color=auto"
 alias ll="ls -lah --color=auto"
+alias la="ls"
 
 alias cd..="cd .."
 alias ..='cd ..'
