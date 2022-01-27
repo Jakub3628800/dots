@@ -1,19 +1,23 @@
 #!/bin/bash
 
-alias lock="i3lock"
+# Basics - navigation
+alias ls="ls -a --color=auto"
+alias ll="ls -lah --color=auto"
 
-# Typos
-alias grpe='grep'
 alias cd..="cd .."
+alias ..='cd ..'
+alias ...='cd ../..'
+
+alias grep='grep --color=auto --line-buffered'
+alias grpe='grep'
+
+alias aptup='sudo apt update && sudo apt upgrade'
 
 # clipboard with xclip
 alias xcc='xclip -selection clipboard'
 
-# Adding extra arguments
-alias ls="ls -G -CF"
-alias la="ls -a"
-alias ll="ls -lG -la"
-alias grep='grep --color=auto --line-buffered'
+# Locking screen
+alias lock="i3lock"
 
 # git shortcuts
 alias g='git'

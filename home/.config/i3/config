@@ -117,7 +117,7 @@ set $ws9 "9"
 set $ws10 "10"
 
 
-set $secondary "DP-3"
+set $secondary "HDMI-1"
 set $primary "eDP-1"
 # Configure default workspace monitor placement
 workspace 1 output $secondary
