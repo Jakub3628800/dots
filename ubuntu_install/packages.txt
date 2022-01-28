@@ -12,3 +12,4 @@ postgresql-client-common
 docker.io
 docker-compose
 redshift
+golang-go
