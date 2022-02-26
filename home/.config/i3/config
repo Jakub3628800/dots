@@ -131,7 +131,7 @@ workspace 7 output $primary
 
 # Configure default placement of apps
 
-assign [class="Code"] number 1 # visual-studio code TODO make this work
+assign [class="Code"] number 1
 assign [class="Brave"] number 2
 assign [class="chrome"] number 2
 assign [class="Slack"] number 3
