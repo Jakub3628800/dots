@@ -13,3 +13,5 @@ docker.io
 docker-compose
 redshift
 golang-go
+zsh
+direnv
