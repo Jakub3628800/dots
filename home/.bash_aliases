@@ -6,6 +6,7 @@ alias ll="ls -lah --color=auto"
 alias la="ls"
 
 alias cd..="cd .."
+alias cd.="cd .."
 alias ..='cd ..'
 alias ...='cd ../..'
 
@@ -18,7 +19,7 @@ alias aptup='sudo apt update && sudo apt upgrade'
 alias xcc='xclip -selection clipboard'
 
 # Locking screen
-alias lock="i3lock"
+alias lock="i3lock --color 000000"
 
 # git shortcuts
 alias g='git'
@@ -36,6 +37,3 @@ alias dc='docker-compose'
 # pre-commit
 alias prec='pre-commit run --all-files'
 
-# pycharm
-alias charm='pycharm.sh'
-alias pycharm='pycharm.sh'
