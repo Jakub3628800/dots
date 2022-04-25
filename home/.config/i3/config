@@ -204,3 +204,4 @@ exec "autorandr --change"
 exec --no-startup-id nitrogen --restore
 exec --no-startup-id compton
 exec xcompmgr -c -f -n
+exec "redlight"
