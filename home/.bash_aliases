@@ -36,3 +36,6 @@ alias dc='docker-compose'
 
 # pre-commit
 alias prec='pre-commit run --all-files'
+
+export VISUAL=vim
+export EDITOR="$VISUAL"
