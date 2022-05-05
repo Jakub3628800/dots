@@ -15,3 +15,5 @@ redshift
 golang-go
 zsh
 direnv
+tree
+
