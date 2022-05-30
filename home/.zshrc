@@ -36,3 +36,6 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 source ~/.bash_aliases
 plugins=(virtualenv)
+
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
