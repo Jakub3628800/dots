@@ -3,8 +3,17 @@
 # VARIABLES
 #
 # set primary and secondary displays
-set $primary "XWAYLAND0"
-set $secondary "XWAYLAND1"
+
+
+#output HDMI1-A-1 pos 0 0 res 1920x1080
+#utput eDP1 pos -1920 0 res 1920x1080
+
+set $laptop <laptop_output_identifier>
+bindswitch --reload --locked lid:on output $laptop disable
+bindswitch --reload --locked lid:off output $laptop enable
+
+set $primary "eDP-1"
+set $secondary "HDMI-A-1"
 
 # browser
 set $browser "brave-browser"
@@ -200,9 +209,9 @@ bar {
 	workspace_buttons yes
 }
 
-exec "autorandr --change"
-exec --no-startup-id nitrogen --restore
-exec --no-startup-id compton
-exec xcompmgr -c -f -n
-exec "redlight"
-
+#exec "autorandr --change"
+#exec --no-startup-id nitrogen --restore
+#exec --no-startup-id compton
+#exec xcompmgr -c -f -n
+#exec "redlight"
+exec "gammastep -l 50.073658:14.418540"

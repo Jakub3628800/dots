@@ -16,4 +16,5 @@ golang-go
 zsh
 direnv
 tree
-
+jq
+gammastep
