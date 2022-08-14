@@ -15,6 +15,7 @@ redshift
 golang-go
 zsh
 direnv
+openvpn
 tree
 jq
 gammastep
