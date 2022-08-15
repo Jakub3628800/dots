@@ -4,7 +4,7 @@ pavucontrol-qt
 vim
 xclip
 python3-virtualenv
-python3.9-venv
+python3.10-venv
 vlc
 curl
 nitrogen
