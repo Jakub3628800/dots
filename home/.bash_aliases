@@ -41,3 +41,6 @@ alias precs='git status --short | sed "s/M//g" | xargs pre-commit run --files'
 alias prec1='pre-commit run --from-ref HEAD~1 --to-ref=HEAD'
 alias prec2='pre-commit run --from-ref HEAD~2 --to-ref=HEAD'
 alias prec3='pre-commit run --from-ref HEAD~3 --to-ref=HEAD'
+
+# python
+alias python='python3'

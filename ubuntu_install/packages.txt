@@ -19,3 +19,4 @@ openvpn
 tree
 jq
 gammastep
+gh
