@@ -20,3 +20,4 @@ tree
 jq
 gammastep
 gh
+htop
