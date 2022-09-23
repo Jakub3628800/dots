@@ -33,7 +33,7 @@ alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 # docker shortcuts
 alias d='docker'
 alias dc='docker-compose'
-alias dk='docker ps -q | xargs docker kill'
+alias dkill='docker ps -q | xargs docker kill'
 
 # pre-commit
 alias preca='pre-commit run --all-files'
