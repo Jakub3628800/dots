@@ -33,7 +33,7 @@ alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 # docker shortcuts
 alias d='docker'
 alias dc='docker-compose'
-alias dkill='docker ps -q | xargs docker kill'
+alias dk='docker ps -q | xargs docker kill'
 
 # pre-commit
 alias preca='pre-commit run --all-files'
@@ -42,5 +42,5 @@ alias prec1='pre-commit run --from-ref HEAD~1 --to-ref=HEAD'
 alias prec2='pre-commit run --from-ref HEAD~2 --to-ref=HEAD'
 alias prec3='pre-commit run --from-ref HEAD~3 --to-ref=HEAD'
 
-# python
-alias python='python3'
+export VISUAL=vim
+export EDITOR="$VISUAL"
