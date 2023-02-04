@@ -128,6 +128,7 @@ assign [class="Code"] number 1
 assign [class="Brave"] number 2
 assign [class="chrome"] number 2
 assign [class="Slack"] number 3
+assign [class="obsidian"] number 3
 assign [class="Spotify"] number 6
 
 # switch to workspace
@@ -201,6 +202,10 @@ bar {
 }
 
 exec "autorandr --change"
+exec "brave-browser"
+exec "code"
+exec "obsidian"
+exec "i3-sensible-terminal"
 exec --no-startup-id nitrogen --restore
 exec --no-startup-id compton
 exec xcompmgr -c -f -n
