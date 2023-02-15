@@ -208,10 +208,3 @@ bar {
 	position top
 	workspace_buttons yes
 }
-
-#exec "autorandr --change"
-#exec --no-startup-id nitrogen --restore
-#exec --no-startup-id compton
-#exec xcompmgr -c -f -n
-#exec "redlight"
-exec "gammastep -l 50.073658:14.418540"
