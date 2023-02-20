@@ -6,4 +6,7 @@ if [ "$BASH" ]; then
   fi
 fi
 
+export VISUAL=vim
+export EDITOR="$VISUAL"
+
 mesg n 2> /dev/null || true

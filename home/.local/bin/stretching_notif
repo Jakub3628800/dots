@@ -1,6 +1,0 @@
-#!/bin/bash
-while :
-do
-  notify-send -t 10000 "Stretch !!" "Time to stretch and stand up for a while"
-  sleep 3600
-done
