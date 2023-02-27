@@ -1,0 +1,40 @@
+---
+- name: Install Apt Packages
+  hosts: home
+  become: true
+  connection: local
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: true
+
+    - name: Install packages
+      apt:
+        name:
+          - vim
+          - flameshot
+          - slack
+          - pavucontrol-qt
+          - vim
+          - xclip
+          - python3-virtualenv
+          - python3.10-venv
+          - vlc
+          - curl
+          - nitrogen
+          - postgresql-client-common
+          - docker.io
+          - docker-compose
+          - redshift
+          - golang-go
+          - zsh
+          - direnv
+          - openvpn
+          - tree
+          - jq
+          - gammastep
+          - gh
+          - htop
+        state: present
