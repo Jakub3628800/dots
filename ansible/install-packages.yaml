@@ -37,4 +37,6 @@
           - gammastep
           - gh
           - htop
+          - pass
+          - expect
         state: present
