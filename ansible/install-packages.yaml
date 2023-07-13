@@ -39,4 +39,5 @@
           - htop
           - pass
           - expect
+          - tig
         state: present
