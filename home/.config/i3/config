@@ -157,7 +157,8 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 
 
 bindsym $mod+f exec $browser
-bindsym $mod+F2 exec "lock"
+bindsym $mod+p exec "pass test | xclip -selection clipboard"
+bindsym $mod+Shift+p exec "echo 'blah' | xclip -selection clipboard"
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
