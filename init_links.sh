@@ -1,7 +1,7 @@
 #!/bin/bash
 # Initiate links between files.
 
-elements=$(find home -type f| xargs -n 1 | sed 's|home/||g' | xargs)
+elements=$(find home -type f -print0 | xargs -0 -n 1 | sed 's|home/||g' | xargs)
 for element in $elements
 do
   if ! [ -f ~/$element ]; then
