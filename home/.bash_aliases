@@ -13,8 +13,6 @@ alias ...='cd ../..'
 alias grep='grep --color=auto --line-buffered'
 alias grpe='grep'
 
-alias aptup='sudo apt update && sudo apt upgrade'
-
 # clipboard with xclip
 alias xcc='xclip -selection clipboard'
 
@@ -42,7 +40,5 @@ alias prec1='pre-commit run --from-ref HEAD~1 --to-ref=HEAD'
 alias prec2='pre-commit run --from-ref HEAD~2 --to-ref=HEAD'
 alias prec3='pre-commit run --from-ref HEAD~3 --to-ref=HEAD'
 
-export VISUAL=vim
-export EDITOR="$VISUAL"
 # python
 alias python='python3'
