@@ -1,2 +1,22 @@
-keycode 66 = grave asciitilde
+
 keycode 49 = Escape
+
+#!/bin/bash
+
+# Find the connected keyboards and check their names
+keyboard1="AT Translated Set 2 keyboard"
+keyboard2="External Keyboard Name"
+
+# Check if the first keyboard is connected
+if xinput list | grep -q "$keyboard1"; then
+    xmodmap -e "clear Lock"
+    # Run xmodmap commands for the first keyboard
+    xmodmap -e "keycode 66 = Control_L"
+    # Add more xmodmap commands as needed
+elif xinput list | grep -q "$keyboard2"; then
+    # Run xmodmap commands for the second keyboard
+    xmodmap -e "keycode 66 = Control_L"
+    # Add more xmodmap commands as needed
+else
+    echo "No supported keyboard found."
+fi

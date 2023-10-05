@@ -28,6 +28,9 @@ alias gb='git branch'
 alias gtrash='git reset HEAD && git checkout -- .'
 alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 
+# gh shortcuts
+alias ghpr='gh pr create'
+
 # docker shortcuts
 alias d='docker'
 alias dc='docker-compose'
@@ -35,3 +38,6 @@ alias dkill='docker ps -q | xargs docker kill'
 
 # python
 alias python='python3'
+
+# keyboard
+alias k='keyboard'
