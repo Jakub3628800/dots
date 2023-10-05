@@ -1,0 +1,18 @@
+#!/bin/bash
+
+keyboard1="Kingston HyperX Alloy Origins Core"
+keyboard2="SONiX USB DEVICE"
+
+
+if xinput list | grep -q "$keyboard1"; then
+    echo "Setting layout to $keyboard1 keyboard"
+    xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
+
+elif xinput list | grep -q "$keyboard2"; then
+    echo "Setting layout to $keyboard2 keyboard"
+    xmodmap -e "clear Lock" -e "keycode 66 = grave asciitilde" -e "keycode 49 = Escape"
+
+else
+    echo "No supported keyboard found, setting layout to laptop keyboard"
+    xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
+fi
