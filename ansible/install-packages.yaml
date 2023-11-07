@@ -40,4 +40,5 @@
           - pass
           - expect
           - tig
+          - obsidian
         state: present
