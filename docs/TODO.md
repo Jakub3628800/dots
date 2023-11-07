@@ -3,4 +3,4 @@
 
 - setup keybinding for switch language
 
-- add way to install appimages (spacedrive & obsidian)
+- try spacedrive a bit more seriously
