@@ -42,3 +42,8 @@
           - tig
           - obsidian
         state: present
+
+    - name: Install multi python packages with version specifiers
+      ansible.builtin.pip:
+        name:
+          - autorandr==1.14.post1
