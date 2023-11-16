@@ -3,4 +3,8 @@
 
 - setup keybinding for switch language
 
-- try spacedrive a bit more seriously
+- try spacedrive
+
+- Improve init_links.sh script
+
+- Add autorandr config to this repo
