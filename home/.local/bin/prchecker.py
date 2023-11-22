@@ -26,6 +26,7 @@ def pr_checker() -> List[Check]:
 
 if __name__ == "__main__":
     """Main function."""
+    time.sleep(5) # wait for GH to start running checks
     pr_checks = pr_checker()
     while "pending" in [i["result"] for i in pr_checks]:
         pr_checks = pr_checker()
