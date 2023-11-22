@@ -1,0 +1,6 @@
+#!/bin/bash
+
+gh pr create
+
+echo "Firing up the PR checker in the background..."
+~/.local/bin/prchecker.py &
