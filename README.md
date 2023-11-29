@@ -28,3 +28,21 @@ run it on previous commits.
 ## GitHub Pull Request
 `home/.local/bin/ghpr` is a script that I use for opening pull requests with
 gh cli. It's a nice alias and it also sends notification when the PR checks are finished.
+
+
+
+
+## Stow
+
+core
+```bash
+stow --target=$HOME core
+```
+i3
+```bash
+stow --target=$HOME i3
+```
+dev
+```bash
+stow --target=$HOME dev
+```

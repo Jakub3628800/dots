@@ -1,1 +1,3 @@
+#!/bin/bash
+
 redshift -r -l 50.07:14.41 -t 6500K:2500K &

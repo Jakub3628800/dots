@@ -40,7 +40,6 @@
           - pass
           - expect
           - tig
-          - obsidian
         state: present
 
     - name: Install multi python packages with version specifiers
