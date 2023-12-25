@@ -41,3 +41,5 @@ export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 source /usr/local/bin/virtualenvwrapper.sh
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/home/jk/go/bin
+export HISTFILE=$HOME/.history/.bash_history
+export ZSH_COMPDUMP=$HOME/.history/.zcompdump-$HOST
