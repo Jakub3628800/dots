@@ -8,3 +8,5 @@
 - Improve init_links.sh script
 
 - Add autorandr config to this repo
+
+- https://github.com/ultrabug/py3status
