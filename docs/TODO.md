@@ -10,3 +10,5 @@
 - Add autorandr config to this repo
 
 - https://github.com/ultrabug/py3status
+
+sdaf
