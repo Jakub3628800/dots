@@ -4,9 +4,10 @@ Collection of dotfiles and scripts I use on my machines for development. I3, vim
 
 # Installation
 
-All the dotfiles are in `/home` directory, and I link them with:
+Dotfiles are managed with GNU Stow. To install them, run:
+
 ```bash
-./init_links.sh
+./stow_links.sh
 ```
 This script creates hard links to files in home directory.
 
@@ -28,21 +29,3 @@ run it on previous commits.
 ## GitHub Pull Request
 `home/.local/bin/ghpr` is a script that I use for opening pull requests with
 gh cli. It's a nice alias and it also sends notification when the PR checks are finished.
-
-
-
-
-## Stow
-
-core
-```bash
-stow --target=$HOME core
-```
-i3
-```bash
-stow --target=$HOME i3
-```
-dev
-```bash
-stow --target=$HOME dev
-```
