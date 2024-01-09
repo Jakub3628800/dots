@@ -35,5 +35,6 @@ else
 
     pip install --user \
         autorandr==1.14.post1 \
-        tldr==3.2.0
+        tldr==3.2.0 \
+        pre-commit==3.6.0
 fi

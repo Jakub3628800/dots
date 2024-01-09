@@ -1,4 +1,5 @@
 #!/bin/bash
+# Mostly just improved interface to run on last n commits.
 ref=${1:-s}
 
 if [ $ref = "s" ]
