@@ -1,4 +1,5 @@
 #!/bin/bash
+# Detects which keyboard is connected and sets the layout accordingly
 
 keyboard1="Kingston HyperX Alloy Origins Core"
 keyboard2="SONiX USB DEVICE"

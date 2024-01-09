@@ -9,23 +9,9 @@ Dotfiles are managed with GNU Stow. To install them, run:
 ```bash
 ./stow_links.sh
 ```
-This script creates hard links to files in home directory.
 
-# Keyboard layout
-For keyboard, I use `/home/.local/bin/keyboard` (xinit) to detect which
-keyboard I'm currently using and set preferred layout - mostly just swap
-capslock and escape.
+To install packages, run:
 
-# Monitor layout
-I use autorandr to detect which monitor setup I'm using and set it up. Monitor layouts aren't yet saved in this repo.
-
-# Helper scripts
-
-## Pre-commit
-`/home/.local/bin/pre-commit` is a script that I use for running pre-commit.
-It saves time from typing `--from-ref` and `--to-ref` every time I want to
-run it on previous commits.
-
-## GitHub Pull Request
-`home/.local/bin/ghpr` is a script that I use for opening pull requests with
-gh cli. It's a nice alias and it also sends notification when the PR checks are finished.
+```bash
+./install_packages.sh
+```

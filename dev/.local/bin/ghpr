@@ -1,4 +1,5 @@
 #!/bin/bash
+# ghpr + send desktop notification when checks are finished.
 
 gh pr create
 exit_code=$?
