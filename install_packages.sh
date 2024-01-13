@@ -33,7 +33,7 @@ if [ -n "$VIRTUAL_ENV" ]; then
     echo "Script is supposed to install dependencies in the system, not in a virtual environment. Skipping."
 else
 
-    pip install --user \
+    PIP_REQUIRE_VIRTUALENV=false pip install --user \
         autorandr==1.14.post1 \
         tldr==3.2.0 \
         pre-commit==3.6.0
