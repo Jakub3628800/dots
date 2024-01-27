@@ -28,6 +28,8 @@ alias gb='git branch'
 alias gtrash='git reset HEAD && git checkout -- .'
 alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 
+alias ghmerge='gh pr merge -m -d'
+
 # docker shortcuts
 alias d='docker'
 alias dc='docker-compose'
