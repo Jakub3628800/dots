@@ -77,6 +77,7 @@ export ZSH_THEME="kennethreitz"
 plugins=(ssh-agent git)
 . $ZSH/oh-my-zsh.sh
 
+zstyle :omz:plugins:ssh-agent lazy yes
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
