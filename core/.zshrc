@@ -27,7 +27,8 @@ export ZSH_THEME="kennethreitz"
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+zstyle :omz:plugins:ssh-agent lazy yes
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
@@ -77,7 +78,6 @@ export ZSH_THEME="kennethreitz"
 plugins=(ssh-agent git)
 . $ZSH/oh-my-zsh.sh
 
-zstyle :omz:plugins:ssh-agent lazy yes
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
