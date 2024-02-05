@@ -107,6 +107,11 @@ plugins=(ssh-agent git)
 . ~/.profile
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+export HISTFILESIZE=1000000000
+export HISTSIZE=1000000000
+export HISTFILE=~/.history/.zsh_history
+
+setopt HIST_FIND_NO_DUPS
 setopt share_history
 
 export NVM_DIR="$HOME/.nvm"
