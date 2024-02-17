@@ -12,7 +12,7 @@ sudo apt-get install -y \
     nitrogen \
     postgresql-client-common \
     docker.io \
-    docker-compose \
+    docker-compose-plugin \
     redshift \
     golang-go \
     zsh \
