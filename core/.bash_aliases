@@ -32,7 +32,7 @@ alias ghmerge='gh pr merge -m -d'
 
 # docker shortcuts
 alias d='docker'
-alias dc='docker-compose'
+alias dc='docker compose'
 alias dkill='docker ps -q | xargs docker kill'
 
 # python
@@ -43,3 +43,5 @@ alias k='keyboard'
 
 # autorandr - cycle monitor
 alias aa='autorandr --cycle'
+
+alias pipglobal='pip install --user'
