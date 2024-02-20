@@ -27,6 +27,7 @@ sudo apt-get install -y \
     expect \
     tig \
     wdisplays \
+    swaylock \
     py3status
 
 echo "Installing pip packages..."

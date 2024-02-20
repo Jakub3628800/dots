@@ -17,7 +17,7 @@ alias grpe='grep'
 alias xcc='xclip -selection clipboard'
 
 # Locking screen
-alias lock="i3lock --color 000000"
+alias lock="swaylock --color 000000"
 
 # git shortcuts
 alias g='git'
