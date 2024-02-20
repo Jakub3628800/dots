@@ -57,7 +57,7 @@ bindsym $mod+Return exec i3-sensible-terminal
 bindsym $mod+c kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -m 1
+bindsym $mod+d exec dmenu_run
 
 # change focus
 bindsym $mod+h focus left
@@ -206,5 +206,3 @@ bindsym $mod+r mode "resize"
 bar {
     status_command i3status
 	position top
-	workspace_buttons yes
-}
