@@ -26,6 +26,7 @@ sudo apt-get install -y \
     pass \
     expect \
     tig \
+    wdisplays \
     py3status
 
 echo "Installing pip packages..."
