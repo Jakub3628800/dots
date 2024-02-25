@@ -1,0 +1,9 @@
+#!/bin/bash
+# Script to set the display configuration. On Wayland, it uses wdisplays. On X11, it uses autorandr.
+
+# check if echo $XDG_SESSION_TYPE is wayland
+if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    wdisplays
+else
+    autorandr --cycle
+fi

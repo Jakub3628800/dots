@@ -7,7 +7,7 @@ Collection of dotfiles and scripts I use on my machines for development. I3, vim
 Dotfiles are managed with GNU Stow. To install them, run:
 
 ```bash
-./stow_links.sh
+./init_links.sh
 ```
 
 To install packages, run:
