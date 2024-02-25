@@ -43,4 +43,3 @@ export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/home/jk/go/bin
 export HISTFILE=$HOME/.history/.bash_history
 export ZSH_COMPDUMP=$HOME/.history/.zcompdump-$HOST
-export PIP_REQUIRE_VIRTUALENV=true

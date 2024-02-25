@@ -40,6 +40,3 @@ alias python='python3'
 
 # keyboard
 alias k='keyboard'
-
-# autorandr - cycle monitor
-alias aa='autorandr --cycle'
