@@ -28,7 +28,8 @@ sudo apt-get install -y \
     tig \
     wdisplays \
     swaylock \
-    py3status
+    py3status \
+    sqlite3
 
 echo "Installing pip packages..."
 if [ -n "$VIRTUAL_ENV" ]; then
