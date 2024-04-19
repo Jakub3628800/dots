@@ -75,7 +75,7 @@ zstyle :omz:plugins:ssh-agent lazy yes
 # plugins=(git)
 
 # shellcheck disable=SC2034,SC3030
-plugins=(ssh-agent git)
+plugins=(ssh-agent git direnv)
 . $ZSH/oh-my-zsh.sh
 
 # User configuration

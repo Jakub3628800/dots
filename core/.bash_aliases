@@ -17,7 +17,7 @@ alias grpe='grep'
 alias xcc='xclip -selection clipboard'
 
 # Locking screen
-alias lock="swaylock --color 000000"
+alias lock="i3lock --color 000000"
 
 # git shortcuts
 alias g='git'
@@ -37,6 +37,9 @@ alias dkill='docker ps -q | xargs docker kill'
 
 # python
 alias python='python3'
+
+# ruff
+alias rr='ruff format'
 
 # keyboard
 alias k='keyboard'
