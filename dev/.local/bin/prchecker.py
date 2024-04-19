@@ -3,6 +3,7 @@ import time
 import subprocess
 from typing import TypedDict, List
 
+
 class Check(TypedDict):
     name: str
     result: str
@@ -16,12 +17,16 @@ def notification_msg(pr_checks: List[Check]) -> str:
     repository_name = ""
     for check in pr_checks:
         try:
-            repository_name = check["url"].split("https://github.com/Jakub3628800/")[1].split("/")[0]
+            repository_name = (
+                check["url"].split("https://github.com/Jakub3628800/")[1].split("/")[0]
+            )
             break
         except IndexError:
             continue
 
-    return f"\nPR checks finished for {repository_name}\n" + "\n".join([f"{i['name']}: {i['result']}" for i in pr_checks])
+    return f"\nPR checks finished for {repository_name}\n" + "\n".join(
+        [f"{i['name']}: {i['result']}" for i in pr_checks]
+    )
 
 
 def pr_checker() -> List[Check]:
@@ -33,9 +38,10 @@ def pr_checker() -> List[Check]:
         pr_checks.append(Check(name=name, result=result, duration=duration, url=url))
     return pr_checks
 
+
 if __name__ == "__main__":
     """Main function."""
-    time.sleep(5) # wait for GH to start running checks
+    time.sleep(5)  # wait for GH to start running checks
     pr_checks = pr_checker()
     while "pending" in [i["result"] for i in pr_checks]:
         pr_checks = pr_checker()
