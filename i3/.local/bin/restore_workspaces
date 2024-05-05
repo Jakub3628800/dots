@@ -1,11 +1,11 @@
 #!/bin/bash
 
-i3-msg '[workspace="1"]' move workspace to output "DP-1"
-i3-msg '[workspace="2"]' move workspace to output "DP-1"
-i3-msg '[workspace="3"]' move workspace to output "DP-1"
-i3-msg '[workspace="4"]' move workspace to output "DP-1"
+OUTPUTS=('DP-1' 'HDMI-1' 'DVI-I-1-1' 'DVI-I-2-2')
 
-i3-msg '[workspace="1"]' move workspace to output "HDMI-1"
-i3-msg '[workspace="2"]' move workspace to output "HDMI-1"
-i3-msg '[workspace="3"]' move workspace to output "HDMI-1"
-i3-msg '[workspace="4"]' move workspace to output "HDMI-1"
+for output in "${OUTPUTS[@]}"; do
+    i3-msg '[workspace="1"]' move workspace to output "$output" > /dev/null 2>&1
+    i3-msg '[workspace="2"]' move workspace to output "$output" > /dev/null 2>&1
+    i3-msg '[workspace="3"]' move workspace to output "$output" > /dev/null 2>&1
+    i3-msg '[workspace="4"]' move workspace to output "$output" > /dev/null 2>&1
+
+done
