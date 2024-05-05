@@ -11,8 +11,6 @@ sudo apt-get install -y \
     curl \
     nitrogen \
     postgresql-client-common \
-    docker.io \
-    docker-compose \
     redshift \
     golang-go \
     zsh \
@@ -30,6 +28,10 @@ sudo apt-get install -y \
     swaylock \
     py3status \
     sqlite3
+
+# Docker
+sudo apt-get install -y \
+    docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 echo "Installing pip packages..."
 if [ -n "$VIRTUAL_ENV" ]; then
