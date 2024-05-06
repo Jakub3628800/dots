@@ -17,7 +17,14 @@ alias grpe='grep'
 alias xcc='xclip -selection clipboard'
 
 # Locking screen
-alias lock="i3lock --color 000000"
+lock() {
+	if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+		swaylock --color 000000
+	else
+		i3lock --color 000000
+	fi
+}
+#alias lock="i3lock --color 000000"
 
 # git shortcuts
 alias g='git'
