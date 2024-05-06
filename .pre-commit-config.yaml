@@ -1,16 +1,25 @@
-
+---
+default_language_version:
+    python: python3.10
 repos:
--   repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.10.0
-    hooks:
-    -   id: shellcheck
-        args: ["--severity=warning", --exclude=SC3010]  # Optionally only show errors and warnings
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-        -   id: trailing-whitespace
-        -   id: end-of-file-fixer
-        -   id: fix-encoding-pragma
+    - repo: https://github.com/koalaman/shellcheck-precommit
+      rev: v0.10.0
+      hooks:
+          - id: shellcheck
+            args: ["--severity=warning", --exclude=SC3010]
+
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.6.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: fix-encoding-pragma
             args: [--remove]
-        -   id: check-yaml
-        -   id: debug-statements
+          - id: check-yaml
+          - id: debug-statements
+
+    - repo: https://github.com/adrienverge/yamllint.git
+      rev: v1.35.1
+      hooks:
+          - id: yamllint
+            args: [--strict]
