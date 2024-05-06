@@ -3,11 +3,15 @@
 # VARIABLES
 #
 # set primary and secondary displays
-set $primary "eDP-1"
-set $secondary "HDMI-1"
 
+include ~/.config/i3/`hostname | md5sum | cut -d " " -f 1`.conf
+#include ~/.config/i3/34d55c1919aa1628ce3e16e2a1a5684e.conf
+
+
+#set $primary "eDP-1"
+#set $secondary "HDMI-1"
 # browser
-set $browser "brave-browser"
+#set $browser "brave-browser"
 
 # set mod variable
 set $mod Mod4
@@ -113,14 +117,14 @@ set $ws10 "10"
 
 
 # Configure default workspace monitor placement
-workspace 1 output $secondary
-workspace 2 output $secondary
-workspace 3 output $secondary
-workspace 4 output $secondary
-
-workspace 5 output $primary
-workspace 6 output $primary
-workspace 7 output $primary
+#workspace 1 output $secondary
+#workspace 2 output $secondary
+#workspace 3 output $secondary
+#workspace 4 output $secondary
+#
+#workspace 5 output $primary
+#workspace 6 output $primary
+#workspace 7 output $primary
 
 # Configure default placement of apps
 
@@ -156,7 +160,7 @@ bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
 
-bindsym $mod+f exec $browser
+#bindsym $mod+f exec $browser
 bindsym $mod+p exec "pass test | xclip -selection clipboard"
 bindsym $mod+Shift+p exec "echo 'blah' | xclip -selection clipboard"
 
@@ -206,6 +210,7 @@ exec "autorandr --change"
 exec "brave-browser"
 exec "code"
 exec "obsidian"
+exec "slack"
 exec "i3-sensible-terminal"
 exec --no-startup-id nitrogen --restore
 exec --no-startup-id compton
