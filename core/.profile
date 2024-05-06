@@ -26,8 +26,6 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-# poetry
-export PATH="$HOME/.poetry/bin:$PATH"
 
 # vim as default editor
 export VISUAL=vim
