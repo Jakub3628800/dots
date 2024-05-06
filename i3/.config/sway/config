@@ -24,7 +24,7 @@ set $mod Mod4
 
 # set default apps
 set $browser "brave-browser"
-set $terminal "terminology"
+set $terminal "gnome-terminal"
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -229,8 +229,12 @@ bar {
 	position top
 }
 
+# or input <identifier>
+input "type:keyboard" {
+    xkb_options caps:escape
+}
+
 exec "unset DISPLAY"
 exec "brave-browser"
 exec "code"
 exec "obsidian"
-exec "i3-sensible-terminal"
