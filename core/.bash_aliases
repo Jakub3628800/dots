@@ -55,7 +55,6 @@ alias dc='docker compose'
 alias dkill='docker ps -q | xargs docker kill'
 
 # python
-alias python='python3'
 alias prec='pre-commit run'
 alias rr='ruff format'
 
