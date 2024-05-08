@@ -8,6 +8,8 @@
 
 
 setxkbmap -option caps:escape
+xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
+
 
 #if xinput list | grep -q "$keyboard1"; then
 #    echo "Setting layout to $keyboard1 keyboard"
