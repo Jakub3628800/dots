@@ -20,8 +20,10 @@ alias xcc='xclip -selection clipboard'
 lock() {
 	if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
 		swaylock --color 000000
-	else
+	elif [ "$XDG_SESSION_TYPE" = "x11" ]; then
 		i3lock --color 000000
+	else
+		echo "XDG_SESSION_TYPE not set"
 	fi
 }
 
@@ -47,7 +49,6 @@ ghpr() {
     	echo "Not running prchecker, pr create failed with exit code $exit_code"
 	fi
 }
-
 
 # docker
 alias d='docker'
