@@ -7,6 +7,7 @@
 #keyboard4="Kinesis Freestyle Edge keyboard"
 
 
+echo "setting keyboard"
 setxkbmap -option caps:escape
 xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
 

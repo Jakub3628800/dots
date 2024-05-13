@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "restoring workspaces"
 OUTPUTS=('DP-1' 'HDMI-1' 'DVI-I-1-1' 'DVI-I-2-2')
 
 for output in "${OUTPUTS[@]}"; do
