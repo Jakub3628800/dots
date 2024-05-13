@@ -54,6 +54,16 @@ bindsym $mod+c kill
 # start dmenu (a program launcher)
 bindsym $mod+d exec dmenu_run -m 1
 
+
+# start bookmark dmenu
+bindsym $mod+o exec xdotool type $(grep -v "^#" ~/.local/share/snippets/bookmarks | dmenu -i -l 50 | cut -d " " -f 1)
+
+# start passwords dmenu
+bindsym $mod+p exec xdotool type $(pass $(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | cut -d " " -f 1))
+
+
+
+
 # change focus
 bindsym $mod+h focus left
 bindsym $mod+j focus down
@@ -161,8 +171,6 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 
 
 #bindsym $mod+f exec $browser
-bindsym $mod+p exec "pass test | xclip -selection clipboard"
-bindsym $mod+Shift+p exec "echo 'blah' | xclip -selection clipboard"
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
