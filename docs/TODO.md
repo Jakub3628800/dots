@@ -3,8 +3,8 @@
 
 - set up for nvim with nvchad (alias vim)
 - tmux (with vim navigator)
-- start using wayland (sway)
+- btc script with mouse
 
-- setup keybinding for switch language
-- try spacedrive
-- replace i3lock with slock (probably not relevant on wayland)
+# wayland
+- screenshot
+- restore_workspaces
