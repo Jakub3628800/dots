@@ -23,6 +23,7 @@ sudo apt-get install -y \
     htop \
     pass \
     expect \
+    xdotool \
     tig \
     wdisplays \
     swaylock \
