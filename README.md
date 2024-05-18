@@ -1,10 +1,10 @@
 # Dots
 
-Collection of dotfiles and scripts I use on my machines for development. I3, vim, zsh, xinit keyboard layout, etc.
+Collection of dotfiles and scripts I use for development.
 
 # Installation
 
-Dotfiles are managed with GNU Stow. To install them, run:
+Dotfiles are managed with GNU Stow. They are installed with:
 
 ```bash
 ./init_links.sh

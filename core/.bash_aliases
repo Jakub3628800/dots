@@ -20,10 +20,8 @@ alias xcc='xclip -selection clipboard'
 lock() {
 	if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
 		swaylock --color 000000
-	elif [ "$XDG_SESSION_TYPE" = "x11" ]; then
-		i3lock --color 000000
 	else
-		echo "XDG_SESSION_TYPE not set"
+		i3lock --color 000000
 	fi
 }
 
