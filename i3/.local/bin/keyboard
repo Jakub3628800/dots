@@ -1,30 +1,8 @@
 #!/bin/bash
-# Detects which keyboard is connected and sets the layout accordingly
-
-#keyboard1="Kingston HyperX Alloy Origins Core"
-#keyboard2="SONiX USB DEVICE"
-#keyboard3="USB-HID Keyboard"
-#keyboard4="Kinesis Freestyle Edge keyboard"
-
 
 echo "setting keyboard"
-setxkbmap -option caps:escape
-xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
-
-
-#if xinput list | grep -q "$keyboard1"; then
-#    echo "Setting layout to $keyboard1 keyboard"
-#    setxkbmap -option caps:escape
-#
-#elif xinput list | grep -q "$keyboard2"; then
-#    echo "Setting layout to $keyboard2 keyboard"
-#    setxkbmap -option caps:escape
-#
-#elif xinput list | grep -q "$keyboard3"; then
-#    echo "Setting layout to $keyboard3 keyboard"
-#    xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
-#
-#else
-#    echo "No supported keyboard found, setting layout to laptop keyboard"
-#    setxkbmap -option caps:escape
-#fi
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+    xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
+else
+    setxkbmap -option caps:escape
+fi
