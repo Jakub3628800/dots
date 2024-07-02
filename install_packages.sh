@@ -28,7 +28,12 @@ sudo apt-get install -y \
     wdisplays \
     swaylock \
     py3status \
-    sqlite3
+    sqlite3 \
+    i3 \
+    sway \
+    i3lock \
+    pass \
+    pass-extension-otp
 
 # Docker
 sudo apt-get install -y \

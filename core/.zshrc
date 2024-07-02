@@ -11,6 +11,8 @@ export ZSH="$HOME/.oh-my-zsh"
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 export ZSH_THEME="kennethreitz"
 
+
+eval "$(direnv hook zsh)"
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in $ZSH/themes/
@@ -28,7 +30,7 @@ export ZSH_THEME="kennethreitz"
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
 zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-zstyle :omz:plugins:ssh-agent lazy no
+zstyle :omz:plugins:ssh-agent lazy yes
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
@@ -75,7 +77,7 @@ zstyle :omz:plugins:ssh-agent lazy no
 # plugins=(git)
 
 # shellcheck disable=SC2034,SC3030
-plugins=(ssh-agent git direnv)
+plugins=(ssh-agent git)
 . $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -103,6 +105,10 @@ plugins=(ssh-agent git direnv)
 # Example aliases
 # shellcheck source=/home/jk/.bash_aliases
 . ~/.bash_aliases
+
+# shellcheck source=/home/jk/.bash_aliases_local
+. ~/.bash_aliases_local
+
 # shellcheck source=/home/jk/.profile
 . ~/.profile
 # alias zshconfig="mate ~/.zshrc"

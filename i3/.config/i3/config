@@ -59,7 +59,7 @@ bindsym $mod+d exec dmenu_run -m 1
 bindsym $mod+o exec xdotool type $(grep -v "^#" ~/.local/share/snippets/bookmarks | dmenu -i -l 50 | cut -d " " -f 1)
 
 # start passwords dmenu
-bindsym $mod+p exec xdotool type $(pass $(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | cut -d " " -f 1))
+bindsym $mod+p exec xdotool type $(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | xargs -n 2 pass)
 
 
 
