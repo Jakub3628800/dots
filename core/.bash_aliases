@@ -42,7 +42,7 @@ ghpr() {
 
 	if [ $exit_code -eq 0 ]; then
     	echo "Firing up the PR checker in the background..."
-    	~/.local/bin/prchecker.py &
+    	~/.local/bin/action_checker.py &
 	else
     	echo "Not running prchecker, pr create failed with exit code $exit_code"
 	fi
