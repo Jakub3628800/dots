@@ -11,14 +11,19 @@
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 #
 #export ZSH_THEME="kennethreitz"
+. $HOME/.bash_aliases
+. $HOME/.profile
+if [ -f "$HOME/.bash_aliases_local" ]; then
+    . $HOME/.bash_aliases_local
+fi
 
 . $HOME/.zshlib/git.sh
-
-. $HOME/.zshlib/plugins/git.plugin.zsh
 . $HOME/.zshlib/plugins/virtualenv.plugin.zsh
-. $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
-
 . $HOME/.zshlib/themes/agnoster.zsh-theme
+
+if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
+  . $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
+fi
 
 
 
@@ -113,13 +118,6 @@ eval "$(direnv hook zsh)"
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
 #
-# Example aliases
-. $HOME/.bash_aliases
-. $HOME/.profile
-if [ -f "$HOME/.bash_aliases_local" ]; then
-    . $HOME/.bash_aliases_local
-fi
-
 
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
