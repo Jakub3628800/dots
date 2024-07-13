@@ -2,6 +2,7 @@
 sudo apt-get install -y \
     zsh \
     stow \
+    neofetch \
     direnv \
     vim \
     flameshot \
