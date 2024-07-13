@@ -1,5 +1,8 @@
 #!/bin/bash
 sudo apt-get install -y \
+    zsh \
+    stow \
+    direnv \
     vim \
     flameshot \
     slack \

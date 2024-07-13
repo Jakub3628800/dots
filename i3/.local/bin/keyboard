@@ -4,4 +4,3 @@ echo "setting keyboard"
 if [ "$XDG_SESSION_TYPE" = "x11" ]; then
     xmodmap -e "clear Lock" -e "keycode 66 = Caps_Lock" -e "keycode 49 = grave asciitilde" -e "keycode 9 = Escape"
 fi
-setxkbmap -option caps:escape

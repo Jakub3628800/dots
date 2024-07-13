@@ -3,13 +3,24 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+#export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-export ZSH_THEME="kennethreitz"
+#
+#export ZSH_THEME="kennethreitz"
+
+. $HOME/.zshlib/git.sh
+
+. $HOME/.zshlib/plugins/git.plugin.zsh
+. $HOME/.zshlib/plugins/virtualenv.plugin.zsh
+. $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
+
+. $HOME/.zshlib/themes/agnoster.zsh-theme
+
+
 
 
 eval "$(direnv hook zsh)"
@@ -29,8 +40,8 @@ eval "$(direnv hook zsh)"
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
-zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-zstyle :omz:plugins:ssh-agent lazy no
+#zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+#zstyle :omz:plugins:ssh-agent lazy no
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
@@ -77,8 +88,8 @@ zstyle :omz:plugins:ssh-agent lazy no
 # plugins=(git)
 
 # shellcheck disable=SC2034,SC3030
-plugins=(ssh-agent git)
-. $ZSH/oh-my-zsh.sh
+#plugins=(ssh-agent git)
+#. $ZSH/oh-my-zsh.sh
 
 # User configuration
 
@@ -103,14 +114,13 @@ plugins=(ssh-agent git)
 # For a full list of active aliases, run `alias`.
 #
 # Example aliases
-# shellcheck source=/home/jk/.bash_aliases
-. ~/.bash_aliases
+. $HOME/.bash_aliases
+. $HOME/.profile
+if [ -f "$HOME/.bash_aliases_local" ]; then
+    . $HOME/.bash_aliases_local
+fi
 
-# shellcheck source=/home/jk/.bash_aliases_local
-. ~/.bash_aliases_local
 
-# shellcheck source=/home/jk/.profile
-. ~/.profile
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 export HISTFILESIZE=1000000000
