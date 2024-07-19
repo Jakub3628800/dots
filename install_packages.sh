@@ -1,6 +1,7 @@
 #!/bin/bash
 sudo apt-get install -y \
     zsh \
+    exa \
     stow \
     neofetch \
     direnv \
