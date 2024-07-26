@@ -9,7 +9,7 @@ include ~/.config/i3/`hostname | md5sum | cut -d " " -f 1`.conf
 
 
 #set $primary "eDP-1"
-#set $secondary "HDMI-1"
+#set $secondary "DP-1"
 # browser
 #set $browser "brave-browser"
 
@@ -52,7 +52,7 @@ bindsym $mod+Return exec wezterm
 bindsym $mod+c kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -m 1
+bindsym $mod+d exec dmenu_run
 
 
 # start bookmark dmenu
@@ -210,18 +210,17 @@ bindsym $mod+r mode "resize"
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-    status_command py3status
+    status_command i3status
 	position top
 	workspace_buttons yes
 }
 
 exec "autorandr --change"
-exec "brave-browser"
-exec "code"
-exec "obsidian"
-exec "slack"
-exec "wezterm"
-exec --no-startup-id nitrogen --restore
-exec --no-startup-id compton
-exec xcompmgr -c -f -n
-exec "redlight"
+## exec "brave-browser"
+## exec "code"
+## exec "obsidian"
+## exec "slack"
+## exec "wezterm"
+## exec --no-startup-id nitrogen --restore
+## exec --no-startup-id compton
+## exec xcompmgr -c -f -n
