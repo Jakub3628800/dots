@@ -35,8 +35,8 @@ export EDITOR="$VISUAL"
 # virtualenvwrapper
 # https://bitbucket.org/virtualenvwrapper/virtualenvwrapper/src/master/docs/source/install.rst?mode=view
 export WORKON_HOME="~/repos/.virtualenvs"
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-source /usr/local/bin/virtualenvwrapper.sh
+#export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+#source /usr/local/bin/virtualenvwrapper.sh
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/home/jk/go/bin
 export HISTFILE=$HOME/.history/.bash_history
