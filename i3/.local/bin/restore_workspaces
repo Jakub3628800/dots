@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "restoring workspaces"
-OUTPUTS=('DP-1' 'HDMI-1' 'DVI-I-1-1' 'DVI-I-2-2', 'DP-3')
+OUTPUTS=('DP-1' 'HDMI-1' 'DVI-I-1-1' 'DVI-I-2-2' 'DP-3')
 
 for output in "${OUTPUTS[@]}"; do
     i3-msg '[workspace="1"]' move workspace to output "$output" > /dev/null 2>&1
