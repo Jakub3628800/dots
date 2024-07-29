@@ -142,6 +142,7 @@ set $ws10 "10"
 assign [class="Code"] number 1
 assign [class="Brave"] number 2
 assign [class="chrome"] number 2
+assign [class="Chromium"] number 2
 assign [class="Slack"] number 3
 assign [class="obsidian"] number 3
 assign [class="Spotify"] number 6
@@ -217,10 +218,11 @@ bar {
 
 exec "autorandr --change"
 ## exec "brave-browser"
-## exec "code"
+exec "code"
 ## exec "obsidian"
 ## exec "slack"
-## exec "wezterm"
+exec "wezterm"
+exec "keyboard"
 ## exec --no-startup-id nitrogen --restore
 ## exec --no-startup-id compton
 ## exec xcompmgr -c -f -n

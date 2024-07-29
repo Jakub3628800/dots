@@ -5,6 +5,7 @@ sudo apt-get install -y \
     stow \
     neofetch \
     direnv \
+	neovim \
     vim \
     flameshot \
     slack \

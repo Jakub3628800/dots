@@ -59,3 +59,5 @@ alias rr='ruff format'
 
 # keyboard
 alias k='keyboard'
+
+alias wget='wget --no-hsts'
