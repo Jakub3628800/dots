@@ -2,6 +2,7 @@
 sudo apt-get install -y \
     zsh \
     eza \
+	batcat \
     stow \
     neofetch \
     direnv \
