@@ -14,6 +14,8 @@ sudo apt-get install -y \
     xclip \
     python3-virtualenv \
     vlc \
+	xcompmgr \
+	nitrogen \
     curl \
     nitrogen \
     postgresql-client-common \
