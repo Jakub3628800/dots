@@ -7,6 +7,7 @@ set diff-view = line-number:display=false text:commit-title-overflow=true
 set diff-options = --pretty=short
 set vertical-split = false
 set git-colors = no
+set history-size = 0
 set truncation-delimiter  = ~   # Character drawn for truncations, or "utf-8"
 
 # General colors

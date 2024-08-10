@@ -20,6 +20,9 @@ set $mod Mod4
 # is used in the bar {} block below.
 font pango:monospace 12
 
+# Set gaps between window
+gaps inner 10
+
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
 #font pango:DejaVu Sans Mono 8
@@ -75,6 +78,9 @@ bindsym $mod+Left focus left
 bindsym $mod+Down focus down
 bindsym $mod+Up focus up
 bindsym $mod+Right focus right
+
+bindsym $mod+Tab focus next
+
 
 # move focused window
 bindsym $mod+Shift+h move left
@@ -146,6 +152,11 @@ assign [class="Chromium"] number 2
 assign [class="Slack"] number 3
 assign [class="obsidian"] number 3
 assign [class="Spotify"] number 6
+
+# Special size of vscode + terminal in workspace 1
+for_window [workspace="1"] layout splitv
+for_window [workspace="1" class="Code"] resize set 100 ppt 70 ppt
+for_window [workspace="1" class="org.wezfurlong.wezterm"] resize set 100 ppt 30 ppt
 
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
@@ -221,8 +232,8 @@ exec "autorandr --change"
 exec "code"
 ## exec "obsidian"
 ## exec "slack"
+
 exec "wezterm"
 exec "keyboard"
-## exec --no-startup-id nitrogen --restore
-## exec --no-startup-id compton
-## exec xcompmgr -c -f -n
+exec --no-startup-id nitrogen --restore
+exec xcompmgr -c -f -n
