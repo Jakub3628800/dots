@@ -21,7 +21,7 @@ set $mod Mod4
 font pango:monospace 12
 
 # Set gaps between window
-gaps inner 10
+# gaps inner 10
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
@@ -73,6 +73,9 @@ bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
 bindsym $mod+l focus right
+
+bindsym Mod1+Ctrl+j focus down
+bindsym Mod1+Ctrl+k focus up
 
 bindsym $mod+Left focus left
 bindsym $mod+Down focus down
@@ -235,5 +238,5 @@ exec "code"
 
 exec "wezterm"
 exec "keyboard"
-exec --no-startup-id nitrogen --restore
-exec xcompmgr -c -f -n
+#exec --no-startup-id "nitrogen --restore"
+#exec --no-startup-id "xcompmgr -c -f -n"
