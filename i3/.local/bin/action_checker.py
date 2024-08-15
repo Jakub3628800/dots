@@ -50,7 +50,9 @@ def pr_checker() -> List[Check]:
 
         except json.decoder.JSONDecodeError:
             time.sleep(1)
-        raise SystemExit(1, "Cannot parse gh pr checks output")
+            continue
+
+    raise SystemExit(1, "Cannot parse gh pr checks output")
 
 
 
