@@ -12,6 +12,8 @@ alias cd.="cd .."
 alias ..='cd ..'
 alias ...='cd ../..'
 
+alias cdg='cd "$(git rev-parse --show-toplevel)"'
+
 
 # clipboard with xclip
 alias xcc='xclip -selection clipboard'
