@@ -6,12 +6,13 @@ Collection of dotfiles and scripts I use for development.
 
 Dotfiles are managed with GNU Stow. They are installed with:
 
-```bash
-./init_links.sh
+```sh
+stow --target=$HOME core
+stow --target=$HOME i3
 ```
 
 To install packages, run:
 
-```bash
-./install_packages.sh
+```sh
+sh install_packages.sh
 ```
