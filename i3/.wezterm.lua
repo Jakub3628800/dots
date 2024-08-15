@@ -43,6 +43,8 @@ config.keys = {
     mods = 'CTRL',
     action = wezterm.action.CopyTo 'ClipboardAndPrimarySelection',
   },
+  { key = 'k', mods = 'ALT', action = act.ScrollByPage(-1) },
+  { key = 'j', mods = 'ALT', action = act.ScrollByPage(1) },
 }
 
 for i = 1, 8 do
