@@ -37,12 +37,14 @@ def dt_diff(dt1: str, dt2: str) -> str:
 
 def pr_checker() -> List[Check]:
     """Returns list of PR checks."""
-    output = subprocess.getoutput(
-        ["gh pr checks --json=name,state,link,startedAt,completedAt"]
-    )
+
     for _ in range(0, 10):
         try:
-            output = json.loads(output)
+            output = json.loads(
+                subprocess.getoutput(
+                    ["gh pr checks --json=name,state,link,startedAt,completedAt"]
+                )
+            )
             return [
                 {
                     "name": c["name"],
