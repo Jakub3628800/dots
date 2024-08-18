@@ -44,3 +44,6 @@ export PATH=$PATH:/home/jk/go/bin
 export HISTFILE=$HOME/.cache/.bash_history
 export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 export LESSHISTFILE=$HOME/.cache/.lesshst
+
+# Cache files
+export RUFF_CACHE_DIR=$HOME"/.cache/ruff"
