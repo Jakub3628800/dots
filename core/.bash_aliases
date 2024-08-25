@@ -4,9 +4,6 @@
 command -v exa &> /dev/null && alias ls="exa  -a --icons"
 alias ll="ls -lh"
 
-# Better cat, if bat is installed
-command -v batcat &> /dev/null && alias cat="batcat"
-
 alias cd..="cd .."
 alias cd.="cd .."
 alias ..='cd ..'
