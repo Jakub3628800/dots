@@ -31,10 +31,17 @@ config.keys = {
   { key = 'Enter', mods = 'ALT', action = act.SpawnTab 'DefaultDomain' },
   { key = 'c', mods = 'ALT', action = wezterm.action.CloseCurrentTab{ confirm = true },},
 
+  -- Navigate tabs
   { key = 'h', mods = 'ALT', action = act.ActivateTabRelative(-1) },
   { key = 'LeftArrow', mods = 'ALT', action = act.ActivateTabRelative(-1) },
   { key = 'l', mods = 'ALT', action = act.ActivateTabRelative(1) },
   { key = 'RightArrow', mods = 'ALT', action = act.ActivateTabRelative(1) },
+
+  -- Move tab position
+  { key = 'h', mods = 'ALT|CTRL', action = act.MoveTabRelative(-1) },
+  { key = 'LeftArrow', mods = 'ALT|CTRL', action = act.MoveTabRelative(-1) },
+  { key = 'l', mods = 'ALT|CTRL', action = act.MoveTabRelative(1) },
+  { key = 'RightArrow', mods = 'ALT|CTRL', action = act.MoveTabRelative(1) },
 
   { key = '=', mods = 'CTRL', action = wezterm.action.IncreaseFontSize },
   { key = '-', mods = 'CTRL', action = wezterm.action.DecreaseFontSize },
