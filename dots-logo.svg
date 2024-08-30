@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200" version="1.1">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#282828;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3c3836;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect x="10" y="10" width="380" height="180" rx="20" ry="20" fill="url(#bg-gradient)" />
+
+  <line x1="30" y1="40" x2="370" y2="40" stroke="#8ec07c" stroke-width="6" stroke-linecap="round" />
+  <line x1="30" y1="65" x2="280" y2="65" stroke="#d65d0e" stroke-width="6" stroke-linecap="round" />
+
+  <text x="155" y="130" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#a89984" text-anchor="middle">dots</text>
+  <text x="320" y="110" font-family="Consolas, monospace" font-size="80" font-weight="bold" fill="#d65d0e" text-anchor="middle" dominant-baseline="middle">~/</text>
+</svg>
