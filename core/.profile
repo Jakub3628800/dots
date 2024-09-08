@@ -28,7 +28,7 @@ fi
 
 
 # vim as default editor
-export VISUAL=vim
+export VISUAL=nvim
 export EDITOR="$VISUAL"
 
 
