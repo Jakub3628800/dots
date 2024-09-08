@@ -2,16 +2,16 @@
 sudo apt-get install -y \
     zsh \
     eza \
-	bat \
-    stow \
+    bat \
     vim \
     xclip \
-	xcompmgr \
-	nitrogen \
     python3-virtualenv \
+    tig \
+    gh \
+    xcompmgr \
+    nitrogen \
     zsh \
     xdotool \
-    tig \
     pass \
     pass-extension-otp \
     i3 \
@@ -19,7 +19,7 @@ sudo apt-get install -y \
     i3lock \
     redshift \
     swaylock \
-    gh
+    stow
 
 SYSTEM_VIRTUALENV=$HOME/.local/bin/system_environment
 echo "Installing pip packages in $SYSTEM_VIRTUALENV"

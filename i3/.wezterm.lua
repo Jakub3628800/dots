@@ -25,6 +25,8 @@ local wezterm = require 'wezterm'
 local act = wezterm.action
 
 config.keys = {
+  { key = 'y', mods = 'CTRL|SHIFT', action = wezterm.action.ActivateCopyMode },
+
   { key = 'V', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
   { key = 'V', mods = 'CTRL', action = act.PasteFrom 'PrimarySelection' },
 
