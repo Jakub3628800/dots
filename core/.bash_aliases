@@ -13,7 +13,7 @@ alias cdg='cd "$(git rev-parse --show-toplevel)"'
 
 
 # clipboard with xclip
-alias xcc='xclip -selection clipboard'
+alias xcc='xclip'
 
 # locking screen
 lock() {
