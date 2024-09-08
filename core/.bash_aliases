@@ -63,3 +63,7 @@ alias rr='ruff format'
 alias k='keyboard'
 
 alias wget='wget --no-hsts'
+
+# vim
+#
+alias vim='nvim'
