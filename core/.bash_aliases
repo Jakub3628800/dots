@@ -35,6 +35,8 @@ alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 
 alias ghmerge='gh pr merge --rebase --delete-branch'
 
+alias tg='tig'
+
 ghpr() {
 	gh pr create
 	exit_code=$?
