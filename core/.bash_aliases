@@ -59,6 +59,7 @@ alias dkill='docker ps -q | xargs docker kill'
 
 # python
 alias prec='pre-commit run'
+alias preca='pre-commit run --all-files'
 alias rr='ruff format'
 
 # keyboard
