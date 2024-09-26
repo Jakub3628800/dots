@@ -62,7 +62,7 @@ bindsym $mod+d exec dmenu_run
 bindsym $mod+o exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/bookmarks | dmenu -i -l 50)"
 
 # start passwords dmenu
-bindsym $mod+p exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | xargs -n 2 pass)"
+bindsym $mod+p exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
 
 #bindsym $mod+n exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50n)"
 bindsym $mod+n exec xdotool type $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50 )")
