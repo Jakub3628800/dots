@@ -29,11 +29,19 @@ alias g='git'
 alias gs='git status'
 alias gc='git checkout'
 alias gl='git log'
-alias gb='git branch --sort=-committerdate'
 alias gtrash='git reset HEAD && git checkout -- .'
 alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
 
 alias ghmerge='gh pr merge --rebase --delete-branch'
+
+git-branch-switch() {
+  local branches branch
+  branches=$(git --no-pager branch -vv --sort=-committerdate) &&
+  branch=$(echo "$branches" | fzf +m) &&
+  git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
+}
+
+alias gb='git-branch-switch'
 
 alias tg='tig'
 
