@@ -44,7 +44,7 @@ git-branch-switch() {
 alias gb='git-branch-switch'
 
 alias tg='tig'
-alias nn='cd ~/Documents/notes && nvim .'
+alias nn='cd ~/Documents/notes && nvim In.md'
 
 ghpr() {
 	gh pr create
