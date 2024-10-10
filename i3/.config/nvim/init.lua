@@ -71,3 +71,28 @@ vim.api.nvim_set_keymap('n', '<C-CR>', ':Tabn<CR>', { noremap = true, silent = t
     local current_dir = vim.fn.fnamemodify(current_file, ':h')
     vim.cmd('edit ' .. vim.fn.fnameescape(current_dir))
 end, {})
+
+
+
+vim.api.nvim_create_user_command('Cc', function()
+    -- Get the current line
+    local line = vim.api.nvim_get_current_line()
+    
+    -- Check if the line contains a checkbox (checked or unchecked)
+    local new_line
+    if line:match('%[[ x]%]') then
+        -- Toggle the checkbox state
+        new_line = line:gsub('%[[ x]%]', function(match)
+            return match == '[ ]' and '[x]' or '[ ]'
+        end, 1)
+        
+        -- Get the current cursor position
+        local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+        
+        -- Replace the current line with the new line
+        vim.api.nvim_set_current_line(new_line)
+        
+        -- Set the cursor position to the same column
+        vim.api.nvim_win_set_cursor(0, {row, col})
+    end
+end, {})
