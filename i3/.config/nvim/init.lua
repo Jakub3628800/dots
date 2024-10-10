@@ -64,4 +64,10 @@ vim.api.nvim_create_user_command('Tabn', 'tabnew | Ex', {})
 
 -- Map Ctrl+Enter to the custom command
 vim.api.nvim_set_keymap('n', '<C-CR>', ':Tabn<CR>', { noremap = true, silent = true })
--- Add your preferred key mappings here
+
+-- Define a new command Exh
+ vim.api.nvim_create_user_command('Hh', function()
+    local current_file = vim.fn.expand('%:p')
+    local current_dir = vim.fn.fnamemodify(current_file, ':h')
+    vim.cmd('edit ' .. vim.fn.fnameescape(current_dir))
+end, {})
