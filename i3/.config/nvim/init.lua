@@ -58,4 +58,10 @@ vim.opt.termguicolors = true -- Enable 24-bit RGB color in the TUI
 
 -- Key mappings
 vim.g.mapleader = " "  -- Set leader key to space
+
+-- Define the custom command
+vim.api.nvim_create_user_command('Tabn', 'tabnew | Ex', {})
+
+-- Map Ctrl+Enter to the custom command
+vim.api.nvim_set_keymap('n', '<C-CR>', ':Tabn<CR>', { noremap = true, silent = true })
 -- Add your preferred key mappings here
