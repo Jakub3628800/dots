@@ -143,3 +143,18 @@ show_virtual_env() {
   fi
 }
 PS1='$(show_virtual_env) '$PS1
+
+fzf-history-widget() {
+  local selected num
+  setopt localoptions noglobsubst noposixbuiltins pipefail no_aliases 2> /dev/null
+  selected=( $(fc -rl 1 | fzf --tac --tiebreak=index --query="${LBUFFER}" +m) )
+  if [ -n "$selected" ]; then
+    num=$selected[1]
+    if [ -n "$num" ]; then
+      zle vi-fetch-history -n $num
+    fi
+  fi
+  zle reset-prompt
+}
+zle     -N   fzf-history-widget
+bindkey '^R' fzf-history-widget
