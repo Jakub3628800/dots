@@ -147,7 +147,7 @@ PS1='$(show_virtual_env) '$PS1
 fzf-history-widget() {
   local selected num
   setopt localoptions noglobsubst noposixbuiltins pipefail no_aliases 2> /dev/null
-  selected=( $(fc -rl 1 | fzf --tac --tiebreak=index --query="${LBUFFER}" +m) )
+  selected=( $(fc -rl 1 | fzf --tiebreak=index --query="${LBUFFER}" +m) )
   if [ -n "$selected" ]; then
     num=$selected[1]
     if [ -n "$num" ]; then
