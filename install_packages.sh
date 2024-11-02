@@ -28,7 +28,8 @@ $SYSTEM_VIRTUALENV/bin/pip install --upgrade autorandr==1.14.post1 \
                         pre-commit==3.6.0 \
                         ruff==0.4.1 \
                         virtualenvwrapper==6.1.0 \
-                        pip
+                        pip \
+                        uv
 
 # Also re-link files
 stow --target=$HOME core
