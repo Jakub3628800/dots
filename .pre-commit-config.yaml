@@ -40,3 +40,8 @@ repos:
       rev: v1.7.1
       hooks:
           - id: actionlint
+
+    - repo: https://github.com/JohnnyMorganz/StyLua
+      rev: v0.20.0
+      hooks:
+          - id: stylua
