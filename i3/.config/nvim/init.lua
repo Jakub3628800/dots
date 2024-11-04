@@ -109,7 +109,7 @@ vim.opt.shiftwidth = 2 -- Size of an indent
 vim.opt.softtabstop = 2 -- Number of spaces tabs count for in insert mode
 vim.opt.smartindent = true -- Insert indents automatically
 vim.opt.termguicolors = true -- Enable 24-bit RGB color in the TUI
-
+vim.keymap.set("n", "<Esc><Esc>", ":nohlsearch<CR>")
 -- Define the custom command
 vim.api.nvim_create_user_command("Tabn", "tabnew | Ex", {})
 
