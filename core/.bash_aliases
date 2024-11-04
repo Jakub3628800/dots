@@ -15,6 +15,14 @@ alias cdg='cd "$(git rev-parse --show-toplevel)"'
 # clipboard with xclip
 alias xcc='xclip'
 
+# retry alias for rr !!
+function rr() {
+    until eval "$1"; do
+        sleep 2
+    done
+}
+
+
 # locking screen
 lock() {
 	if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
@@ -69,7 +77,6 @@ alias dkill='docker ps -q | xargs docker kill'
 # python
 alias prec='pre-commit run'
 alias preca='pre-commit run --all-files'
-alias rr='ruff format'
 
 # keyboard
 alias k='keyboard'
