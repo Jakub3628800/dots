@@ -19,7 +19,8 @@ sudo apt-get install -y \
     i3lock \
     redshift \
     swaylock \
-    stow
+    stow \
+    ripgrep
 
 SYSTEM_VIRTUALENV=$HOME/.local/bin/system_environment
 echo "Installing pip packages in $SYSTEM_VIRTUALENV"
