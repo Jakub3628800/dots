@@ -94,10 +94,46 @@ require("lazy").setup({
 		-- or                              , branch = '0.1.x',
 		dependencies = { "nvim-lua/plenary.nvim" },
 	},
+	{
+		"williamboman/mason.nvim",
+	},
+	{
+		"williamboman/mason-lspconfig.nvim",
+	},
+	{
+		"neovim/nvim-lspconfig",
+	},
+})
+
+require("mason").setup()
+require("mason-lspconfig").setup({
+	ensure_installed = { "pyright" },
 })
 
 local builtin = require("telescope.builtin")
+
 vim.keymap.set("n", "<C-p>", builtin.find_files, { desc = "Telescope find files" })
+vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
+vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers, { desc = "Buffers" })
+vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc = "Help Tags" })
+vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
+
+local on_attach = function(_, bufnr)
+	vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, {})
+	vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, {})
+
+	vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
+	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, {})
+	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, {})
+	vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
+	vim.keymap.set("n", "gd", require("lspsaga.definition").preview_definition, {
+		buffer = bufnr,
+		desc = "Preview definition",
+	})
+end
+
+require("lspconfig").pyright.setup({})
+
 -- vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
 -- vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
 -- vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
