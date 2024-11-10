@@ -1,44 +1,27 @@
 <img src="dots-logo.svg" alt="logo" height="100">
 
-A collection of dotfiles and scripts for optimizing my development environment.
+Collection of dotfiles and scripts for my development environment.
 
-## What are dotfiles?
+- `core/`: minimal dotfiles usable on the server (shell + aliases and minimal vim config)
+- `i3/`: desktop environment with i3, nvim, wezterm etc.. (still not wayland)
 
-Dotfiles are configuration files for various programs, typically hidden in your home directory (hence the leading dot in their names). This repository contains my personal dotfiles.
 
-## Contents
+## Setting up dotfiles
 
-- `core/`: Core dotfiles (usable on the server)
-- `i3/`: Configuration for the i3 window manager and desktop environment.
-- `install_packages.sh`: Script to install necessary packages trough apt & pip
+Install apt packages:
+```bash
+make apt
+```
 
-## Installation
+Symlink dotfiles with stow:
+```
+make stow
+```
 
-### Prerequisites
+Install python dependencies:
 
-- [GNU Stow](https://www.gnu.org/software/stow/)
-- Git
+Since [PEP 668](https://peps.python.org/pep-0668/), debian and ubuntu package python dependencies in their apt repositories to be installable with `apt install python-<PACKAGE_NAME>`. I still want to install some tools from pypy, so I opt for managing the dependencies here in `uv.lock` and symlinking the tools I want to have globaly available in `i3/.local/bin`.
 
-### Setting up dotfiles
-
-1. Clone this repository:
-   ```sh
-   git clone https://github.com/yourusername/dots.git ~/.dots
-   cd ~/.dots
-   ```
-
-2. Use GNU Stow to symlink the dotfiles:
-   ```sh
-   stow --target=$HOME core
-   stow --target=$HOME i3
-   ```
-
-   This creates symlinks in your home directory, pointing to the files in this repository. GNU Stow may fail to create symlinks if the target files or directories already exist in your home directory, so you might need to manually move or delete conflicting files before running the stow commands.
-
-### Installing packages
-
-To install the required packages, run:
-
-```sh
-sh install_packages.sh
+```
+make python_packages
 ```
