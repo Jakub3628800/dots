@@ -17,83 +17,14 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Set up plugins
 require("lazy").setup({
-	{
-		"MeanderingProgrammer/render-markdown.nvim",
-		opts = {},
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter",
-			"echasnovski/mini.nvim", -- if you use the mini.nvim suite
-			-- 'echasnovski/mini.icons', -- if you use standalone mini plugins
-			-- 'nvim-tree/nvim-web-devicons', -- if you prefer nvim-web-devicons
-		},
-	},
-	{
-		"nvim-treesitter/nvim-treesitter",
-		build = ":TSUpdate",
-		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "markdown", "markdown_inline" },
-				auto_install = true,
-				highlight = { enable = true },
-			})
-		end,
-	},
-	-- Add Gruvbox theme
-	{
-		"ellisonleao/gruvbox.nvim",
-		priority = 1000, -- make sure to load this before all the other start plugins
-		config = function()
-			-- Load the colorscheme here
-			vim.o.background = "dark" -- or "light" for light mode
-			vim.cmd([[colorscheme gruvbox]])
-		end,
-	},
-	-- Add other plugins here as needed
-	{
-		"nvim-tree/nvim-tree.lua",
-		version = "*",
-		lazy = false,
-		dependencies = {
-			"nvim-tree/nvim-web-devicons",
-		},
-		config = function()
-			require("nvim-tree").setup({
-				tab = {
-					sync = {
-						open = true, -- Open tree when new tab is opened
-						close = true, -- Close tree when tab is closed
-						ignore = {}, -- List of buffers to ignore
-					},
-				},
-				on_attach = function(bufnr)
-					local api = require("nvim-tree.api")
-
-					api.config.mappings.default_on_attach(bufnr)
-
-					vim.keymap.set("n", "t", api.node.open.tab, { buffer = bufnr })
-				end,
-			})
-			vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>", { silent = true })
-			vim.keymap.set("n", "<leader>a", function()
-				local nvim_tree = require("nvim-tree.api")
-				local current_win = vim.api.nvim_get_current_win()
-				local current_buf = vim.api.nvim_win_get_buf(current_win)
-				local buf_name = vim.api.nvim_buf_get_name(current_buf)
-
-				if buf_name:match("NvimTree_") then
-					vim.cmd("wincmd p") -- Go to previous window
-				else
-					nvim_tree.tree.focus()
-				end
-			end, { silent = true })
-		end,
-	},
-	{
-		"nvim-telescope/telescope.nvim",
-		tag = "0.1.8",
-		-- or                              , branch = '0.1.x',
-		dependencies = { "nvim-lua/plenary.nvim" },
-	},
+	require("plugins.copilot"),
+	require("plugins.copilotchat"),
+	require("plugins.markdown"),
+	require("plugins.treesitter"),
+	require("plugins.gruvbox"),
+	require("plugins.nvim-tree"),
+	require("plugins.telescope"),
+	require("plugins.git-blame"),
 	{
 		"williamboman/mason.nvim",
 	},
@@ -111,6 +42,40 @@ require("mason-lspconfig").setup({
 })
 
 local builtin = require("telescope.builtin")
+-- require("telescope").setup({
+-- 	defaults = {
+-- 		file_ignore_patterns = {
+-- 			".git",
+-- 			".venv",
+-- 			"node_modules",
+-- 			"__pycache__",
+-- 			".mypy_cache",
+-- 			".pytest_cache",
+-- 			".ruff_cache",
+-- 		},
+-- 		hidden = true,
+-- 		mappings = {
+-- 			i = {
+-- 				["<C-j>"] = "move_selection_next",
+-- 				["<C-k>"] = "move_selection_previous",
+-- 				["<C-n>"] = false,
+-- 				["<C-p>"] = false,
+-- 			},
+-- 			n = {
+-- 				["<C-j>"] = "move_selection_next",
+-- 				["<C-k>"] = "move_selection_previous",
+-- 				["<C-n>"] = false,
+-- 				["<C-p>"] = false,
+-- 			},
+-- 		},
+-- 	},
+-- 	pickers = {
+-- 		find_files = {
+-- 			hidden = true,
+-- 			no_ignore = true,
+-- 		},
+-- 	},
+-- })
 
 vim.keymap.set("n", "<C-p>", builtin.find_files, { desc = "Telescope find files" })
 vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
