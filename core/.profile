@@ -47,3 +47,4 @@ export LESSHISTFILE=$HOME/.cache/.lesshst
 
 # Cache files
 export RUFF_CACHE_DIR=$HOME"/.cache/ruff"
+. "$HOME/.cargo/env"
