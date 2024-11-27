@@ -142,7 +142,7 @@ show_virtual_env() {
     echo "($(basename $VIRTUAL_ENV))"
   fi
 }
-PS1='$(show_virtual_env) '$PS1
+#PS1='$(show_virtual_env) '$PS1
 
 fzf-history-widget() {
   local selected num
