@@ -45,6 +45,8 @@ export HISTFILE=$HOME/.cache/.bash_history
 export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 export LESSHISTFILE=$HOME/.cache/.lesshst
 
+export TERMINAL=wezterm
+
 # Cache files
 export RUFF_CACHE_DIR=$HOME"/.cache/ruff"
 . "$HOME/.cargo/env"

@@ -84,20 +84,23 @@ vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc
 vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
 
 local on_attach = function(_, bufnr)
-	vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, {})
-	vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, {})
+	-- Function to open definition in new tab
+	local function goto_definition_in_tab()
+		vim.cmd("tab split") -- Open new tab
+		vim.lsp.buf.definition() -- Go to definition
+	end
 
-	vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
-	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, {})
-	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, {})
-	vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-	vim.keymap.set("n", "gd", require("lspsaga.definition").preview_definition, {
-		buffer = bufnr,
-		desc = "Preview definition",
-	})
+	vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
+	vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
+	vim.keymap.set("n", "gd", goto_definition_in_tab, { buffer = bufnr })
+	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr })
+	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, { buffer = bufnr })
+	vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
 end
 
-require("lspconfig").pyright.setup({})
+require("lspconfig").pyright.setup({
+	on_attach = on_attach,
+})
 
 -- vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
 -- vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
