@@ -92,8 +92,8 @@ local on_attach = function(_, bufnr)
 
 	vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
 	vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
-	vim.keymap.set("n", "gd", goto_definition_in_tab, { buffer = bufnr })
-	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr })
+	-- vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = bufnr })
+	vim.keymap.set("n", "gi", goto_definition_in_tab, { buffer = bufnr })
 	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, { buffer = bufnr })
 	vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
 end
