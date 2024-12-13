@@ -232,7 +232,7 @@ bar {
 
 exec "autorandr --change"
 ## exec "brave-browser"
-exec "code"
+## exec "code"
 ## exec "obsidian"
 ## exec "slack"
 
