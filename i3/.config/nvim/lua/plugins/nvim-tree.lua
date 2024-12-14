@@ -7,6 +7,9 @@ return {
 	},
 	config = function()
 		require("nvim-tree").setup({
+			git = {
+				ignore = false, -- This will show gitignored files
+			},
 			tab = {
 				sync = {
 					open = true, -- Open tree when new tab is opened
