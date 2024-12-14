@@ -13,6 +13,9 @@ export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 #
+zstyle ':omz:plugins:ssh-agent' lazy yes
+#plugins=(ssh-agent git)
+export SSH_ASKPASS_REQUIRE=force_cli
 . $ZSH/oh-my-zsh.sh
 
 . $HOME/.bash_aliases
@@ -25,9 +28,9 @@ fi
 . $HOME/.zshlib/plugins/virtualenv.plugin.zsh
 . $HOME/.zshlib/themes/agnoster.zsh-theme
 
-if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
-  . $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
-fi
+#if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
+#  . $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
+#fi
 
 
 
@@ -97,7 +100,6 @@ eval "$(direnv hook zsh)"
 # plugins=(git)
 
 # shellcheck disable=SC2034,SC3030
-#plugins=(ssh-agent git)
 
 # User configuration
 
