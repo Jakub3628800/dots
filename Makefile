@@ -7,7 +7,7 @@ HOME_DIR := $(shell echo $$HOME)
 VENV_PATH := $(HOME_DIR)/.local/bin/system_environment
 APT_PACKAGES := \
 	zsh \
-    	exa \
+    	eza \
     	bat \
     	vim \
     	xclip \
@@ -26,6 +26,7 @@ APT_PACKAGES := \
     	redshift \
     	swaylock \
     	stow \
+	tmux \
     	ripgrep
 
 .PHONY: install-uv
