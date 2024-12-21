@@ -1,5 +1,5 @@
 version = 1
-requires-python = "==3.12"
+requires-python = "==3.12.*"
 
 [[package]]
 name = "autorandr"
@@ -34,19 +34,15 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "autorandr" },
-    { name = "pip" },
     { name = "pre-commit" },
     { name = "ruff" },
-    { name = "virtualenvwrapper" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "autorandr", specifier = "==1.14.post1" },
-    { name = "pip" },
+    { name = "autorandr" },
     { name = "pre-commit" },
     { name = "ruff" },
-    { name = "virtualenvwrapper" },
 ]
 
 [[package]]
@@ -74,24 +70,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/43/16/fc88b08840de0e0a72a2f9d8c6bae36be573e475a6326ae854bcc549fc45/nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f", size = 47437 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9", size = 22314 },
-]
-
-[[package]]
-name = "pbr"
-version = "6.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b2/35/80cf8f6a4f34017a7fe28242dc45161a1baa55c41563c354d8147e8358b2/pbr-6.1.0.tar.gz", hash = "sha256:788183e382e3d1d7707db08978239965e8b9e4e5ed42669bf4758186734d5f24", size = 124032 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/44/6a65ecd630393d47ad3e7d5354768cb7f9a10b3a0eb2cd8c6f52b28211ee/pbr-6.1.0-py2.py3-none-any.whl", hash = "sha256:a776ae228892d8013649c0aeccbb3d5f99ee15e005a4cbb7e61d55a067b28a2a", size = 108529 },
-]
-
-[[package]]
-name = "pip"
-version = "24.3.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f4/b1/b422acd212ad7eedddaf7981eee6e5de085154ff726459cf2da7c5a184c1/pip-24.3.1.tar.gz", hash = "sha256:ebcb60557f2aefabc2e0f918751cd24ea0d56d8ec5445fe1807f1d2109660b99", size = 1931073 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/7d/500c9ad20238fcfcb4cb9243eede163594d7020ce87bd9610c9e02771876/pip-24.3.1-py3-none-any.whl", hash = "sha256:3790624780082365f47549d032f3770eeb2b1e8bd1f7b2e02dace1afa361b4ed", size = 1822182 },
 ]
 
 [[package]]
@@ -162,18 +140,6 @@ wheels = [
 ]
 
 [[package]]
-name = "stevedore"
-version = "5.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pbr" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/59/f8aefa21020054f553bf7e3b405caec7f8d1f432d9cb47e34aaa244d8d03/stevedore-5.3.0.tar.gz", hash = "sha256:9a64265f4060312828151c204efbe9b7a9852a0d9228756344dbc7e4023e375a", size = 513768 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/50/70762bdb23f6c2b746b90661f461d33c4913a22a46bb5265b10947e85ffb/stevedore-5.3.0-py3-none-any.whl", hash = "sha256:1efd34ca08f474dad08d9b19e934a22c68bb6fe416926479ba29e5013bcc8f78", size = 49661 },
-]
-
-[[package]]
 name = "virtualenv"
 version = "20.27.1"
 source = { registry = "https://pypi.org/simple" }
@@ -185,27 +151,4 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8c/b3/7b6a79c5c8cf6d90ea681310e169cf2db2884f4d583d16c6e1d5a75a4e04/virtualenv-20.27.1.tar.gz", hash = "sha256:142c6be10212543b32c6c45d3d3893dff89112cc588b7d0879ae5a1ec03a47ba", size = 6491145 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ae/92/78324ff89391e00c8f4cf6b8526c41c6ef36b4ea2d2c132250b1a6fc2b8d/virtualenv-20.27.1-py3-none-any.whl", hash = "sha256:f11f1b8a29525562925f745563bfd48b189450f61fb34c4f9cc79dd5aa32a1f4", size = 3117838 },
-]
-
-[[package]]
-name = "virtualenv-clone"
-version = "0.5.7"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/85/76/49120db3bb8de4073ac199a08dc7f11255af8968e1e14038aee95043fafa/virtualenv-clone-0.5.7.tar.gz", hash = "sha256:418ee935c36152f8f153c79824bb93eaf6f0f7984bae31d3f48f350b9183501a", size = 6454 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/21/ac/e07058dc5a6c1b97f751d24f20d4b0ec14d735d77f4a1f78c471d6d13a43/virtualenv_clone-0.5.7-py3-none-any.whl", hash = "sha256:44d5263bceed0bac3e1424d64f798095233b64def1c5689afa43dc3223caf5b0", size = 6624 },
-]
-
-[[package]]
-name = "virtualenvwrapper"
-version = "6.1.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "stevedore" },
-    { name = "virtualenv" },
-    { name = "virtualenv-clone" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/97/0b/1f6daec2e0bd25275953256f83f98fb337b78b9d03d44b7eb9619b72b046/virtualenvwrapper-6.1.1.tar.gz", hash = "sha256:112e7ea34a9a3ce90aaea54182f0d3afef4d1a913eeb75e98a263b4978cd73c6", size = 95964 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/f1/685762afaaed801bba9e8be0a6553811399badadb6f4b6a5149002608202/virtualenvwrapper-6.1.1-py3-none-any.whl", hash = "sha256:788352bf4fc10e244728ea08d094b5ddc39bdf913acc0474d2614020960260d3", size = 22999 },
 ]

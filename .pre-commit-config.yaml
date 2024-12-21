@@ -3,7 +3,7 @@ default_language_version:
     python: python3.12
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.6.0
+      rev: v0.8.4
       hooks:
           - id: ruff
             args: [--fix]
@@ -17,7 +17,7 @@ repos:
             args: ["--severity=warning", --exclude=SC3010]
 
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.6.0
+      rev: v5.0.0
       hooks:
           - id: check-yaml
           - id: debug-statements
@@ -37,11 +37,11 @@ repos:
             args: [--strict]
 
     - repo: https://github.com/rhysd/actionlint
-      rev: v1.7.1
+      rev: v1.7.4
       hooks:
           - id: actionlint
 
     - repo: https://github.com/JohnnyMorganz/StyLua
-      rev: v0.20.0
+      rev: v2.0.2
       hooks:
           - id: stylua

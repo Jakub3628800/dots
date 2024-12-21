@@ -32,11 +32,6 @@ export VISUAL=nvim
 export EDITOR="$VISUAL"
 
 
-# virtualenvwrapper
-# https://bitbucket.org/virtualenvwrapper/virtualenvwrapper/src/master/docs/source/install.rst?mode=view
-export WORKON_HOME="~/repos/.virtualenvs"
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-source /home/jk/.local/bin/system_environment/bin/virtualenvwrapper.sh
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/home/jk/go/bin
 
