@@ -49,7 +49,8 @@ git-branch-switch() {
   git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
 }
 
-alias gb='git-branch-switch'
+alias gb='git branch'
+alias gbb='git-branch-switch'
 
 alias tg='tig'
 
