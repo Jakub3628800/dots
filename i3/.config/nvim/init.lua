@@ -25,6 +25,7 @@ require("lazy").setup({
 	require("plugins.nvim-tree"),
 	require("plugins.telescope"),
 	require("plugins.gp"),
+	require("plugins.gp"),
 	require("plugins.git-blame"),
 	{
 		"williamboman/mason.nvim",
@@ -127,6 +128,14 @@ vim.api.nvim_create_user_command("Hh", function()
 	local current_dir = vim.fn.fnamemodify(current_file, ":h")
 	vim.cmd("edit " .. vim.fn.fnameescape(current_dir))
 end, {})
+
+-- vim.opt.clipboard = 'unnamedplus,unnamed'
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+	pattern = { "ssh-config" },
+	callback = function()
+		vim.bo.filetype = "sshconfig"
+	end,
+})
 
 vim.api.nvim_create_user_command("Cc", function()
 	-- Get the current line
