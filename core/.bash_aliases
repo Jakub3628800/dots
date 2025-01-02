@@ -86,3 +86,4 @@ alias wget='wget --no-hsts'
 # vim
 #
 alias vim='nvim'
+alias llm='nvim -c "GpChatNew"'

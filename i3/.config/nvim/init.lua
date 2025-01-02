@@ -24,6 +24,7 @@ require("lazy").setup({
 	require("plugins.gruvbox"),
 	require("plugins.nvim-tree"),
 	require("plugins.telescope"),
+	require("plugins.gp"),
 	require("plugins.git-blame"),
 	{
 		"williamboman/mason.nvim",
