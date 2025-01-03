@@ -139,6 +139,13 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 	end,
 })
 
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+	pattern = { "*.jenkinsfile" },
+	callback = function()
+		vim.bo.filetype = "groovy"
+	end,
+})
+
 vim.api.nvim_create_user_command("Cc", function()
 	-- Get the current line
 	local line = vim.api.nvim_get_current_line()
