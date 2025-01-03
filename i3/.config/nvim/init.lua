@@ -130,6 +130,8 @@ vim.api.nvim_create_user_command("Hh", function()
 end, {})
 
 -- vim.opt.clipboard = 'unnamedplus,unnamed'
+vim.keymap.set("v", "<space>y", '"*y', { noremap = true, silent = true })
+
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 	pattern = { "ssh-config" },
 	callback = function()
