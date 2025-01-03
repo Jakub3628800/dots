@@ -129,6 +129,7 @@ eval "$(direnv hook zsh)"
 export HISTFILESIZE=1000000000
 export HISTSIZE=1000000000
 export HISTFILE=~/.cache/.zsh_history
+export PATH="$PATH:/opt/nvim-linux64/bin"
 
 setopt HIST_FIND_NO_DUPS
 setopt share_history

@@ -25,3 +25,7 @@ Since [PEP 668](https://peps.python.org/pep-0668/), debian and ubuntu package py
 ```
 make python_packages
 ```
+
+
+# Installing nvim from pre-built release:
+https://github.com/neovim/neovim/blob/master/INSTALL.md#pre-built-archives-2
