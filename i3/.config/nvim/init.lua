@@ -129,8 +129,11 @@ vim.api.nvim_create_user_command("Hh", function()
 	vim.cmd("edit " .. vim.fn.fnameescape(current_dir))
 end, {})
 
--- vim.opt.clipboard = 'unnamedplus,unnamed'
-vim.keymap.set("v", "<space>y", '"*y', { noremap = true, silent = true })
+vim.opt.clipboard = "unnamedplus,unnamed"
+vim.keymap.set("v", "<space>y", function()
+	vim.cmd('normal! "+y')
+	vim.cmd('normal! "*y')
+end, { noremap = true, silent = true })
 
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 	pattern = { "ssh-config" },
