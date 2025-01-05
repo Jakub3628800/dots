@@ -27,7 +27,8 @@ APT_PACKAGES := \
     	swaylock \
     	stow \
 	tmux \
-    	ripgrep
+    	ripgrep \
+	picom
 
 .PHONY: install-uv
 install-uv:
