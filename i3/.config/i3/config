@@ -238,5 +238,6 @@ exec "autorandr --change"
 
 exec "wezterm"
 exec "keyboard"
-#exec --no-startup-id "nitrogen --restore"
+exec --no-startup-id nitrogen --restore
+exec --no-startup-id "picom -b"
 #exec --no-startup-id "xcompmgr -c -f -n"
