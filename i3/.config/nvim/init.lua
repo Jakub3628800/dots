@@ -197,3 +197,59 @@ vim.api.nvim_create_user_command("Cc", function()
 		vim.api.nvim_win_set_cursor(0, { row, col })
 	end
 end, {})
+
+-- Function to open current line on GitHub
+function OpenGithubLine()
+	-- Get the remote URL
+	local handle = io.popen("git remote get-url origin")
+	if not handle then
+		return
+	end
+	local remote = handle:read("*a")
+	handle:close()
+
+	-- Clean up the remote URL to get the base GitHub URL
+	-- Convert SSH URL to HTTPS if necessary
+	remote = remote:gsub("^git@github.com:", "https://github.com/")
+	remote = remote:gsub("%.git\n$", "")
+
+	-- Get current branch (falls back to master/main if not in a branch)
+	handle = io.popen("git rev-parse --abbrev-ref HEAD")
+	if not handle then
+		return
+	end
+	local branch = handle:read("*a"):gsub("\n$", "")
+	handle:close()
+
+	-- Get relative file path from git root
+	handle = io.popen("git rev-parse --show-toplevel")
+	if not handle then
+		return
+	end
+	local git_root = handle:read("*a"):gsub("\n$", "")
+	handle:close()
+
+	-- Get current file path relative to git root
+	local current_file = vim.fn.expand("%:p")
+	local relative_path = current_file:sub(#git_root + 2)
+
+	-- Get current line number
+	local line_num = vim.api.nvim_win_get_cursor(0)[1]
+
+	-- Construct the GitHub URL
+	local url = string.format("%s/blob/%s/%s#L%d", remote, branch, relative_path, line_num)
+
+	-- Open URL in default browser
+	local open_cmd
+	if vim.fn.has("unix") == 1 then
+		open_cmd = "xdg-open"
+	else
+		open_cmd = "start"
+	end
+
+	-- os.execute(open_cmd .. ' "' .. url .. '"')
+	os.execute(open_cmd .. ' "' .. url .. '" > /dev/null 2>&1')
+end
+
+-- Create command
+vim.api.nvim_create_user_command("GHline", OpenGithubLine, {})
