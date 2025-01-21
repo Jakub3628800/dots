@@ -28,6 +28,12 @@ require("lazy").setup({
 	require("plugins.avante"),
 	require("plugins.git-blame"),
 	{
+		"hrsh7th/nvim-cmp",
+	},
+	{
+		"hrsh7th/cmp-nvim-lsp",
+	},
+	{
 		"williamboman/mason.nvim",
 	},
 	{
@@ -99,9 +105,22 @@ local on_attach = function(_, bufnr)
 	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, { buffer = bufnr })
 	vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
 end
-
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
 require("lspconfig").pyright.setup({
 	on_attach = on_attach,
+	capabilities = capabilities,
+})
+require("cmp").setup({
+	mapping = {
+		["<C-Space>"] = require("cmp").mapping.complete(),
+		["<CR>"] = require("cmp").mapping.confirm({ select = true }),
+		["<Tab>"] = require("cmp").mapping.select_next_item(),
+		["<S-Tab>"] = require("cmp").mapping.select_prev_item(),
+	},
+	sources = {
+		{ name = "nvim_lsp" },
+		{ name = "buffer" },
+	},
 })
 
 -- vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
@@ -129,10 +148,17 @@ vim.api.nvim_create_user_command("Hh", function()
 	vim.cmd("edit " .. vim.fn.fnameescape(current_dir))
 end, {})
 
-vim.opt.clipboard = "unnamedplus,unnamed"
+-- vim.opt.clipboard = "unnamedplus,unnamed"
 vim.keymap.set("v", "<space>y", function()
+	-- Use vim.fn.getreg to store the original visual selection
+	local sel = vim.fn.getreg("v")
+
+	-- Yank to both registers
 	vim.cmd('normal! "+y')
 	vim.cmd('normal! "*y')
+
+	-- Optional: Restore the visual selection
+	vim.fn.setreg("v", sel)
 end, { noremap = true, silent = true })
 
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
