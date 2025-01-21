@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  echo "error: not in a git repository"
+  exit 1
+fi
+
+remote_url=$(git config --get remote.origin.url)
+if [ -z "$remote_url" ]; then
+  echo "error: no remote url found"
+  exit 1
+fi
+
+if [[ $remote_url == git@github.com:* ]]; then
+  repo_path=${remote_url#git@github.com:}
+  repo_path=${repo_path%.git}
+  web_url="https://github.com/$repo_path"
+elif [[ $remote_url == https://github.com/* ]]; then
+  web_url=${remote_url%.git}
+else
+  echo "error: not a github repository"
+  exit 1
+fi
+
+if command -v xdg-open > /dev/null; then
+  xdg-open "$web_url"
+elif command -v open > /dev/null; then
+  open "$web_url"
+else
+  echo "error: could not find a way to open the url"
+  exit 1
+fi
