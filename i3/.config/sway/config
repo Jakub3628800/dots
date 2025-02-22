@@ -10,10 +10,29 @@
 
 #output HDMI1-A-1 pos 0 0 res 1920x1080
 #utput eDP1 pos -1920 0 res 1920x1080
+output HDMI-A-1 {
+    resolution 3840x2160
+    scale 2
+    position 0,0
+    adaptive_sync on
+}
+#output DP-3 {
+#    resolution 3840x2160
+#    scale 2
+#}
 
-set $laptop <laptop_output_identifier>
-bindswitch --reload --locked lid:on output $laptop disable
-bindswitch --reload --locked lid:off output $laptop enable
+output eDP-1 {
+    resolution 1920x1080
+    scale 1
+    position -1920,0
+}
+
+#set $laptop <laptop_output_identifier>
+#bindswitch --reload --locked lid:on output $laptop disable
+#bindswitch --reload --locked lid:off output $laptop enable
+
+# suspend on lid closed
+bindswitch --reload --locked lid:on exec "systemctl suspend"
 
 set $primary "eDP-1"
 set $secondary "HDMI-A-1"
@@ -23,8 +42,8 @@ set $secondary "HDMI-A-1"
 set $mod Mod4
 
 # set default apps
-set $browser "brave-browser"
-set $terminal "gnome-terminal"
+set $browser "google-chrome"
+set $terminal "wezterm"
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -80,7 +99,7 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # Exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your wayland session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
 
 
@@ -166,8 +185,9 @@ workspace 7 output $primary
 assign [class="Code"] number 1
 assign [class="Brave"] number 2
 assign [class="chrome"] number 2
+assign [class="Chromium"] number 2
 assign [class="Slack"] number 3
-assign [class="obsidian"] number 3
+#assign [class="obsidian"] number 3
 assign [class="Spotify"] number 6
 
 # switch to workspace
@@ -224,19 +244,30 @@ bindsym $mod+r mode "resize"
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
-#bar {
-#    status_command waybar
-#	#position top
-#    #workspace_buttons yes
-#}
+bar {
+    status_command i3status
+    position top
+    workspace_buttons yes
+    swaybar_command swaybar
+}
 
 # or input <identifier>
 input "type:keyboard" {
-    xkb_options caps:escape
+    xkb_options "altwin:hyper_win,caps:escape"
 }
 
-exec "unset DISPLAY"
-exec "brave-browser"
-exec "code"
-exec "obsidian"
-exec_always waybar
+#exec "unset DISPLAY"
+exec $browser
+
+exec swaymsg 'workspace 1; exec wezterm start -- bash -c "cd ~/repos; zsh"'
+#exec swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos; zsh\"'
+exec swaymsg 'workspace 4; exec wezterm start -- bash -c "cd ~/repos/dots; zsh"'
+exec_always {
+
+  #swaymsg 'workspace 2; exec $browser'
+
+  #swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos/dots; zsh\"'
+}
+
+#exec_always {
+#}
