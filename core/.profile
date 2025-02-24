@@ -31,6 +31,9 @@ fi
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 
+# Electron apps on wayland
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+
 
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/home/jk/go/bin
