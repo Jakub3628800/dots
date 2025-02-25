@@ -67,3 +67,8 @@ Be consise and to the point. Do not hallucinate.
 Do not repeat that you are answering a concise prompt, be even shorter because character lenght is crutial
 When outputting a command that can be pasted in terminal, use code block
 "
+
+if [ "$XDG_SESSION_DESKTOP" = "sway" ]; then
+  export XDG_CURRENT_DESKTOP=sway
+  export GTK_USE_PORTAL=0
+fi
