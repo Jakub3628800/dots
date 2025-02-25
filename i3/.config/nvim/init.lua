@@ -148,6 +148,61 @@ vim.api.nvim_create_user_command("Hh", function()
 	vim.cmd("edit " .. vim.fn.fnameescape(current_dir))
 end, {})
 
+-- Yank code block content
+vim.keymap.set("n", "yy", function()
+	-- Find the current position
+	local cursor_pos = vim.api.nvim_win_get_cursor(0)
+	local current_line = cursor_pos[1]
+	local current_buffer = vim.api.nvim_get_current_buf()
+	local lines = vim.api.nvim_buf_get_lines(current_buffer, 0, -1, false)
+
+	-- Find the start of the code block (```)
+	local start_line = nil
+	for i = current_line, 1, -1 do
+		if lines[i] and lines[i]:match("^```") then
+			start_line = i
+			break
+		end
+	end
+
+	-- Find the end of the code block (```)
+	local end_line = nil
+	for i = current_line, #lines do
+		if lines[i] and lines[i]:match("^```") and i ~= start_line then
+			end_line = i
+			break
+		end
+	end
+
+	-- If we found a complete code block
+	if start_line and end_line then
+		-- Extract the code content (skip the first line with ```)
+		local code_content = table.concat(
+			vim.api.nvim_buf_get_lines(
+				current_buffer,
+				start_line, -- Start line (inclusive, 0-indexed)
+				end_line, -- End line (exclusive, 0-indexed)
+				false
+			),
+			"\n"
+		)
+
+		-- Remove the first line (language specifier)
+		code_content = code_content:gsub("^```.-\n", "")
+
+		-- Remove the last line (```)
+		code_content = code_content:gsub("\n```$", "")
+
+		-- Copy to system clipboard
+		vim.fn.setreg("+", code_content)
+
+		-- Provide feedback
+		vim.api.nvim_echo({ { "Code block copied to clipboard", "Normal" } }, true, {})
+	else
+		vim.api.nvim_echo({ { "No code block found", "ErrorMsg" } }, true, {})
+	end
+end, { noremap = true, silent = true, desc = "Yank code block content" })
+
 -- vim.opt.clipboard = "unnamedplus,unnamed"
 vim.keymap.set("v", "<space>y", function()
 	-- Use vim.fn.getreg to store the original visual selection
@@ -155,7 +210,6 @@ vim.keymap.set("v", "<space>y", function()
 
 	-- Yank to both registers
 	vim.cmd('normal! "+y')
-	vim.cmd('normal! "*y')
 
 	-- Optional: Restore the visual selection
 	vim.fn.setreg("v", sel)
