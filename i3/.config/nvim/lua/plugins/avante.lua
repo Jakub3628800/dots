@@ -4,6 +4,13 @@ return {
 	lazy = false,
 	version = false, -- set this if you want to always pull the latest change
 	opts = {
+		provider = "claude",
+		claude = {
+			endpoint = "https://api.anthropic.com",
+			model = "claude-3-7-sonnet-20250219",
+			temperature = 0,
+			max_tokens = 4096,
+		},
 		-- add any opts here
 	},
 	-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
