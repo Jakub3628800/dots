@@ -263,6 +263,8 @@ input "type:keyboard" {
     xkb_options "altwin:hyper_win,caps:escape"
 }
 
+exec "dbus-update-activation-environment --systemd --all "
+exec "dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway "
 #exec "unset DISPLAY"
 exec $browser
 
@@ -278,3 +280,12 @@ exec_always {
 
 #exec_always {
 #}
+# Clear inherited GNOME variables
+exec "systemctl --user unset-environment XDG_CURRENT_DESKTOP"
+
+# Force Sway environment
+exec "export XDG_CURRENT_DESKTOP=sway"
+exec "dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway"
+
+# Ensure portal starts AFTER environment setup
+exec "sleep 1 && systemctl --user restart xdg-desktop-portal"
