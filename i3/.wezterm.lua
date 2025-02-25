@@ -35,7 +35,6 @@ config.keys = {
 	{ key = "y", mods = "CTRL|SHIFT", action = wezterm.action.ActivateCopyMode },
 
 	{ key = "V", mods = "CTRL", action = act.PasteFrom("Clipboard") },
-	{ key = "V", mods = "CTRL", action = act.PasteFrom("PrimarySelection") },
 
 	{ key = "Enter", mods = "ALT", action = act.SpawnTab("DefaultDomain") },
 	{ key = "c", mods = "ALT", action = wezterm.action.CloseCurrentTab({ confirm = true }) },
@@ -93,6 +92,13 @@ config.mouse_bindings = {
 		event = { Up = { streak = 1, button = "Left" } },
 		mods = "CTRL",
 		action = act.OpenLinkAtMouseCursor,
+	},
+
+	-- Middle mouse button pastes from primary selection
+	{
+		event = { Down = { streak = 1, button = "Middle" } },
+		mods = "NONE",
+		action = act.PasteFrom("PrimarySelection"),
 	},
 	-- NOTE that binding only the 'Up' event can give unexpected behaviors.
 	-- Read more below on the gotcha of binding an 'Up' event only.
