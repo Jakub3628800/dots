@@ -43,11 +43,11 @@ return -- lazy.nvim
 			agents = {
 				{
 					provider = "anthropic",
-					name = "claudecustom",
+					name = "claude-3.7-sonnet-20250219",
 					chat = true,
 					command = true,
 					-- string with model name or table with model name and parameters
-					model = { model = "claude-3-5-sonnet-20240620", temperature = 0.8, top_p = 1 },
+					model = { model = "claude-3-7-sonnet-20250219", temperature = 0.8, top_p = 1 },
 					system_prompt = os.getenv("ANTHROPIC_SYSTEM_PROMPT"),
 				},
 			},
