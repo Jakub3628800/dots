@@ -14,7 +14,7 @@ export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 #
 zstyle ':omz:plugins:ssh-agent' lazy yes
-#plugins=(ssh-agent git)
+plugins=(ssh-agent git)
 export SSH_ASKPASS_REQUIRE=force_cli
 . $ZSH/oh-my-zsh.sh
 

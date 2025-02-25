@@ -21,6 +21,7 @@ APT_PACKAGES := \
     	pass-extension-otp \
     	i3 \
     	sway \
+	wtype \
     	i3lock \
     	redshift \
     	swaylock \

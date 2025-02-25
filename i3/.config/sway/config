@@ -86,6 +86,13 @@ bindsym $mod+c kill
 
 # start dmenu (a program launcher)
 bindsym $mod+d exec dmenu_run
+# start bookmark dmenu
+bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | dmenu -i -l 50)"
+# start passwords dmenu
+bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
+#bindsym $mod+n exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50n)"
+bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50 )")
+
 
 # Start a browser
 bindsym $mod+f exec $browser
