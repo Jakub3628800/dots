@@ -23,6 +23,7 @@ APT_PACKAGES := \
     	sway \
 	wtype \
 	mako-notifier \
+	gammastep \
     	i3lock \
     	redshift \
     	swaylock \
