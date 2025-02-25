@@ -272,6 +272,7 @@ exec swaymsg 'workspace 1; exec wezterm start -- bash -c "cd ~/repos; zsh"'
 #exec swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos; zsh\"'
 exec swaymsg 'workspace 4; exec wezterm start -- bash -c "cd ~/repos/dots; zsh"'
 exec_always {
+  mako
 
   #swaymsg 'workspace 2; exec $browser'
 
