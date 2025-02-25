@@ -27,6 +27,7 @@ APT_PACKAGES := \
     	redshift \
     	swaylock \
     	stow \
+	bemenu \
 	tmux \
     	ripgrep \
 	picom

@@ -13,7 +13,7 @@ export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 #
-zstyle ':omz:plugins:ssh-agent' lazy yes
+zstyle ':omz:plugins:ssh-agent' lazy no
 plugins=(ssh-agent git)
 export SSH_ASKPASS_REQUIRE=force_cli
 . $ZSH/oh-my-zsh.sh

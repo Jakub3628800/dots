@@ -85,13 +85,13 @@ bindsym $mod+Return exec $terminal
 bindsym $mod+c kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run
+bindsym $mod+d exec bemenu-run
 # start bookmark dmenu
-bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | dmenu -i -l 50)"
+bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | bemenu -i -l 50)"
 # start passwords dmenu
-bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | dmenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
+bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | bemenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
 #bindsym $mod+n exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50n)"
-bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50 )")
+bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
 
 
 # Start a browser
