@@ -13,7 +13,7 @@ alias cdg='cd "$(git rev-parse --show-toplevel)"'
 
 
 # clipboard with xclip
-alias xcc='xclip'
+alias xcc='wl-copy'
 
 # retry alias for rr !!
 function rr() {
