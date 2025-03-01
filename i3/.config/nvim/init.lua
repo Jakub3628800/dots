@@ -149,7 +149,7 @@ vim.api.nvim_create_user_command("Hh", function()
 end, {})
 
 -- Yank code block content
-vim.keymap.set("n", "yy", function()
+vim.keymap.set("n", "<space>yc", function()
 	-- Find the current position
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 	local current_line = cursor_pos[1]
