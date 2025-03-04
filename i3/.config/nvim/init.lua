@@ -42,6 +42,12 @@ require("lazy").setup({
 	{
 		"neovim/nvim-lspconfig",
 	},
+	{
+		"lewis6991/gitsigns.nvim",
+		config = function()
+			require("gitsigns").setup()
+		end,
+	},
 })
 
 require("mason").setup()
