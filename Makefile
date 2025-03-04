@@ -28,10 +28,12 @@ APT_PACKAGES := \
     	redshift \
     	swaylock \
     	stow \
-	bemenu \
 	tmux \
     	ripgrep \
 	picom
+
+OPTIONAL_PACKAGES := \
+	bemenu
 
 .PHONY: install-uv
 install-uv:
@@ -50,6 +52,10 @@ python_packages: install-uv
 .PHONY: apt
 apt:
 	@sudo apt-get install -y $(APT_PACKAGES)
+	@for pkg in $(OPTIONAL_PACKAGES); do \
+		echo "Installing optional package $$pkg..."; \
+		sudo apt-get install -y $$pkg || echo "Warning: Could not install optional package $$pkg - continuing anyway"; \
+	done
 
 .PHONY: stow
 stow: apt
