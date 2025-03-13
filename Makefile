@@ -1,6 +1,6 @@
 # Default target
 .PHONY: all
-all: apt stow
+all: install-uv apt stow
 
 UV_EXISTS := $(shell command -v uv 2> /dev/null)
 HOME_DIR := $(shell echo $$HOME)
@@ -40,10 +40,12 @@ ifndef UV_EXISTS
 	@curl -LsSf https://astral.sh/uv/install.sh | sh
 else
 	@echo "uv is already installed"
+	@echo "Checking for uv update"
+	uv self update
 endif
 
-	.PHONY: apt
 
+.PHONY: apt
 apt:
 	@sudo apt-get install -y $(APT_PACKAGES)
 	@for pkg in $(OPTIONAL_PACKAGES); do \
