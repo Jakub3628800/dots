@@ -75,8 +75,8 @@ alias dc='docker compose'
 alias dkill='docker ps -q | xargs docker kill'
 
 # python
-alias prec='pre-commit run'
-alias preca='pre-commit run --all-files'
+alias prec='uvx pre-commit run'
+alias preca='uvx pre-commit run --all-files'
 
 # keyboard
 alias k='keyboard'
