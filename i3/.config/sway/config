@@ -263,23 +263,18 @@ input "type:keyboard" {
     xkb_options "altwin:hyper_win,caps:escape"
 }
 
-exec "dbus-update-activation-environment --systemd --all "
-exec "dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway "
-#exec "unset DISPLAY"
-exec $browser
+exec {
+  dbus-update-activation-environment --systemd --all
+  dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway
+  swaymsg 'workspace 1; exec wezterm start -- bash -c "cd ~/repos; zsh"'
+  swaymsg 'workspace 2; exec google-chrome'
+  swaymsg 'workspace 3; exec wezterm start -- bash -c "cd ~/repos/dots; zsh"'
+  swaymsg 'workspace 4; exec wezterm start'
+  swaymsg 'workspace 5; exec wezterm start'
 
-exec swaymsg 'workspace 1; exec wezterm start -- bash -c "cd ~/repos; zsh"'
-#exec swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos; zsh\"'
-exec swaymsg 'workspace 4; exec wezterm start -- bash -c "cd ~/repos/dots; zsh"'
-exec_always {
-  mako
-
-  #swaymsg 'workspace 2; exec $browser'
-
-  #swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos/dots; zsh\"'
 }
 
 exec_always {
   slack
+  mako
 }
-# Clear inherited GNOME variables
