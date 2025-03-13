@@ -85,7 +85,7 @@ bindsym $mod+Return exec $terminal
 bindsym $mod+c kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec bemenu-run
+bindsym $mod+d exec env PATH="$HOME/.local/bin:$PATH" bemenu-run
 # start bookmark dmenu
 bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | bemenu -i -l 50)"
 # start passwords dmenu
