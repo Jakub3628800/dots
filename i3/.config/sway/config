@@ -279,6 +279,7 @@ exec_always {
   #swaymsg 'workspace 4; exec wezterm start -- bash -c \"cd ~/repos/dots; zsh\"'
 }
 
-#exec_always {
-#}
+exec_always {
+  slack
+}
 # Clear inherited GNOME variables
