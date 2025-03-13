@@ -1,10 +1,9 @@
 # Default target
 .PHONY: all
-all: python_packages apt stow
+all: apt stow
 
 UV_EXISTS := $(shell command -v uv 2> /dev/null)
 HOME_DIR := $(shell echo $$HOME)
-VENV_PATH := $(HOME_DIR)/.local/bin/system_environment
 APT_PACKAGES := \
 	zsh \
     	bat \
@@ -43,13 +42,8 @@ else
 	@echo "uv is already installed"
 endif
 
-.PHONY: python_packages
-python_packages: install-uv
-	uv lock
-	ln -sf $(CURDIR)/.venv $(VENV_PATH)
-	uv sync
+	.PHONY: apt
 
-.PHONY: apt
 apt:
 	@sudo apt-get install -y $(APT_PACKAGES)
 	@for pkg in $(OPTIONAL_PACKAGES); do \
