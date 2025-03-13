@@ -3,6 +3,7 @@
 # Better ls, if exa is installed
 command -v exa &> /dev/null && alias ls="exa  -a --icons"
 alias ll="ls -lh"
+alias lwc="ls -la | wc -l"
 
 alias cd..="cd .."
 alias cd.="cd .."
@@ -89,3 +90,4 @@ alias vim='nvim'
 alias llm='nvim -c "GpChatNew"'
 alias nv='nvim .'
 alias nv.='nvim .'
+alias nano='nvim'
