@@ -72,3 +72,5 @@ if [ "$XDG_SESSION_DESKTOP" = "sway" ]; then
   export XDG_CURRENT_DESKTOP=sway
   export GTK_USE_PORTAL=0
 fi
+
+if [ -e /home/jk/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jk/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
