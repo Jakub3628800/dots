@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Better ls, if exa is installed
-command -v exa &> /dev/null && alias ls="exa  -a --icons"
+command -v eza &> /dev/null && alias ls="exa  -a --icons"
 alias ll="ls -lh"
 alias lwc="ls -la | wc -l"
 
