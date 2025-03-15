@@ -260,7 +260,7 @@ bar {
 
 # or input <identifier>
 input "type:keyboard" {
-    xkb_layout "us,cz"
+    xkb_layout "us,cz(qwerty)"
     xkb_options "grp:alt_shift_toggle,altwin:hyper_win,caps:escape"
 }
 
