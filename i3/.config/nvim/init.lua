@@ -27,6 +27,7 @@ require("lazy").setup({
 	require("plugins.gp"),
 	require("plugins.avante"),
 	require("plugins.git-blame"),
+	require("plugins.orgmode"),
 	{
 		"hrsh7th/nvim-cmp",
 	},
