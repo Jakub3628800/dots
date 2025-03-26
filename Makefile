@@ -1,6 +1,6 @@
 # Default target
 .PHONY: all
-all: install-uv apt stow
+all: install-uv apt install-stow stow install-nix nix-flake-install
 
 UV_EXISTS := $(shell command -v uv 2> /dev/null)
 HOME_DIR := $(shell echo $$HOME)
@@ -31,9 +31,6 @@ APT_PACKAGES := \
     	ripgrep \
 	picom
 
-OPTIONAL_PACKAGES := \
-	bemenu
-
 .PHONY: install-uv
 install-uv:
 ifndef UV_EXISTS
@@ -48,12 +45,36 @@ endif
 .PHONY: apt
 apt:
 	@sudo apt-get install -y $(APT_PACKAGES)
-	@for pkg in $(OPTIONAL_PACKAGES); do \
-		echo "Installing optional package $$pkg..."; \
-		sudo apt-get install -y $$pkg || echo "Warning: Could not install optional package $$pkg - continuing anyway"; \
-	done
+
+.PHONY: install-stow
+install-stow:
+	@if command -v stow >/dev/null 2>&1; then \
+		echo "Stow is already installed."; \
+	else \
+		echo "Installing Stow..."; \
+		sudo apt-get install -y stow; \
+	fi
 
 .PHONY: stow
-stow: apt
+stow: apt install-stow
 	@stow --target=$(HOME_DIR) core
 	@stow --target=$(HOME_DIR) i3
+
+.PHONY: install-nix
+install-nix:
+	@if command -v nix >/dev/null 2>&1; then \
+		echo "Nix is already installed."; \
+	else \
+		echo "Installing Nix..."; \
+		curl -L https://nixos.org/nix/install | sh -s -- ; \
+	fi
+
+.PHONY: nix-flake-install
+nix-flake-install:
+	@echo "Installing nix flake to profile..."
+	@nix profile install .
+
+.PHONY: nix-flake-remove
+nix-flake-remove:
+	@echo "Removing dots from nix profile..."
+	@nix profile remove dots
