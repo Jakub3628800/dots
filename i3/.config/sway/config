@@ -34,6 +34,7 @@ output eDP-1 {
 # suspend on lid closed
 bindswitch --reload --locked lid:on exec "systemctl suspend"
 
+
 set $primary "eDP-1"
 set $secondary "HDMI-A-1"
 
@@ -44,6 +45,7 @@ set $mod Mod4
 # set default apps
 set $browser "google-chrome"
 set $terminal "wezterm"
+
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -84,14 +86,17 @@ bindsym $mod+Return exec $terminal
 # kill focused window
 bindsym $mod+c kill
 
-# start dmenu (a program launcher)
-bindsym $mod+d exec env PATH="$HOME/.local/bin:$PATH" bemenu-run
+# bemenu can be installed with nix - adjust path so that it can be found
+set $extended_path "PATH=$PATH:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$HOME/.local/bin"
+
+bindsym $mod+d exec env $extended_path bemenu-run
 # start bookmark dmenu
-bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | bemenu -i -l 50)"
+bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | env $extended_path bemenu -i -l 50)"
 # start passwords dmenu
-bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | bemenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
-#bindsym $mod+n exec xdotool type "$(grep -v "^#" ~/.local/share/snippets/cmds | dmenu -i -l 50n)"
-bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
+bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | env $extended_path bemenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
+
+# commands not used now
+#bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
 
 
 # Start a browser
@@ -226,10 +231,10 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 mode "resize" {
         # These bindings trigger as soon as you enter the resize mode
 
-        # Pressing left will shrink the window’s width.
-        # Pressing right will grow the window’s width.
-        # Pressing up will shrink the window’s height.
-        # Pressing down will grow the window’s height.
+        # Pressing left will shrink the window's width.
+        # Pressing right will grow the window's width.
+        # Pressing up will shrink the window's height.
+        # Pressing down will grow the window's height.
         bindsym j resize shrink width 10 px or 10 ppt
         bindsym k resize grow height 10 px or 10 ppt
         bindsym l resize shrink height 10 px or 10 ppt
