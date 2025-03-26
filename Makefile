@@ -58,7 +58,7 @@ install-stow:
 .PHONY: stow
 stow: apt install-stow
 	@stow --target=$(HOME_DIR) core
-	@stow --target=$(HOME_DIR) i3
+	@stow --target=$(HOME_DIR) desktop-env
 
 .PHONY: install-nix
 install-nix:
@@ -73,6 +73,7 @@ install-nix:
 nix-flake-install:
 	@echo "Installing nix flake to profile..."
 	@nix profile install .
+	@nix flake update --flake .
 
 .PHONY: nix-flake-remove
 nix-flake-remove:
