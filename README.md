@@ -3,7 +3,7 @@
 Collection of dotfiles and scripts for my development environment.
 
 - `core/`: minimal dotfiles usable on the server (shell + aliases and minimal vim config)
-- `i3/`: desktop environment with i3, nvim, wezterm etc.. (still not wayland)
+- `desktop-env/`: desktop environment with i3, nvim, wezterm etc.. (still not wayland)
 
 
 ## Setting up dotfiles
