@@ -98,6 +98,9 @@ bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | en
 # commands not used now
 #bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
 
+# Record for as long as the key is pressed
+bindsym --no-repeat Mod4+u exec env $extended_path bash /home/jk/repos/gists/s2t/record.sh
+bindsym --release Mod4+u exec touch /home/jk/tmp/stop_recording
 
 # Start a browser
 bindsym $mod+f exec $browser
