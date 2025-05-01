@@ -1,0 +1,10 @@
+[Unit]
+Description=Gammastep display colour temperature adjustment
+Documentation=https://gitlab.com/chinstrap/gammastep/
+
+[Service]
+ExecStart=/usr/bin/gammastep
+Restart=always
+
+[Install]
+WantedBy=default.target
