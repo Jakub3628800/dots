@@ -20,6 +20,7 @@ APT_PACKAGES := \
     	pass-extension-otp \
     	i3 \
     	sway \
+		kanshi \
 	wtype \
 	mako-notifier \
 	gammastep \

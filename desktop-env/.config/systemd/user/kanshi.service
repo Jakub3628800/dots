@@ -1,6 +1,6 @@
 [Unit]
-Description=Gammastep display colour temperature adjustment
-Documentation=https://gitlab.com/chinstrap/gammastep/
+Description=Kanshi dynamic display configuration
+Documentation=man:kanshi(1)
 PartOf=graphical-session.target
 After=graphical-session.target
 
@@ -9,8 +9,10 @@ ConditionEnvironment=XDG_SESSION_TYPE=wayland
 ConditionEnvironment=XDG_CURRENT_DESKTOP=sway
 
 [Service]
-ExecStart=/usr/bin/gammastep
-Restart=always
+Type=simple
+ExecStart=/usr/bin/kanshi
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=default.target
