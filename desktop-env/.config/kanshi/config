@@ -1,0 +1,40 @@
+# Kanshi dynamic display configuration
+# Kanshi automatically detects connected outputs and applies matching profiles
+
+# Profile with HDMI display connected (docked setup)
+profile "docked" {
+    output eDP-1 mode 1920x1200@60.001Hz position 0,0 scale 1
+    output HDMI-A-1 mode 3840x2160@60.000Hz position 1920,0 scale 2 adaptive_sync on
+}
+
+# Profile with only laptop display (mobile/undocked setup)
+profile "laptop" {
+    output eDP-1 mode 1920x1200@60.001Hz position 0,0 scale 1
+}
+
+# Alternative docked layout with HDMI as primary display
+profile "mirror" {
+    output HDMI-A-1 mode 3840x2160@60.000Hz position 0,0 scale 2 adaptive_sync on
+    output eDP-1 mode 1920x1200@60.001Hz position 1920,0 scale 1
+}
+
+# Examples for identifying specific monitors when you have multiple HDMI outputs
+# Use `swaymsg -t get_outputs` to get the full monitor identifier string
+
+# Example: Specific Samsung monitor on HDMI
+# profile "samsung_monitor" {
+#     output "Samsung Electric Company SAMSUNG 0x01000001" mode 3840x2160@60Hz position 0,0
+#     output eDP-1 mode 1920x1200@60Hz position 3840,0
+# }
+
+# Example: Specific Dell monitor on HDMI
+# profile "dell_monitor" {
+#     output "Dell Inc. DELL U2720Q 0x12345678" mode 3840x2160@60Hz position 0,0
+#     output eDP-1 mode 1920x1200@60Hz position 3840,0
+# }
+
+# Example: LG monitor with different positioning
+# profile "lg_monitor" {
+#     output "LG Electronics LG ULTRAGEAR 0x00000001" mode 2560x1440@144Hz position 0,0
+#     output eDP-1 mode 1920x1200@60Hz position 2560,0
+# }
