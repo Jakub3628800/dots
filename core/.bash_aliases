@@ -91,3 +91,5 @@ alias llm='nvim -c "GpChatNew"'
 alias nv='nvim .'
 alias nv.='nvim .'
 alias nano='nvim'
+
+alias agenda="nvim +\":lua require('orgmode').action('agenda.agenda')\""
