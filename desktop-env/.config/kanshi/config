@@ -13,9 +13,15 @@ profile "laptop" {
 }
 
 # Alternative docked layout with HDMI as primary display
-profile "mirror" {
+profile "hdmi-primary" {
     output HDMI-A-1 mode 3840x2160@60.000Hz position 0,0 scale 2 adaptive_sync on
     output eDP-1 mode 1920x1200@60.001Hz position 1920,0 scale 1
+}
+
+# True mirrored display - both screens show the same content
+profile "mirror" {
+    output HDMI-A-1 mode 1920x1080@60.000Hz position 0,0 scale 1 adaptive_sync on
+    output eDP-1 mode 1920x1200@60.001Hz position 0,0 scale 1
 }
 
 # Examples for identifying specific monitors when you have multiple HDMI outputs
