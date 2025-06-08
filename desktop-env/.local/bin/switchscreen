@@ -42,9 +42,14 @@ restore_kanshi() {
 apply_profile() {
     local profile_name="$1"
 
+    # Debug: Show workspace state before changes
+    echo -e "${YELLOW}DEBUG: Workspaces BEFORE display change:${NC}"
+    swaymsg -t get_workspaces | jq '.[] | {name: .name, focused: .focused, output: .output}'
+
     # Save current workspace
     local current_workspace
     current_workspace=$(swaymsg -t get_workspaces | jq -r '.[] | select(.focused==true) | .name')
+    echo -e "${YELLOW}DEBUG: Current workspace is: $current_workspace${NC}"
 
     case "$profile_name" in
         "docked")
@@ -84,10 +89,12 @@ apply_profile() {
             ;;
     esac
 
-    # Restore focus to the original workspace
-    if [ -n "$current_workspace" ]; then
-        swaymsg workspace "$current_workspace"
-    fi
+    # Debug: Show workspace state after changes
+    echo -e "${YELLOW}DEBUG: Workspaces AFTER display change:${NC}"
+    swaymsg -t get_workspaces | jq '.[] | {name: .name, focused: .focused, output: .output}'
+
+    # Debug: Show what workspace we think we should restore to
+    echo -e "${YELLOW}DEBUG: Attempting to restore to workspace: $current_workspace${NC}"
 
     echo -e "${GREEN}✓ Profile '$profile_name' applied successfully${NC}"
 }
