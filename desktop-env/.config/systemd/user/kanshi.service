@@ -1,8 +1,6 @@
 [Unit]
 Description=Kanshi dynamic display configuration
 Documentation=man:kanshi(1)
-PartOf=graphical-session.target
-After=graphical-session.target
 
 # Only run in Wayland sway sessions
 ConditionEnvironment=XDG_SESSION_TYPE=wayland
