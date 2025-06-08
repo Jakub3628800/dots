@@ -1,8 +1,6 @@
 [Unit]
 Description=Gammastep display colour temperature adjustment
 Documentation=https://gitlab.com/chinstrap/gammastep/
-PartOf=graphical-session.target
-After=graphical-session.target
 
 # Only run in Wayland sway sessions
 ConditionEnvironment=XDG_SESSION_TYPE=wayland
