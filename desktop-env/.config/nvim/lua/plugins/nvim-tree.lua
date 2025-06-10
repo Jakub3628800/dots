@@ -7,6 +7,9 @@ return {
 	},
 	config = function()
 		require("nvim-tree").setup({
+			view = {
+				side = "right",
+			},
 			git = {
 				ignore = false, -- This will show gitignored files
 			},
