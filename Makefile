@@ -1,6 +1,6 @@
 # Default target
 .PHONY: all
-all: install-uv apt install-stow stow install-nix nix-flake-install
+all: install-uv apt install-stow stow install-nix nix-flake-install install-py-scripts
 
 UV_EXISTS := $(shell command -v uv 2> /dev/null)
 HOME_DIR := $(shell echo $$HOME)
@@ -37,7 +37,7 @@ install-uv:
 ifndef UV_EXISTS
 	@curl -LsSf https://astral.sh/uv/install.sh | sh
 else
-	@echo "uv is already installed"
+	@echo "\nuv is already installed"
 	@echo "Checking for uv update"
 	uv self update
 endif
@@ -45,6 +45,7 @@ endif
 
 .PHONY: apt
 apt:
+	@echo "\nInstalling apt packages..."
 	@sudo apt-get install -y $(APT_PACKAGES)
 
 .PHONY: install-stow
@@ -58,8 +59,14 @@ install-stow:
 
 .PHONY: stow
 stow: apt install-stow
+	@echo "\nStowing dotfiles..."
 	@stow --target=$(HOME_DIR) core
 	@stow --target=$(HOME_DIR) desktop-env
+
+.PHONY: install-py-scripts
+install-py-scripts:
+	@echo "\nInstalling Python scripts..."
+	uv tool install git+https://github.com/Jakub3628800/py-scripts
 
 .PHONY: install-nix
 install-nix:
@@ -72,11 +79,11 @@ install-nix:
 
 .PHONY: nix-flake-install
 nix-flake-install:
-	@echo "Installing nix flake to profile..."
+	@echo "\nInstalling nix flake to profile..."
 	@nix profile install .
 	@nix flake update --flake .
 
 .PHONY: nix-flake-remove
 nix-flake-remove:
-	@echo "Removing dots from nix profile..."
+	@echo "\nRemoving dots from nix profile..."
 	@nix profile remove dots
