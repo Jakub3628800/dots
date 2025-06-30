@@ -68,7 +68,7 @@ ghpr() {
 	fi
 }
 
-alias tm='tmux-picker'
+alias tm='cmd-picker tmux'
 
 alias prw='gh pr view --web'
 
