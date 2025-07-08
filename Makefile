@@ -7,6 +7,10 @@ HOME_DIR := $(shell echo $$HOME)
 APT_PACKAGES := \
 	zsh \
     	bat \
+	eza \
+	fzf \
+	curl \
+	direnv \
     	vim \
     	xclip \
     	python3-virtualenv \
@@ -20,7 +24,7 @@ APT_PACKAGES := \
     	pass-extension-otp \
     	i3 \
     	sway \
-		kanshi \
+	kanshi \
 	wtype \
 	mako-notifier \
 	gammastep \
