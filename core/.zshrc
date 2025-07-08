@@ -161,3 +161,10 @@ fzf-history-widget() {
 }
 zle     -N   fzf-history-widget
 bindkey '^R' fzf-history-widget
+
+# bun completions
+[ -s "/home/jk/.bun/_bun" ] && source "/home/jk/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
