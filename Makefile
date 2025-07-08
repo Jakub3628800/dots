@@ -64,8 +64,8 @@ install-stow:
 .PHONY: stow
 stow: apt install-stow
 	@echo "\nStowing dotfiles..."
-	@stow --target=$(HOME_DIR) core
-	@stow --target=$(HOME_DIR) desktop-env
+	@stow --target=$(HOME_DIR) core --no-folding
+	@stow --target=$(HOME_DIR) desktop-env --no-folding
 
 .PHONY: install-py-scripts
 install-py-scripts:
