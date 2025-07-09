@@ -95,3 +95,7 @@ alias nv.='nvim .'
 alias nano='nvim'
 
 alias agenda="nvim +\":lua require('orgmode').action('agenda.agenda')\""
+
+# claude
+
+alias cc='claude --dangerously-skip-permissions'
