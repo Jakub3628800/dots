@@ -45,7 +45,17 @@ require("lazy").setup({
 	{
 		"lewis6991/gitsigns.nvim",
 		config = function()
-			require("gitsigns").setup()
+			require("gitsigns").setup({
+				on_attach = function(bufnr)
+					local gs = package.loaded.gitsigns
+					vim.keymap.set("n", "<leader>hj", function()
+						gs.next_hunk()
+					end, { buffer = bufnr, desc = "Next git hunk" })
+					vim.keymap.set("n", "<leader>hk", function()
+						gs.prev_hunk()
+					end, { buffer = bufnr, desc = "Previous git hunk" })
+				end,
+			})
 		end,
 	},
 })
@@ -96,6 +106,7 @@ vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc
 vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc = "Help Tags" })
 vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
+vim.keymap.set("n", "<C-h>", require("telescope.builtin").git_status, { desc = "Git status" })
 
 local on_attach = function(client, bufnr)
 	-- Attach navic if available
