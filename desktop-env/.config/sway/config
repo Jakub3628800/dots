@@ -89,11 +89,11 @@ bindsym $mod+c kill
 # bemenu can be installed with nix - adjust path so that it can be found
 set $extended_path "PATH=$PATH:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$HOME/.local/bin"
 
-bindsym $mod+d exec env $extended_path bemenu-run
+bindsym $mod+d exec env $extended_path bemenu-run -l 10 -W 0.7 --fn "monospace 14"
 # start bookmark dmenu
-bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | env $extended_path bemenu -i -l 50)"
+bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | env $extended_path bemenu -i -l 10 -W 0.7 --fn "monospace 14")"
 # start passwords dmenu
-bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | env $extended_path bemenu -i -l 50 | xargs --no-run-if-empty -n 2 pass)"
+bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | env $extended_path bemenu -i -l 10 -W 0.7 --fn "monospace 14" | xargs --no-run-if-empty -n 2 pass)"
 
 # commands not used now
 #bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
