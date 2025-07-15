@@ -18,14 +18,12 @@ vim.opt.rtp:prepend(lazypath)
 -- Set up plugins
 require("lazy").setup({
 	require("plugins.copilot"),
-	require("plugins.copilotchat"),
 	require("plugins.markdown"),
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
 	require("plugins.nvim-tree"),
 	require("plugins.telescope"),
 	require("plugins.gp"),
-	require("plugins.avante"),
 	require("plugins.git-blame"),
 	require("plugins.orgmode"),
 	{
