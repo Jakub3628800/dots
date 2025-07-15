@@ -26,6 +26,7 @@ require("lazy").setup({
 	require("plugins.gp"),
 	require("plugins.git-blame"),
 	require("plugins.orgmode"),
+	require("plugins.navic"),
 	{
 		"hrsh7th/nvim-cmp",
 	},
@@ -96,7 +97,12 @@ vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers, { desc =
 vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc = "Help Tags" })
 vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
 
-local on_attach = function(_, bufnr)
+local on_attach = function(client, bufnr)
+	-- Attach navic if available
+	if client.server_capabilities.documentSymbolProvider then
+		require("nvim-navic").attach(client, bufnr)
+	end
+
 	-- Function to open definition in new tab
 	local function goto_definition_in_tab()
 		vim.cmd("tab split") -- Open new tab
