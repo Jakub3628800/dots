@@ -39,6 +39,13 @@ return {
 						return { "--hidden" }
 					end,
 				},
+				git_status = {
+					previewer = require("telescope.previewers").new_termopen_previewer({
+						get_command = function(entry)
+							return { "git", "diff", "HEAD", "--", entry.value }
+						end,
+					}),
+				},
 			},
 		})
 
