@@ -1,6 +1,18 @@
 # Desktop environment Makefile
 .PHONY: all
-all: apt stow nix-flake-install
+all: check-wayland apt stow nix-flake-install
+
+.PHONY: check-wayland
+check-wayland:
+	@if [ "$$XDG_SESSION_TYPE" != "wayland" ]; then \
+		echo "Warning: Not running Wayland session (XDG_SESSION_TYPE=$$XDG_SESSION_TYPE)"; \
+		echo -n "Continue installing desktop environment? [y/N] "; \
+		read answer; \
+		if [ "$$answer" != "y" ] && [ "$$answer" != "Y" ]; then \
+			echo "Skipping desktop environment installation."; \
+			exit 0; \
+		fi \
+	fi
 
 HOME_DIR := $(shell echo $$HOME)
 STOW_FLAGS ?=
