@@ -2,15 +2,14 @@
 
 Collection of dotfiles and scripts for my development environment.
 
-- `core/`: minimal dotfiles usable on the server (shell + aliases and minimal vim config)
-- `desktop/`: desktop environment with i3, nvim, wezterm etc.. (still not wayland)
+- `core/`: minimal dotfiles usable on the server
+- `desktop/`: sway desktop environment
 
 
 ## Setting up dotfiles
 
-Install apt packages:
 ```bash
-make apt
+make install
 ```
 
 Symlink dotfiles with stow:
