@@ -7,21 +7,15 @@ STOW_FLAGS ?=
 
 DESKTOP_APT_PACKAGES := \
 	xclip \
-	xcompmgr \
-	nitrogen \
 	xdotool \
 	pass \
 	pass-extension-otp \
-	i3 \
 	sway \
 	kanshi \
 	wtype \
 	mako-notifier \
 	gammastep \
-	i3lock \
-	redshift \
-	swaylock \
-	picom
+	swaylock
 
 .PHONY: apt
 apt:
