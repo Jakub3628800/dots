@@ -12,3 +12,4 @@ fzf
 bat
 eza
 stow
+nodejs
