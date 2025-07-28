@@ -24,9 +24,9 @@ if [ -f "$HOME/.bash_aliases_local" ]; then
     . $HOME/.bash_aliases_local
 fi
 
-. $HOME/.zshlib/git.sh
-. $HOME/.zshlib/plugins/virtualenv.plugin.zsh
-. $HOME/.zshlib/themes/agnoster.zsh-theme
+#. $HOME/.zshlib/git.sh
+#. $HOME/.zshlib/plugins/virtualenv.plugin.zsh
+#. $HOME/.zshlib/themes/agnoster.zsh-theme
 
 #if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
 #  . $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
