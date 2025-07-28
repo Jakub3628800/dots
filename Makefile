@@ -1,62 +1,35 @@
-# Default target
+# Root Makefile - delegates to package-specific Makefiles
+
 .PHONY: all
-all: core-all desktop-apt stow-desktop install-nix nix-flake-install
+all: core desktop
 
-HOME_DIR := $(shell echo $$HOME)
-DESKTOP_APT_PACKAGES := \
-    	xclip \
-    	xcompmgr \
-    	nitrogen \
-    	xdotool \
-    	pass \
-    	pass-extension-otp \
-    	i3 \
-    	sway \
-	kanshi \
-	wtype \
-	mako-notifier \
-	gammastep \
-    	i3lock \
-    	redshift \
-    	swaylock \
-	picom
-
-# Install core packages and dotfiles
-.PHONY: core-all
-core-all:
-	@echo "\nInstalling core packages and dotfiles..."
+.PHONY: core
+core:
+	@echo "\n=== Installing core packages ==="
 	@$(MAKE) -C core install
 
-# Install only core (server-compatible) components
-.PHONY: core
-core: core-all
+.PHONY: desktop
+desktop:
+	@echo "\n=== Installing desktop environment ==="
+	@$(MAKE) -C desktop install
 
-.PHONY: desktop-apt
-desktop-apt:
-	@echo "\nInstalling desktop APT packages..."
-	@sudo apt-get install -y $(DESKTOP_APT_PACKAGES)
+.PHONY: clean
+clean:
+	@echo "\n=== Cleaning all packages ==="
+	@$(MAKE) -C core unstow
+	@$(MAKE) -C desktop unstow
 
-.PHONY: stow-desktop
-stow-desktop:
-	@echo "\nStowing desktop-env dotfiles..."
-	@stow --target=$(HOME_DIR) desktop-env --no-folding
-
-.PHONY: install-nix
-install-nix:
-	@if command -v nix >/dev/null 2>&1; then \
-		echo "Nix is already installed."; \
-	else \
-		echo "Installing Nix..."; \
-		curl -L https://nixos.org/nix/install | sh -s -- ; \
-	fi
-
-.PHONY: nix-flake-install
-nix-flake-install:
-	@echo "\nInstalling nix flake to profile..."
-	@nix profile install .
-	@nix flake update --flake .
-
-.PHONY: nix-flake-remove
-nix-flake-remove:
-	@echo "\nRemoving dots from nix profile..."
-	@nix profile remove dots
+.PHONY: help
+help:
+	@echo "Dotfiles installation system"
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Main targets:"
+	@echo "  make all        - Install everything (core + desktop)"
+	@echo "  make core       - Install core packages only (server-compatible)"
+	@echo "  make desktop    - Install desktop environment only"
+	@echo "  make clean      - Unstow all dotfiles"
+	@echo ""
+	@echo "For package-specific options, use:"
+	@echo "  make -C core help"
+	@echo "  make -C desktop help"

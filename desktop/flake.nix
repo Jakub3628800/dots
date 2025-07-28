@@ -1,5 +1,5 @@
 {
-  description = "Basic flake for bemenu";
+  description = "Desktop environment flake for bemenu";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
