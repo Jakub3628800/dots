@@ -13,24 +13,11 @@ alias ...='cd ../..'
 alias cdg='cd "$(git rev-parse --show-toplevel)"'
 
 
-# clipboard with xclip
-alias xcc='wl-copy'
-
 # retry alias for rr !!
 function rr() {
     until eval "$1"; do
         sleep 2
     done
-}
-
-
-# locking screen
-lock() {
-	if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-		swaylock --color 000000
-	else
-                slock
-	fi
 }
 
 # git
@@ -81,8 +68,6 @@ alias dkill='docker ps -q | xargs docker kill'
 alias prec='uvx pre-commit run'
 alias preca='uvx pre-commit run --all-files'
 
-# keyboard
-alias k='keyboard'
 
 alias wget='wget --no-hsts'
 

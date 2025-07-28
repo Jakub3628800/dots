@@ -1,0 +1,14 @@
+zsh
+vim
+tig
+gh
+curl
+unzip
+direnv
+python3-virtualenv
+tmux
+ripgrep
+fzf
+bat
+eza
+stow
