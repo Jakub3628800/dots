@@ -1,6 +1,6 @@
 # Desktop environment Makefile
 .PHONY: all
-all: check-wayland apt stow nix-flake-install
+all: apt stow nix-flake-install
 
 .PHONY: check-wayland
 check-wayland:
@@ -10,7 +10,7 @@ check-wayland:
 		read answer; \
 		if [ "$$answer" != "y" ] && [ "$$answer" != "Y" ]; then \
 			echo "Skipping desktop environment installation."; \
-			exit 0; \
+			exit 1; \
 		fi \
 	fi
 
@@ -18,7 +18,7 @@ HOME_DIR := $(shell echo $$HOME)
 STOW_FLAGS ?=
 
 .PHONY: apt
-apt:
+apt: check-wayland
 	@echo "\nInstalling desktop APT packages..."
 	@jq -c '.apt[]' packages.json | while read -r item; do \
 		if echo "$$item" | jq -e 'type == "array"' >/dev/null 2>&1; then \
@@ -35,7 +35,7 @@ apt:
 	done
 
 .PHONY: stow
-stow:
+stow: check-wayland
 	@echo "\nStowing desktop dotfiles..."
 	@stow -v -d . -t $(HOME_DIR) --no-folding $(STOW_FLAGS) home
 
@@ -54,7 +54,7 @@ install-nix:
 	fi
 
 .PHONY: nix-flake-install
-nix-flake-install: install-nix
+nix-flake-install: check-wayland install-nix
 	@echo "\nInstalling nix flake to profile..."
 	@nix profile install .
 	@nix flake update --flake .
