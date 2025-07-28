@@ -43,6 +43,15 @@ nix-flake-remove:
 .PHONY: install
 install: all
 
+.PHONY: update
+update:
+	@echo "\nUpdating desktop packages..."
+	@sudo apt-get update
+	@echo "Upgrading installed packages..."
+	@sudo apt-get upgrade -y
+	@echo "Updating nix flake..."
+	@nix flake update --flake .
+
 .PHONY: help
 help:
 	@echo "Desktop environment installation targets:"
