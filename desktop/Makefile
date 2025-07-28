@@ -5,22 +5,10 @@ all: apt stow nix-flake-install
 HOME_DIR := $(shell echo $$HOME)
 STOW_FLAGS ?=
 
-DESKTOP_APT_PACKAGES := \
-	xclip \
-	xdotool \
-	pass \
-	pass-extension-otp \
-	sway \
-	kanshi \
-	wtype \
-	mako-notifier \
-	gammastep \
-	swaylock
-
 .PHONY: apt
 apt:
 	@echo "\nInstalling desktop APT packages..."
-	@sudo apt-get install -y $(DESKTOP_APT_PACKAGES)
+	@xargs -r -a apt-packages.txt sudo apt-get install -y
 
 .PHONY: stow
 stow:

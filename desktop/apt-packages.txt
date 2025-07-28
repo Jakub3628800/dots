@@ -1,0 +1,10 @@
+xclip
+xdotool
+pass
+pass-extension-otp
+sway
+kanshi
+wtype
+mako-notifier
+gammastep
+swaylock
