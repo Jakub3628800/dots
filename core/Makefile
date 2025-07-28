@@ -42,15 +42,29 @@ install-bun:
 
 node-packages-install: install-bun
 	@echo "Installing Node packages via Bun..."
-	@export PATH="$$HOME/.bun/bin:$$PATH" && xargs -r -a node-packages.txt bun install -g
+	@export PATH="$$HOME/.bun/bin:$$PATH" && \
+		jq -r '.npm[]' packages.json | xargs -I {} bun install -g {}
 
 node-packages-update: install-bun
 	@echo "Updating Node packages via Bun..."
-	@export PATH="$$HOME/.bun/bin:$$PATH" && xargs -r -a node-packages.txt bun update -g
+	@export PATH="$$HOME/.bun/bin:$$PATH" && \
+		jq -r '.npm[]' packages.json | xargs -I {} bun update -g {}
 
 apt-packages-install:
 	@echo "Installing core APT packages..."
-	@xargs -r -a apt-packages.txt sudo apt-get install -y
+	@jq -c '.apt[]' packages.json | while read -r item; do \
+		if echo "$$item" | jq -e 'type == "array"' >/dev/null 2>&1; then \
+			echo "$$item" | jq -r '.[]' | while read -r pkg; do \
+				if sudo apt-get install -y "$$pkg" 2>/dev/null; then \
+					echo "Successfully installed $$pkg"; \
+					break; \
+				fi; \
+			done; \
+		else \
+			pkg=$$(echo "$$item" | jq -r '.'); \
+			sudo apt-get install -y "$$pkg"; \
+		fi; \
+	done
 
 apt-packages-update:
 	@echo "Updating APT package lists..."
@@ -61,18 +75,18 @@ apt-packages-update:
 uv-tools-install: install-uv
 	@echo "Installing UV tools..."
 	@export PATH="$$HOME/.local/bin:$$PATH" && \
-		while IFS= read -r tool; do \
+		jq -r '.["uv-tool"][]' packages.json | while read -r tool; do \
 			echo "Installing $$tool..."; \
 			uv tool install $$tool; \
-		done < uv-tools.txt
+		done
 
 uv-tools-update: install-uv
 	@echo "Updating UV tools..."
 	@export PATH="$$HOME/.local/bin:$$PATH" && \
-		while IFS= read -r tool; do \
+		jq -r '.["uv-tool"][]' packages.json | while read -r tool; do \
 			echo "Updating $$tool..."; \
 			uv tool upgrade $$tool || uv tool install --upgrade $$tool; \
-		done < uv-tools.txt
+		done
 
 STOW_FLAGS ?=
 stow:

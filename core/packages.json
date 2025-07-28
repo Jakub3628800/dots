@@ -1,0 +1,29 @@
+{
+  "apt": [
+    "zsh",
+    "vim",
+    "tig",
+    "gh",
+    "curl",
+    "unzip",
+    "direnv",
+    "python3-virtualenv",
+    "tmux",
+    "ripgrep",
+    "fzf",
+    "bat",
+    ["eza", "exa"],
+    "stow",
+    "nodejs"
+  ],
+  "npm": [
+    "@anthropic-ai/claude-code",
+    "wrangler",
+    "@google/gemini-cli"
+  ],
+  "uv-tool": [
+    "git+https://github.com/Jakub3628800/py-scripts",
+    "pre-commit",
+    "ruff"
+  ]
+}
