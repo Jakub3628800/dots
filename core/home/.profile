@@ -26,13 +26,15 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# set PATH so it includes bun if it exists
+if [ -d "$HOME/.bun/bin" ] ; then
+    PATH="$HOME/.bun/bin:$PATH"
+fi
+
 
 # vim as default editor
 export VISUAL=nvim
 export EDITOR="$VISUAL"
-
-# Electron apps on wayland
-export ELECTRON_OZONE_PLATFORM_HINT=auto
 
 
 export PATH=$PATH:/usr/local/go/bin
@@ -43,7 +45,6 @@ export HISTFILE=$HOME/.cache/.bash_history
 export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 export LESSHISTFILE=$HOME/.cache/.lesshst
 
-export TERMINAL=wezterm
 
 # Cache files
 export RUFF_CACHE_DIR=$HOME"/.cache/ruff"
@@ -68,9 +69,5 @@ Do not repeat that you are answering a concise prompt, be even shorter because c
 When outputting a command that can be pasted in terminal, use code block
 "
 
-if [ "$XDG_SESSION_DESKTOP" = "sway" ]; then
-  export XDG_CURRENT_DESKTOP=sway
-  export GTK_USE_PORTAL=0
-fi
 
 if [ -e /home/jk/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jk/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer

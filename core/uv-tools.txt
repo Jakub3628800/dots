@@ -1,0 +1,3 @@
+git+https://github.com/Jakub3628800/py-scripts
+pre-commit
+ruff
