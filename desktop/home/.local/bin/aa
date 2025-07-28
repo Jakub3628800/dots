@@ -1,9 +1,0 @@
-#!/bin/bash
-
-if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
-	wdisplays
-else
-    autorandr --cycle
-fi
-bash ~/.local/bin/keyboard
-bash ~/.local/bin/restore_workspaces
