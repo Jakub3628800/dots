@@ -20,7 +20,19 @@ STOW_FLAGS ?=
 .PHONY: apt
 apt:
 	@echo "\nInstalling desktop APT packages..."
-	@xargs -r -a apt-packages.txt sudo apt-get install -y
+	@jq -c '.apt[]' packages.json | while read -r item; do \
+		if echo "$$item" | jq -e 'type == "array"' >/dev/null 2>&1; then \
+			echo "$$item" | jq -r '.[]' | while read -r pkg; do \
+				if sudo apt-get install -y "$$pkg" 2>/dev/null; then \
+					echo "Successfully installed $$pkg"; \
+					break; \
+				fi; \
+			done; \
+		else \
+			pkg=$$(echo "$$item" | jq -r '.'); \
+			sudo apt-get install -y "$$pkg"; \
+		fi; \
+	done
 
 .PHONY: stow
 stow:
