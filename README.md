@@ -2,6 +2,12 @@
 
 Collection of dotfiles and scripts for my development environment.
 
+The repository:
+- installs packages through multiple package managers
+- manages dotfiles with stow
+
+It's divided into two subpackages:
+
 - `core/`: minimal dotfiles usable on the server
 - `desktop/`: sway desktop environment
 
@@ -12,7 +18,18 @@ Collection of dotfiles and scripts for my development environment.
 make install
 ```
 
-Symlink dotfiles with stow:
+Without desktop environment:
 ```
-make stow
+make install-core
+```
+
+## Update
+
+```bash
+make update
+```
+
+Without desktop environment:
+```bash
+make update-core
 ```
