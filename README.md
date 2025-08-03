@@ -6,21 +6,23 @@ The repository:
 - installs packages through multiple package managers
 - manages dotfiles with stow
 
-It's divided into two subpackages:
+It's divided into three 'packages':
 
 - `core/`: minimal dotfiles usable on the server
 - `desktop/`: sway desktop environment
+- `nvim/`: Neovim installation and configuration
 
 
 ## Setting up dotfiles
 
+All:
 ```bash
 make install
 ```
 
-Without desktop environment:
-```
-make install-core
+For headless/no-desktop setup:
+```bash
+make install-core install-nvim
 ```
 
 ## Update
@@ -29,7 +31,7 @@ make install-core
 make update
 ```
 
-Without desktop environment:
+For headless/no-desktop setup:
 ```bash
-make update-core
+make update-core update-nvim
 ```
