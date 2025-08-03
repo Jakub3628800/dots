@@ -168,3 +168,8 @@ bindkey '^R' fzf-history-widget
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+eval "$(zoxide init zsh)"
+
+# Quick zoxide fzf
+alias zf='cd "$(zoxide query -l | fzf)"'
