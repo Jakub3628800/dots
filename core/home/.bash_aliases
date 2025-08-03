@@ -1,47 +1,33 @@
 #!/bin/bash
 
-# Better ls, if exa is installed
+# ls
 command -v eza &> /dev/null && alias ls="eza  -a --icons"
 alias ll="ls -lh"
-alias lwc="ls -la | wc -l"
 
+# cd
 alias cd..="cd .."
-alias cd.="cd .."
-alias ..='cd ..'
-alias ...='cd ../..'
-
+alias cd...="cd ../.."
+alias cd....="cd ../../.."
 alias cdg='cd "$(git rev-parse --show-toplevel)"'
-
-
-# retry alias for rr !!
-function rr() {
-    until eval "$1"; do
-        sleep 2
-    done
-}
 
 # git
 alias g='git'
 alias gs='git status'
 alias gc='git checkout'
-alias gl='git log'
-alias gtrash='git reset HEAD && git checkout -- .'
-alias gpushup='git branch --show-current | xargs git push --set-upstream origin'
-
-alias ghmerge='gh pr merge --rebase --delete-branch'
-
-git-branch-switch() {
+alias gpf='git push --force'
+alias gds='git diff --staged'
+gbb() {
   local branches branch
   branches=$(git --no-pager branch -vv --sort=-committerdate) &&
   branch=$(echo "$branches" | fzf +m) &&
   git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
 }
 
-alias gb='git branch'
-alias gbb='git-branch-switch'
-
+# tig
 alias tg='tig'
 
+# gh
+alias ghmerge='gh pr merge --rebase --delete-branch'
 ghpr() {
 	gh pr create
 	exit_code=$?
@@ -55,32 +41,32 @@ ghpr() {
 	fi
 }
 
-alias tm='cmd-picker tmux'
-
-alias prw='gh pr view --web'
-
 # docker
 alias d='docker'
 alias dc='docker compose'
 alias dkill='docker ps -q | xargs docker kill'
 
 # python
-alias prec='uvx pre-commit run'
-alias preca='uvx pre-commit run --all-files'
-
-
-alias wget='wget --no-hsts'
+alias prec='pre-commit run'
+alias preca='pre-commit run --all-files'
 
 # vim
-#
 alias vim='nvim'
 alias llm='nvim -c "GpChatNew"'
 alias nv='nvim .'
 alias nv.='nvim .'
 alias nano='nvim'
 
-alias agenda="nvim +\":lua require('orgmode').action('agenda.agenda')\""
-
 # claude
-
 alias cc='claude --dangerously-skip-permissions'
+alias docker-compose='docker compose'
+
+# other
+function rr() {  # retry cmd
+    until eval "$1"; do
+        sleep 2
+    done
+}
+
+alias wget='wget --no-hsts' # disable history file
+alias tm='cmd-picker tmux'
