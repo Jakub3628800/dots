@@ -67,6 +67,7 @@ function rr() {  # retry cmd
         sleep 2
     done
 }
+copycat() { cat "$1" | wl-copy; }
 
 alias wget='wget --no-hsts' # disable history file
 alias tm='cmd-picker tmux'
