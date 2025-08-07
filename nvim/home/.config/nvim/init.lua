@@ -240,7 +240,7 @@ local MAX_OUTPUT_LINES = 50
 local function find_code_block_bounds()
 	local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-	
+
 	-- Find start of code block
 	local start_line = nil
 	for i = cursor_line, 1, -1 do
@@ -249,18 +249,18 @@ local function find_code_block_bounds()
 			break
 		end
 	end
-	
+
 	if not start_line then
 		return nil, nil
 	end
-	
+
 	-- Find end of code block
 	for i = cursor_line, #lines do
 		if lines[i] and lines[i]:match("^```") and i ~= start_line then
 			return start_line, i
 		end
 	end
-	
+
 	return nil, nil
 end
 
@@ -273,41 +273,50 @@ end
 -- Send code block to tmux session
 vim.keymap.set("n", "<space>yt", function()
 	local start_line, end_line = find_code_block_bounds()
-	
+
 	if not start_line or not end_line then
 		vim.api.nvim_echo({ { "No code block found at cursor position", "ErrorMsg" } }, true, {})
 		return
 	end
-	
+
 	local code_content = extract_code_content(start_line, end_line)
-	
+
 	-- Check if tmux session exists
 	local check_cmd = string.format("tmux has-session -t %s 2>/dev/null", TMUX_SESSION)
 	vim.fn.system(check_cmd)
-	
+
 	if vim.v.shell_error ~= 0 then
-		vim.api.nvim_echo({ { 
-			string.format("Tmux session '%s' not found. Create it with: tmux new -s %s", 
-				TMUX_SESSION, TMUX_SESSION), 
-			"ErrorMsg" 
-		} }, true, {})
+		vim.api.nvim_echo({
+			{
+				string.format(
+					"Tmux session '%s' not found. Create it with: tmux new -s %s",
+					TMUX_SESSION,
+					TMUX_SESSION
+				),
+				"ErrorMsg",
+			},
+		}, true, {})
 		return
 	end
-	
+
 	-- Send code to tmux
 	local escaped_content = vim.fn.shellescape(code_content)
 	local send_cmd = string.format("tmux send-keys -t %s %s Enter", TMUX_SESSION, escaped_content)
 	local result = vim.fn.system(send_cmd)
-	
+
 	if vim.v.shell_error == 0 then
-		vim.api.nvim_echo({ { 
-			string.format("Code sent to tmux session '%s'", TMUX_SESSION), 
-			"Normal" 
-		} }, true, {})
+		vim.api.nvim_echo(
+			{ {
+				string.format("Code sent to tmux session '%s'", TMUX_SESSION),
+				"Normal",
+			} },
+			true,
+			{}
+		)
 	else
-		vim.api.nvim_echo({ { 
-			"Failed to send to tmux: " .. result, 
-			"ErrorMsg" 
+		vim.api.nvim_echo({ {
+			"Failed to send to tmux: " .. result,
+			"ErrorMsg",
 		} }, true, {})
 	end
 end, { noremap = true, silent = true, desc = "Send code block to tmux test session" })
@@ -315,20 +324,20 @@ end, { noremap = true, silent = true, desc = "Send code block to tmux test sessi
 -- Helper: Detect shell prompt lines
 local function is_prompt_line(line, hostname, username)
 	-- Common prompt patterns
-	return line:match(hostname) or 
-	       line:match("@" .. hostname) or
-	       line:match(username .. "@") or
-	       line:match("^%$") or
-	       line:match("^#") or
-	       line:match("^>") or
-	       line:match("^%%%s")
+	return line:match(hostname)
+		or line:match("@" .. hostname)
+		or line:match(username .. "@")
+		or line:match("^%$")
+		or line:match("^#")
+		or line:match("^>")
+		or line:match("^%%%s")
 end
 
 -- Helper: Find prompt indices in output
 local function find_prompt_indices(lines, hostname, username)
 	local last_prompt = nil
 	local second_last_prompt = nil
-	
+
 	for i = #lines, 1, -1 do
 		if is_prompt_line(lines[i], hostname, username) then
 			if not last_prompt then
@@ -339,14 +348,14 @@ local function find_prompt_indices(lines, hostname, username)
 			end
 		end
 	end
-	
+
 	return second_last_prompt, last_prompt
 end
 
 -- Helper: Extract command output between prompts
 local function extract_command_output(lines, second_last_idx, last_idx)
 	local output_lines = {}
-	
+
 	if second_last_idx and last_idx then
 		-- Get lines between prompts (the command output)
 		for i = second_last_idx + 1, last_idx - 1 do
@@ -374,12 +383,12 @@ local function extract_command_output(lines, second_last_idx, last_idx)
 			end
 		end
 	end
-	
+
 	-- Trim trailing empty lines
 	while #output_lines > 0 and output_lines[#output_lines] == "" do
 		table.remove(output_lines)
 	end
-	
+
 	return output_lines
 end
 
@@ -388,62 +397,62 @@ vim.keymap.set("n", "<space>yo", function()
 	-- Check if tmux session exists
 	local check_cmd = string.format("tmux has-session -t %s 2>/dev/null", TMUX_SESSION)
 	vim.fn.system(check_cmd)
-	
+
 	if vim.v.shell_error ~= 0 then
-		vim.api.nvim_echo({ { 
-			string.format("Tmux session '%s' not found", TMUX_SESSION), 
-			"ErrorMsg" 
-		} }, true, {})
+		vim.api.nvim_echo(
+			{ {
+				string.format("Tmux session '%s' not found", TMUX_SESSION),
+				"ErrorMsg",
+			} },
+			true,
+			{}
+		)
 		return
 	end
-	
+
 	-- Capture output from tmux pane
-	local capture_cmd = string.format(
-		"tmux capture-pane -t %s -p -S -%d", 
-		TMUX_SESSION, 
-		TMUX_CAPTURE_LINES
-	)
+	local capture_cmd = string.format("tmux capture-pane -t %s -p -S -%d", TMUX_SESSION, TMUX_CAPTURE_LINES)
 	local output = vim.fn.system(capture_cmd)
-	
+
 	if vim.v.shell_error ~= 0 then
-		vim.api.nvim_echo({ { 
-			"Failed to capture tmux output: " .. output, 
-			"ErrorMsg" 
+		vim.api.nvim_echo({ {
+			"Failed to capture tmux output: " .. output,
+			"ErrorMsg",
 		} }, true, {})
 		return
 	end
-	
+
 	-- Get system info for prompt detection
 	local hostname = vim.fn.system("hostname"):gsub("\n", "")
 	local username = vim.fn.system("whoami"):gsub("\n", "")
-	
+
 	-- Process captured output
 	local lines = vim.split(output, "\n")
 	local second_last_idx, last_idx = find_prompt_indices(lines, hostname, username)
 	local output_lines = extract_command_output(lines, second_last_idx, last_idx)
-	
+
 	if #output_lines > 0 then
 		-- Build code block
 		local code_block = { "", "```output" }
 		vim.list_extend(code_block, output_lines)
 		table.insert(code_block, "```")
 		table.insert(code_block, "")
-		
+
 		-- Insert at cursor position
 		local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
 		vim.api.nvim_buf_set_lines(0, cursor_line, cursor_line, false, code_block)
-		
+
 		-- Move cursor after inserted block
 		vim.api.nvim_win_set_cursor(0, { cursor_line + #code_block, 0 })
-		
-		vim.api.nvim_echo({ { 
-			"Command output captured and inserted", 
-			"Normal" 
+
+		vim.api.nvim_echo({ {
+			"Command output captured and inserted",
+			"Normal",
 		} }, true, {})
 	else
-		vim.api.nvim_echo({ { 
-			"No output captured from last command", 
-			"WarningMsg" 
+		vim.api.nvim_echo({ {
+			"No output captured from last command",
+			"WarningMsg",
 		} }, true, {})
 	end
 end, { noremap = true, silent = true, desc = "Capture last command output from tmux test session" })

@@ -13,6 +13,7 @@ alias cdg='cd "$(git rev-parse --show-toplevel)"'
 # git
 alias g='git'
 alias gs='git status'
+alias gl='git log'
 alias gc='git checkout'
 alias gpf='git push --force'
 alias gds='git diff --staged'
@@ -71,3 +72,4 @@ copycat() { cat "$1" | wl-copy; }
 
 alias wget='wget --no-hsts' # disable history file
 alias tm='cmd-picker tmux'
+alias xcc='wl-copy'
