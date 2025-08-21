@@ -194,7 +194,11 @@ workspace 4 output $secondary
 
 workspace 5 output $primary
 workspace 6 output $primary
-workspace 7 output $primary
+
+workspace 7 output $secondary
+workspace 8 output $secondary
+workspace 9 output $secondary
+workspace 10 output $secondary
 
 # Configure default placement of apps
 assign [class="Code"] number 1
