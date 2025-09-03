@@ -138,6 +138,18 @@ require("lspconfig").pyright.setup({
 	on_attach = on_attach,
 	capabilities = capabilities,
 })
+require("lspconfig").gopls.setup({
+	on_attach = on_attach,
+	capabilities = capabilities,
+	settings = {
+		gopls = {
+			analyses = {
+				unusedparams = true,
+			},
+			staticcheck = true,
+		},
+	},
+})
 require("cmp").setup({
 	mapping = {
 		["<C-Space>"] = require("cmp").mapping.complete(),
