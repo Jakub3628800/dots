@@ -34,6 +34,21 @@ require("lazy").setup({
 		"hrsh7th/cmp-nvim-lsp",
 	},
 	{
+		"hrsh7th/cmp-buffer",
+	},
+	{
+		"hrsh7th/cmp-path",
+	},
+	{
+		"hrsh7th/cmp-cmdline",
+	},
+	{
+		"folke/noice.nvim",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+		},
+	},
+	{
 		"williamboman/mason.nvim",
 		build = ":MasonUpdate",
 		config = function()
@@ -160,6 +175,25 @@ require("cmp").setup({
 	sources = {
 		{ name = "nvim_lsp" },
 		{ name = "buffer" },
+		{ name = "path" },
+	},
+})
+
+-- Setup cmdline completion
+require("cmp").setup.cmdline(":", {
+	mapping = require("cmp").mapping.preset.cmdline(),
+	sources = require("cmp").config.sources({
+		{ name = "path" },
+	}, {
+		{ name = "cmdline" },
+	}),
+})
+
+-- Setup noice for floating cmdline
+require("noice").setup({
+	cmdline = {
+		enabled = true,
+		view = "cmdline_popup",
 	},
 })
 
