@@ -3,21 +3,21 @@ default_language_version:
     python: python3.12
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.8.4
+      rev: v0.14.1
       hooks:
           - id: ruff
             args: [--fix]
           - id: ruff-format
 
     - repo: https://github.com/koalaman/shellcheck-precommit
-      rev: v0.10.0
+      rev: v0.11.0
       hooks:
           - id: shellcheck
             exclude: \.zshrc$|\.zsh$
             args: ["--severity=warning", --exclude=SC3010]
 
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v5.0.0
+      rev: v6.0.0
       hooks:
           - id: check-yaml
           - id: debug-statements
@@ -30,18 +30,12 @@ repos:
           - id: fix-encoding-pragma
             args: [--remove]
 
-    - repo: https://github.com/adrienverge/yamllint.git
-      rev: v1.35.1
-      hooks:
-          - id: yamllint
-            args: [--strict]
-
     - repo: https://github.com/rhysd/actionlint
-      rev: v1.7.4
+      rev: v1.7.8
       hooks:
           - id: actionlint
 
     - repo: https://github.com/JohnnyMorganz/StyLua
-      rev: v2.0.2
+      rev: v2.3.0
       hooks:
-          - id: stylua
+          - id: stylua-github
