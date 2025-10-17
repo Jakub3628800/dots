@@ -3,7 +3,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH_THEME="agnoster"
+# export ZSH_THEME="agnoster"
 export ZSH="$HOME/.oh-my-zsh"
 
 export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
@@ -16,8 +16,11 @@ export ZSH_COMPDUMP=$HOME/.cache/.zcompdump-$HOST
 zstyle ':omz:plugins:ssh-agent' lazy no
 plugins=(ssh-agent git)
 export SSH_ASKPASS_REQUIRE=force_cli
-#. $ZSH/oh-my-zsh.sh
-eval "$(starship init zsh)"
+. $ZSH/oh-my-zsh.sh
+
+if [ ! -f /usr/local/bin/starship ]; then
+    eval "$(starship init zsh)"
+fi
 
 . $HOME/.bash_aliases
 . $HOME/.profile
