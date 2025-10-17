@@ -1,33 +1,56 @@
-.PHONY: install update test clean
-.PHONY: install-uv install-bun install-stow
-.PHONY: node-packages-install node-packages-update apt-packages-install apt-packages-update uv-tools-install uv-tools-update
+# ============================ CONFIGURATION =============================
+# Package lists
+NODE_PACKAGES := @anthropic-ai/claude-code wrangler @google/gemini-cli
+APT_PACKAGES := zsh vim tig gh curl unzip jq direnv python3-virtualenv tmux ripgrep fzf bat eza nodejs gnupg2
+CARGO_PACKAGES := starship
+UV_TOOL_PACKAGES := git+https://github.com/Jakub3628800/py-scripts pre-commit
 
-install: install-stow apt-packages-install install-uv install-bun node-packages-install uv-tools-install stow
+# Helper variables
+BUN_PATH_EXPORT := export PATH="$$HOME/.bun/bin:$$PATH"
+
+# ============================ PHONY TARGETS =============================
+.PHONY: install update clean test stow
+.PHONY: install-stow install-bun install-rust install-uv
+.PHONY: node-packages-install node-packages-update
+.PHONY: apt-packages-install apt-packages-update
+.PHONY: cargo-install
+.PHONY: uv-tools-install uv-tools-update
+
+# ============================ MAIN TARGETS ==============================
+
+install: apt-packages-install node-packages-install cargo-install uv-tools-install stow
 
 update: apt-packages-update node-packages-update uv-tools-update
+	@echo "Checking for Rustup updates..."
+	@. $$HOME/.cargo/env 2>/dev/null; command -v rustup >/dev/null 2>&1 && rustup update || echo "Rustup not installed yet"
 	@echo "Checking for UV updates..."
 	@command -v uv >/dev/null 2>&1 && uv self update || echo "UV not installed yet"
 	@echo "Checking for Bun updates..."
-	@export PATH="$$HOME/.bun/bin:$$PATH" && command -v bun >/dev/null 2>&1 && bun upgrade || echo "Bun not installed yet"
+	@$(BUN_PATH_EXPORT) && command -v bun >/dev/null 2>&1 && bun upgrade || echo "Bun not installed yet"
 
-# =======================================================================================
+clean:
+	@echo "Unstowing core dotfiles..."
+	@stow -v -D -d . -t $(HOME) --no-folding home
+
+test:
+	@echo "Building Docker image for testing..."
+	@docker build -t core-dotfiles-test .
+	@echo "Test build completed successfully!"
+	@echo "To run the container: docker run -it --rm core-dotfiles-test"
+
+stow: install-stow
+	@echo "Stowing core dotfiles..."
+	@stow -v -d . -t $(HOME) --no-folding home
+
+# ============================ BASE INSTALLERS ===========================
 
 install-stow:
+	@echo "Checking for Stow installation..."
 	@if ! command -v stow >/dev/null 2>&1; then \
 		echo "Installing stow..."; \
 		sudo apt-get update && sudo apt-get install -y stow; \
 	else \
 		echo "Stow is already installed"; \
-	fi
-
-install-uv:
-	@echo "Checking for UV installation..."
-	@if ! command -v uv >/dev/null 2>&1; then \
-		echo "Installing UV..."; \
-		curl -LsSf https://astral.sh/uv/install.sh | sh; \
-		export PATH="$$HOME/.local/bin:$$PATH"; \
-	else \
-		echo "UV is already installed"; \
 	fi
 
 install-bun:
@@ -40,65 +63,59 @@ install-bun:
 		echo "Bun is already installed"; \
 	fi
 
+install-rust:
+	@echo "Checking for Rust installation..."
+	@if ! command -v rustup >/dev/null 2>&1; then \
+		echo "Installing Rust..."; \
+		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; \
+		. $$HOME/.cargo/env; \
+	else \
+		echo "Rust is already installed"; \
+	fi
+
+install-uv:
+	@echo "Checking for UV installation..."
+	@if ! command -v uv >/dev/null 2>&1; then \
+		echo "Installing UV..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+	else \
+		echo "UV is already installed"; \
+	fi
+
+# ============================ NODE PACKAGES =============================
+
 node-packages-install: install-bun
 	@echo "Installing Node packages via Bun..."
-	@export PATH="$$HOME/.bun/bin:$$PATH" && \
-		jq -r '.npm[]' packages.json | xargs -I {} bun install -g {}
+	@$(BUN_PATH_EXPORT) && bun install -g $(NODE_PACKAGES)
 
 node-packages-update: install-bun
 	@echo "Updating Node packages via Bun..."
-	@export PATH="$$HOME/.bun/bin:$$PATH" && \
-		jq -r '.npm[]' packages.json | xargs -I {} bun update -g {}
+	@$(BUN_PATH_EXPORT) && bun update -g $(NODE_PACKAGES)
+
+# ============================ APT PACKAGES ==============================
 
 apt-packages-install:
-	@echo "Installing core APT packages..."
-	@jq -c '.apt[]' packages.json | while read -r item; do \
-		if echo "$$item" | jq -e 'type == "array"' >/dev/null 2>&1; then \
-			echo "$$item" | jq -r '.[]' | while read -r pkg; do \
-				if sudo apt-get install -y "$$pkg" 2>/dev/null; then \
-					echo "Successfully installed $$pkg"; \
-					break; \
-				fi; \
-			done; \
-		else \
-			pkg=$$(echo "$$item" | jq -r '.'); \
-			sudo apt-get install -y "$$pkg"; \
-		fi; \
-	done
+	@sudo apt-get update
+	@sudo apt-get install -y $(APT_PACKAGES)
 
 apt-packages-update:
-	@echo "Updating APT package lists..."
 	@sudo apt-get update
-	@echo "Upgrading installed packages..."
 	@sudo apt-get upgrade -y
 
-uv-tools-install: install-uv
-	@echo "Installing UV tools..."
-	@export PATH="$$HOME/.local/bin:$$PATH" && \
-		jq -r '.["uv-tool"][]' packages.json | while read -r tool; do \
-			echo "Installing $$tool..."; \
-			uv tool install $$tool; \
+# ============================ RUST PACKAGES =============================
+
+cargo-install: install-rust
+	@. $$HOME/.cargo/env && \
+		for pkg in $(CARGO_PACKAGES); do \
+			cargo install $$pkg --locked; \
 		done
+
+# ============================ UV TOOLS ==================================
+
+uv-tools-install: install-uv
+	@for tool in $(UV_TOOL_PACKAGES); do \
+		uv tool install $$tool || { echo "Failed to install $$tool"; exit 1; }; \
+	done
 
 uv-tools-update: install-uv
-	@echo "Updating UV tools..."
-	@export PATH="$$HOME/.local/bin:$$PATH" && \
-		jq -r '.["uv-tool"][]' packages.json | while read -r tool; do \
-			echo "Updating $$tool..."; \
-			uv tool upgrade $$tool || uv tool install --upgrade $$tool; \
-		done
-
-STOW_FLAGS ?=
-stow:
-	@echo "Stowing core dotfiles..."
-	@stow -v -d . -t $(HOME) --no-folding $(STOW_FLAGS) home
-
-clean:
-	@echo "Unstowing core dotfiles..."
-	@stow -v -D -d . -t $(HOME) home
-
-test:
-	@echo "Building Docker image for testing..."
-	@docker build -t core-dotfiles-test .
-	@echo "Test build completed successfully!"
-	@echo "To run the container: docker run -it --rm core-dotfiles-test"
+	@uv tool upgrade --all || echo "Failed to upgrade UV tools"

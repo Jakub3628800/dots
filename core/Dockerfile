@@ -21,6 +21,9 @@ RUN chown -R testuser:testuser /tmp/core
 USER testuser
 WORKDIR /home/testuser
 
+# Add UV and Bun to PATH for installation
+ENV PATH="/home/testuser/.local/bin:/home/testuser/.bun/bin:${PATH}"
+
 # Run the installation (install everything except stow first)
 RUN cd /tmp/core && \
     make install-stow apt-packages-install install-uv install-bun node-packages-install uv-tools-install && \
@@ -29,9 +32,6 @@ RUN cd /tmp/core && \
 
 # Set shell to zsh (if installation was successful)
 SHELL ["/bin/zsh", "-c"]
-
-# Add UV and Bun to PATH and verify installation
-ENV PATH="/home/testuser/.local/bin:/home/testuser/.bun/bin:${PATH}"
 RUN command -v uv && \
     command -v bun && \
     command -v claude && \
