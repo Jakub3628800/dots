@@ -17,7 +17,8 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Set up plugins
 require("lazy").setup({
-	require("plugins.copilot"),
+	-- require("plugins.copilot"),  -- Temporarily disabled for copilot.lua
+	require("plugins.copilot_lua"),
 	require("plugins.markdown"),
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
@@ -169,8 +170,11 @@ require("cmp").setup({
 	mapping = {
 		["<C-Space>"] = require("cmp").mapping.complete(),
 		["<CR>"] = require("cmp").mapping.confirm({ select = true }),
-		["<Tab>"] = require("cmp").mapping.select_next_item(),
-		["<S-Tab>"] = require("cmp").mapping.select_prev_item(),
+		-- Tab/S-Tab disabled to avoid conflict with Copilot
+		-- ["<Tab>"] = require("cmp").mapping.select_next_item(),
+		-- ["<S-Tab>"] = require("cmp").mapping.select_prev_item(),
+		["<C-n>"] = require("cmp").mapping.select_next_item(),
+		["<C-p>"] = require("cmp").mapping.select_prev_item(),
 	},
 	sources = {
 		{ name = "nvim_lsp" },
