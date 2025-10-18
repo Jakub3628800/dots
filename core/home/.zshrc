@@ -48,6 +48,10 @@ fzf-history-widget() {
 zle     -N   fzf-history-widget
 bindkey '^R' fzf-history-widget
 
+# Word jumping with Ctrl+Left/Right arrows
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
