@@ -13,13 +13,13 @@
       in
       {
         packages = {
-          default = pkgs.neovim-unwrapped;
-          neovim = pkgs.neovim-unwrapped;
+          default = pkgs.neovim;
+          neovim = pkgs.neovim;
         };
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            neovim-unwrapped
+            neovim
           ];
         };
       });
