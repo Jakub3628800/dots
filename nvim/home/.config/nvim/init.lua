@@ -73,6 +73,7 @@ require("lazy").setup({
 		"lewis6991/gitsigns.nvim",
 		config = function()
 			require("gitsigns").setup({
+				word_diff = true,
 				on_attach = function(bufnr)
 					local gs = package.loaded.gitsigns
 					vim.keymap.set("n", "<leader>hj", function()
@@ -81,11 +82,77 @@ require("lazy").setup({
 					vim.keymap.set("n", "<leader>hk", function()
 						gs.prev_hunk()
 					end, { buffer = bufnr, desc = "Previous git hunk" })
+					vim.keymap.set("n", "<leader>hd", function()
+						gs.toggle_deleted()
+					end, { buffer = bufnr, desc = "Toggle deleted lines" })
+					vim.keymap.set("n", "<leader>hb", function()
+						gs.change_base(nil, true)
+					end, { buffer = bufnr, desc = "Change base ref (global)" })
 				end,
 			})
 		end,
 	},
 })
+
+-- Setup gitsigns highlights after colorscheme loads
+local function setup_gitsigns_highlights()
+	-- Gruvbox-compatible highlights for line-level changes
+	-- Added and changed use darker bg (bg2)
+	-- Deleted uses red-tinted bg
+	vim.api.nvim_set_hl(0, "GitSignsAdd", {})
+	vim.api.nvim_set_hl(0, "GitSignsAddNr", {})
+	vim.api.nvim_set_hl(0, "GitSignsAddLn", { bg = "#32302f" })
+	vim.api.nvim_set_hl(0, "GitSignsChange", {})
+	vim.api.nvim_set_hl(0, "GitSignsChangeNr", {})
+	vim.api.nvim_set_hl(0, "GitSignsChangeLn", { bg = "#32302f" })
+	vim.api.nvim_set_hl(0, "GitSignsDelete", {})
+	vim.api.nvim_set_hl(0, "GitSignsDeleteNr", {})
+	vim.api.nvim_set_hl(0, "GitSignsDeleteLn", { bg = "#3f2323" })
+
+	-- Inline word-level diff highlights (shows exact changed words)
+	-- Added words: light green background
+	vim.api.nvim_set_hl(0, "GitSignsAddInline", { bg = "#4a5f3b", bold = true })
+	-- Deleted words: light red background
+	vim.api.nvim_set_hl(0, "GitSignsDeleteInline", { bg = "#5f3b3b", bold = true })
+	-- Changed words: light yellow background
+	vim.api.nvim_set_hl(0, "GitSignsChangeInline", { bg = "#5f5f3b", bold = true })
+end
+
+-- Set highlights on startup and when colorscheme changes
+setup_gitsigns_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+	callback = function()
+		setup_gitsigns_highlights()
+	end,
+})
+
+-- Diffmode toggle command - comprehensive diff view with line highlights, number highlights, and deleted lines
+vim.api.nvim_create_user_command("Diffmode", function()
+	local gs = package.loaded.gitsigns
+	if not gs then
+		vim.api.nvim_echo({ { "Gitsigns not loaded", "ErrorMsg" } }, true, {})
+		return
+	end
+	gs.toggle_linehl()
+	gs.toggle_numhl()
+	gs.toggle_deleted()
+	vim.api.nvim_echo({ { "Diff mode toggled", "Normal" } }, true, {})
+end, {})
+
+-- Keymap for diff mode
+vim.keymap.set("n", "<leader>diff", ":Diffmode<CR>", { noremap = true, silent = true, desc = "Toggle diff mode" })
+
+-- Keymap for changing base ref
+vim.keymap.set("n", "<leader>base", function()
+	local gs = package.loaded.gitsigns
+	if gs then
+		local base = vim.fn.input("Enter base ref (e.g., main, master, HEAD~1): ")
+		if base ~= "" then
+			gs.change_base(base, true)
+			vim.api.nvim_echo({ { "Base changed to: " .. base, "Normal" } }, true, {})
+		end
+	end
+end, { noremap = true, silent = true, desc = "Change base ref (global)" })
 
 local builtin = require("telescope.builtin")
 -- require("telescope").setup({
