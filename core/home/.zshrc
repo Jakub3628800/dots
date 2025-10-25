@@ -19,7 +19,7 @@ export HISTFILESIZE=1000000000
 export HISTSIZE=1000000000
 export HISTFILE=~/.cache/.zsh_history
 
-zstyle ':omz:plugins:ssh-agent' lazy yes
+zstyle ':omz:plugins:ssh-agent' lazy no
 export SSH_ASKPASS_REQUIRE=force_cli
 
 if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
