@@ -19,7 +19,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	require("plugins.copilot"),
 	-- require("plugins.supermaven"),
-	require("plugins.markdown"),
+	-- require("plugins.markdown"),
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
 	require("plugins.nvim-tree"),
