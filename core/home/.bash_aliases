@@ -74,3 +74,5 @@ alias wget='wget --no-hsts' # disable history file
 alias tm='cmd-picker tmux'
 alias xcc='wl-copy'
 alias tt='make test'
+
+alias suspend='systemctl suspend'
