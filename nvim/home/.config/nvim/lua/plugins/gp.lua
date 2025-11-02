@@ -1,13 +1,23 @@
-return -- lazy.nvim
-{
+local prompt = [[
+When asked general question about a system, assume linux. Ubuntu (or debian) with packaging.
+Answer in a consise way, shortly explaining the main point but not too much. The user is looking for a quick answer, not a lenghty one.
+
+The user is a proficient linux user, familiar with terminal commands and concepts.
+When they ask you for how to do a certain task in a terminal, provide a code snippet that is compatible with markdown, starting with ``` and ending with ```. The code snippet should ideally be a single command. When the task requires multiple commands, split them into multiple code blocks, describing each with one sentence.
+]]
+
+return {
 	"robitx/gp.nvim",
 	config = function()
 		local conf = {
-			-- For customization, refer to Install > Configuration in the Documentation/Readme
 			providers = {
 				anthropic = {
 					endpoint = "https://api.anthropic.com/v1/messages",
 					secret = os.getenv("ANTHROPIC_API_KEY"),
+				},
+				pplx = {
+					endpoint = "https://api.perplexity.ai/chat/completions",
+					secret = os.getenv("PERPLEXITY_API_KEY"),
 				},
 			},
 			agents = {
@@ -16,25 +26,21 @@ return -- lazy.nvim
 					name = "claude-sonnet-4-20250514",
 					chat = true,
 					command = true,
-					-- string with model name or table with model name and parameters
 					model = { model = "claude-sonnet-4-20250514", temperature = 0.8, top_p = 1 },
-					system_prompt = os.getenv("ANTHROPIC_SYSTEM_PROMPT"),
+					system_prompt = prompt,
 				},
 				{
-					provider = "anthropic",
-					name = "claude-opus-4-20250501",
+					name = "Perplexity",
+					provider = "pplx",
 					chat = true,
 					command = true,
-					-- string with model name or table with model name and parameters
-					model = { model = "claude-opus-4-20250501", temperature = 0.8, top_p = 1 },
-					system_prompt = os.getenv("ANTHROPIC_SYSTEM_PROMPT"),
+					model = { model = "sonar" },
+					system_prompt = prompt,
 				},
 			},
 		}
 		require("gp").setup(conf)
 		vim.keymap.set("n", "<space>g", ":GpChatRespond<CR>", { noremap = true, silent = true })
 		vim.keymap.set("n", "<space>c", ":GpChatClose<CR>", { noremap = true, silent = true })
-
-		-- Setup shortcuts here (see Usage > Shortcuts in the Documentation/Readme)
 	end,
 }
