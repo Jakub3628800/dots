@@ -31,6 +31,12 @@ if [ -d "$HOME/.bun/bin" ] ; then
     PATH="$HOME/.bun/bin:$PATH"
 fi
 
+# set PATH so it includes go if it exists
+if [ -d "$HOME/go/bin" ] ; then
+    PATH="$HOME/go/bin:$PATH"
+fi
+
+
 
 # vim as default editor
 export VISUAL=nvim
