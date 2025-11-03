@@ -64,7 +64,8 @@ alias docker-compose='docker compose'
 
 # other
 function rr() {  # retry cmd
-    until eval "$1"; do
+# shellcheck disable=SC2294
+    until eval "$@"; do
         sleep 2
     done
 }
