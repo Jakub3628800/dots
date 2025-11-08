@@ -1,87 +1,56 @@
-# Desktop environment Makefile
-.PHONY: all
-all: apt stow nix-flake-install
+# ============================ CONFIGURATION =============================
+# APT packages for desktop environment
+APT_PACKAGES := bemenu xclip xdotool pass pass-extension-otp sway kanshi wtype mako-notifier gammastep swaylock
 
-.PHONY: check-wayland
-check-wayland:
-	@if [ "$$XDG_SESSION_TYPE" != "wayland" ]; then \
-		echo "Warning: Not running Wayland session (XDG_SESSION_TYPE=$$XDG_SESSION_TYPE)"; \
-		echo -n "Continue installing desktop environment? [y/N] "; \
-		read answer; \
-		if [ "$$answer" != "y" ] && [ "$$answer" != "Y" ]; then \
-			echo "Skipping desktop environment installation."; \
-			exit 1; \
-		fi \
-	fi
+# ============================ PHONY TARGETS =============================
+.PHONY: install update clean test stow unstow
+.PHONY: apt-packages-install apt-packages-update
 
-HOME_DIR := $(shell echo $$HOME)
-STOW_FLAGS ?=
+# ============================ MAIN TARGETS ==============================
 
-.PHONY: apt
-apt: check-wayland
-	@echo "\nInstalling desktop APT packages..."
-	@jq -c '.apt[]' packages.json | while read -r item; do \
-		if echo "$$item" | jq -e 'type == "array"' >/dev/null 2>&1; then \
-			echo "$$item" | jq -r '.[]' | while read -r pkg; do \
-				if sudo apt-get install -y "$$pkg" 2>/dev/null; then \
-					echo "Successfully installed $$pkg"; \
-					break; \
-				fi; \
-			done; \
-		else \
-			pkg=$$(echo "$$item" | jq -r '.'); \
-			sudo apt-get install -y "$$pkg"; \
-		fi; \
-	done
+install: apt-packages-install stow
+	@echo "Desktop environment installation complete!"
 
-.PHONY: stow
-stow: check-wayland
-	@echo "\nStowing desktop dotfiles..."
-	@stow -v -d . -t $(HOME_DIR) --no-folding $(STOW_FLAGS) home
+update: apt-packages-update
+	@echo "Desktop packages updated!"
 
-.PHONY: unstow
+clean:
+	@echo "Unstowing desktop dotfiles..."
+	@stow -v -D -d . -t $(HOME) --no-folding home
+
+test:
+	@echo "Building Docker image for testing..."
+	@docker build -t desktop-dotfiles-test .
+	@echo "Test build completed successfully!"
+
+stow:
+	@echo "Stowing desktop dotfiles..."
+	@stow -v -d . -t $(HOME) --no-folding home
+
 unstow:
-	@echo "\nUnstowing desktop dotfiles..."
-	@stow -v -D -d . -t $(HOME_DIR) home
+	@echo "Unstowing desktop dotfiles..."
+	@stow -v -D -d . -t $(HOME) --no-folding home
 
-.PHONY: install-nix
-install-nix:
-	@if command -v nix >/dev/null 2>&1; then \
-		echo "Nix is already installed."; \
-	else \
-		echo "Installing Nix..."; \
-		curl -L https://nixos.org/nix/install | sh -s -- ; \
-	fi
+# ============================ APT PACKAGES ==============================
 
-.PHONY: nix-flake-install
-nix-flake-install: check-wayland install-nix
-	@echo "\nInstalling nix flake to profile..."
-	@nix profile install .
-	@nix flake update --flake .
-
-.PHONY: nix-flake-remove
-nix-flake-remove:
-	@echo "\nRemoving dots from nix profile..."
-	@nix profile remove dots
-
-.PHONY: install
-install: all
-
-.PHONY: update
-update:
-	@echo "\nUpdating desktop packages..."
+apt-packages-install:
+	@echo "Installing desktop APT packages..."
 	@sudo apt-get update
-	@echo "Upgrading installed packages..."
-	@sudo apt-get upgrade -y
-	@echo "Updating nix flake..."
-	@nix flake update --flake .
+	@sudo apt-get install -y $(APT_PACKAGES)
 
-.PHONY: help
+apt-packages-update:
+	@sudo apt-get update
+	@sudo apt-get upgrade -y
+
+# ============================ HELP ====================================
+
 help:
 	@echo "Desktop environment installation targets:"
-	@echo "  make install        - Install everything (apt packages, stow dotfiles, nix flake)"
-	@echo "  make apt            - Install desktop APT packages"
+	@echo "  make install        - Install everything (apt packages + stow dotfiles)"
+	@echo "  make apt-packages-install - Install APT packages only"
+	@echo "  make apt-packages-update  - Update APT packages"
 	@echo "  make stow           - Symlink desktop dotfiles"
 	@echo "  make unstow         - Remove desktop dotfile symlinks"
-	@echo "  make nix-flake-install - Install Nix flake packages"
-	@echo "  make nix-flake-remove  - Remove Nix flake packages"
+	@echo "  make update         - Update all packages"
+	@echo "  make test           - Build Docker image for testing"
+	@echo "  make clean          - Unstow dotfiles"
