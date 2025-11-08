@@ -6,6 +6,9 @@ install: install-core install-desktop install-nvim
 .PHONY: update
 update: update-core update-desktop update-nvim
 
+.PHONY: test
+test: test-core test-desktop
+
 .PHONY: install-core
 install-core:
 	@echo "\n=== Installing core packages ==="
@@ -36,6 +39,16 @@ update-nvim:
 	@echo "\n=== Updating Neovim ==="
 	@$(MAKE) -C nvim update
 
+.PHONY: test-core
+test-core:
+	@echo "\n=== Testing core packages ==="
+	@$(MAKE) -C core test
+
+.PHONY: test-desktop
+test-desktop:
+	@echo "\n=== Testing desktop environment ==="
+	@$(MAKE) -C desktop test
+
 .PHONY: clean
 clean:
 	@echo "\n=== Cleaning all packages ==="
@@ -51,10 +64,13 @@ help:
 	@echo "Main targets:"
 	@echo "  make install        - Install everything (core + desktop + nvim)"
 	@echo "  make update         - Update everything (core + desktop + nvim)"
+	@echo "  make test           - Test everything (core + desktop + nvim)"
 	@echo "  make install-core   - Install core packages only"
 	@echo "  make update-core    - Update core packages only"
+	@echo "  make test-core      - Test core packages only"
 	@echo "  make install-desktop - Install desktop environment only"
 	@echo "  make update-desktop  - Update desktop packages only"
+	@echo "  make test-desktop   - Test desktop environment only"
 	@echo "  make install-nvim   - Install Neovim only"
 	@echo "  make update-nvim    - Update Neovim only"
 	@echo "  make clean          - Unstow all dotfiles"

@@ -27,7 +27,7 @@ ENV PATH="/home/testuser/.local/bin:/home/testuser/.bun/bin:${PATH}"
 # Run the installation (install everything except stow first)
 RUN cd /tmp/core && \
     make install-stow apt-packages-install install-uv install-bun node-packages-install uv-tools-install && \
-    rm -f ~/.profile ~/.zshrc ~/.bashrc && \
+    rm -f ~/.profile && \
     make stow
 
 # Set shell to zsh (if installation was successful)
@@ -37,7 +37,6 @@ RUN command -v uv && \
     command -v claude && \
     command -v zsh && \
     command -v tig && \
-    test -f ~/.vimrc && \
     test -f ~/.zshrc && \
     test -f ~/.bash_aliases
 

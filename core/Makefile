@@ -36,7 +36,6 @@ test:
 	@echo "Building Docker image for testing..."
 	@docker build -t core-dotfiles-test .
 	@echo "Test build completed successfully!"
-	@echo "To run the container: docker run -it --rm core-dotfiles-test"
 
 stow: install-stow
 	@echo "Stowing core dotfiles..."
