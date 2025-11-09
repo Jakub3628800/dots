@@ -72,7 +72,7 @@ require("lazy").setup({
 		"lewis6991/gitsigns.nvim",
 		config = function()
 			require("gitsigns").setup({
-				word_diff = true,
+				word_diff = false,
 				on_attach = function(bufnr)
 					local gs = package.loaded.gitsigns
 					vim.keymap.set("n", "<leader>hj", function()
@@ -125,7 +125,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 	end,
 })
 
--- Diffmode toggle command - comprehensive diff view with line highlights, number highlights, and deleted lines
+-- Diffmode toggle command - comprehensive diff view with line highlights, number highlights, deleted lines, and word diff
 vim.api.nvim_create_user_command("Diffmode", function()
 	local gs = package.loaded.gitsigns
 	if not gs then
@@ -135,6 +135,7 @@ vim.api.nvim_create_user_command("Diffmode", function()
 	gs.toggle_linehl()
 	gs.toggle_numhl()
 	gs.toggle_deleted()
+	gs.toggle_word_diff()
 	vim.api.nvim_echo({ { "Diff mode toggled", "Normal" } }, true, {})
 end, {})
 
