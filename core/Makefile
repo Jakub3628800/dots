@@ -13,14 +13,14 @@ BUN_PATH_EXPORT := export PATH="$$HOME/.bun/bin:$$PATH"
 .PHONY: install-stow install-bun install-rust install-uv
 .PHONY: node-packages-install node-packages-update
 .PHONY: apt-packages-install apt-packages-update
-.PHONY: cargo-install
+.PHONY: cargo-install cargo-update
 .PHONY: uv-tools-install uv-tools-update
 
 # ============================ MAIN TARGETS ==============================
 
 install: apt-packages-install node-packages-install cargo-install uv-tools-install stow
 
-update: apt-packages-update node-packages-update uv-tools-update
+update: apt-packages-update node-packages-update cargo-update uv-tools-update
 	@echo "Checking for Rustup updates..."
 	@. $$HOME/.cargo/env 2>/dev/null; command -v rustup >/dev/null 2>&1 && rustup update || echo "Rustup not installed yet"
 	@echo "Checking for UV updates..."
@@ -106,7 +106,19 @@ apt-packages-update:
 cargo-install: install-rust
 	@. $$HOME/.cargo/env && \
 		for pkg in $(CARGO_PACKAGES); do \
-			cargo install $$pkg --locked; \
+			if ! command -v $$pkg >/dev/null 2>&1; then \
+				echo "Installing $$pkg..."; \
+				cargo install $$pkg --locked; \
+			else \
+				echo "$$pkg is already installed"; \
+			fi; \
+		done
+
+cargo-update: install-rust
+	@. $$HOME/.cargo/env && \
+		for pkg in $(CARGO_PACKAGES); do \
+			echo "Updating $$pkg..."; \
+			cargo install $$pkg --locked --force; \
 		done
 
 # ============================ UV TOOLS ==================================
