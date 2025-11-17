@@ -105,7 +105,8 @@ bindsym --release Mod4+u exec touch /home/jk/tmp/stop_recording
 # Start a browser
 bindsym $mod+f exec $browser
 
-
+# Dismiss notifications
+bindsym $mod+n exec makoctl dismiss
 
 # Reload the configuration file
 bindsym $mod+Shift+c reload
