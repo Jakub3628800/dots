@@ -291,11 +291,11 @@ exec {
   swaymsg 'workspace 3; exec wezterm start -- bash -c "cd ~/repos/dots; zsh"'
   swaymsg 'workspace 4; exec wezterm start'
   swaymsg 'workspace 5; exec wezterm start'
+  1password
 
 }
 
 exec_always {
   slack
   mako
-  1password
 }
