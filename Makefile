@@ -22,7 +22,7 @@ update-core:
 .PHONY: install-desktop
 install-desktop:
 	@echo "\n=== Installing desktop environment ==="
-	@$(MAKE) -C desktop install
+	@$(MAKE) -C desktop all
 
 .PHONY: update-desktop
 update-desktop:
