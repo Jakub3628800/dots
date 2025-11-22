@@ -1,7 +1,7 @@
 # ============================ CONFIGURATION =============================
 # Package lists
 NODE_PACKAGES := @anthropic-ai/claude-code wrangler @google/gemini-cli
-APT_PACKAGES := zsh vim tig gh curl unzip jq direnv python3-virtualenv tmux ripgrep fzf bat eza nodejs gnupg2
+APT_PACKAGES := zsh vim tig gh curl unzip jq direnv python3-virtualenv tmux ripgrep fzf bat nodejs gnupg2
 CARGO_PACKAGES := starship
 UV_TOOL_PACKAGES := git+https://github.com/Jakub3628800/py-scripts pre-commit
 

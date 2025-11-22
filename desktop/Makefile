@@ -3,10 +3,18 @@
 APT_PACKAGES := bemenu xclip xdotool pass pass-extension-otp sway kanshi wtype mako-notifier gammastep swaylock
 
 # ============================ PHONY TARGETS =============================
-.PHONY: install update clean test stow unstow
+.PHONY: all install update clean test stow unstow
 .PHONY: apt-packages-install apt-packages-update
 
 # ============================ MAIN TARGETS ==============================
+
+all:
+	@if [ "$$XDG_SESSION_TYPE" = "wayland" ] || [ -n "$$WAYLAND_DISPLAY" ]; then \
+		$(MAKE) install; \
+	else \
+		echo "⚠️  Not in a Wayland session (XDG_SESSION_TYPE=$$XDG_SESSION_TYPE)"; \
+		echo "Run 'make install' if you really want to install"; \
+	fi
 
 install: apt-packages-install stow
 	@echo "Desktop environment installation complete!"
