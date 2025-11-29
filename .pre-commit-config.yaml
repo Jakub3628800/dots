@@ -1,41 +1,67 @@
----
-default_language_version:
-    python: python3.12
+# ===============================================================================
+# pre-commit-config.yaml created with https://github.com/Jakub3628800/pre-commit-template
+# ===============================================================================
 repos:
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.14.5
-      hooks:
-          - id: ruff
-            args: [--fix]
-          - id: ruff-format
+  # =====================
+  # Base hooks
+  # =====================
 
-    - repo: https://github.com/koalaman/shellcheck-precommit
-      rev: v0.11.0
-      hooks:
-          - id: shellcheck
-            exclude: \.zshrc$|\.zsh$
-            args: ["--severity=warning", --exclude=SC3010]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    - id: trailing-whitespace
+      name: Trim trailing whitespace
+    - id: end-of-file-fixer
+      name: Fix end of files
+    - id: check-yaml
+      name: Check YAML
+    - id: check-json
+      name: Check JSON
+    - id: check-toml
+      name: Check TOML
+    - id: check-added-large-files
+      name: Check for added large files
+    - id: check-merge-conflict
+      name: Check for merge conflict strings
+    - id: detect-private-key
+      name: Detect private keys
+    - id: detect-aws-credentials
+      name: Detect AWS credentials
+      args: [--allow-missing-credentials]
+    - id: no-commit-to-branch
+      name: Prevent commits to main/master
+      always_run: false
+      args: [--branch, main, --branch, master]
+    - id: check-case-conflict
+      name: Check for case conflicts
+    - id: check-executables-have-shebangs
+      name: Check executables have shebangs
 
-    - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v6.0.0
-      hooks:
-          - id: check-yaml
-          - id: debug-statements
-          - id: check-ast
-          - id: check-executables-have-shebangs
-          - id: check-shebang-scripts-are-executable
-          - id: check-merge-conflict
-          - id: trailing-whitespace
-          - id: end-of-file-fixer
-          - id: fix-encoding-pragma
-            args: [--remove]
+  # =====================
+  # Docker hooks
+  # =====================
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
+    hooks:
+    - id: hadolint-docker
+      name: Lint Dockerfiles with hadolint
+      files: ^Dockerfile.*$
+      types: [dockerfile]
 
-    - repo: https://github.com/rhysd/actionlint
-      rev: v1.7.8
-      hooks:
-          - id: actionlint
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    - id: check-added-large-files
+      name: Check for large files (Docker builds)
+      args: ['--maxkb=1000']
 
-    - repo: https://github.com/JohnnyMorganz/StyLua
-      rev: v2.3.1
-      hooks:
-          - id: stylua-github
+  # =====================
+  # GitHub Actions hooks
+  # =====================
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.8
+    hooks:
+    - id: actionlint
+      name: Lint GitHub Actions workflows
+      description: Lint GitHub Actions workflow files
+      files: '^\.github/workflows/.*\.(yml|yaml)$'

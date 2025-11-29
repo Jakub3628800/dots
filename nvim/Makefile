@@ -1,9 +1,8 @@
 # ============================ CONFIGURATION =============================
-HOME_DIR := $(shell echo $$HOME)
 STOW_FLAGS ?=
 
 # ============================ PHONY TARGETS =============================
-.PHONY: install update clean help stow unstow
+.PHONY: install update clean help stow unstow test
 
 # ============================ MAIN TARGETS ==============================
 
@@ -15,13 +14,22 @@ clean: unstow
 	@echo "Cleaning build artifacts..."
 	@rm -rf result
 
+test:
+	@echo "Checking Neovim installation..."
+	@if [ -f "/opt/nvim-linux64/bin/nvim" ]; then \
+		/opt/nvim-linux64/bin/nvim --version | head -n 1; \
+	else \
+		echo "Neovim not installed"; \
+		exit 1; \
+	fi
+
 stow:
 	@echo "Stowing Neovim dotfiles..."
-	@stow -v -d . -t $(HOME_DIR) --no-folding $(STOW_FLAGS) home
+	@stow -v -d . -t $(HOME) --no-folding $(STOW_FLAGS) home
 
 unstow:
 	@echo "Unstowing Neovim dotfiles..."
-	@stow -v -D -d . -t $(HOME_DIR) home
+	@stow -v -D -d . -t $(HOME) --no-folding home
 
 # ============================ NVIM MANAGEMENT ============================
 
@@ -42,6 +50,7 @@ help:
 	@echo "Main targets:"
 	@echo "  make install        - Download Neovim binary and stow dotfiles"
 	@echo "  make update         - Update Neovim binary"
+	@echo "  make test           - Verify Neovim installation"
 	@echo "  make stow           - Symlink Neovim dotfiles"
 	@echo "  make unstow         - Remove Neovim dotfile symlinks"
 	@echo "  make clean          - Clean artifacts and unstow"
