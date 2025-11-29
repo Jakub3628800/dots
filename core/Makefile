@@ -130,3 +130,17 @@ uv-tools-install: install-uv
 
 uv-tools-update: install-uv
 	@uv tool upgrade --all || echo "Failed to upgrade UV tools"
+
+# ============================ HELP ======================================
+
+help:
+	@echo "Core packages installation targets:"
+	@echo "  make install        - Install everything (apt, node, cargo, uv tools + stow)"
+	@echo "  make update         - Update all packages"
+	@echo "  make clean          - Unstow dotfiles"
+	@echo "  make test           - Build Docker image for testing"
+	@echo "  make stow           - Symlink core dotfiles"
+	@echo "  make apt-packages-install  - Install APT packages"
+	@echo "  make node-packages-install - Install Node packages"
+	@echo "  make cargo-install         - Install Rust packages"
+	@echo "  make uv-tools-install      - Install UV tools"
