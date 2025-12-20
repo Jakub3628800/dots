@@ -29,18 +29,6 @@ alias tg='tig'
 
 # gh
 alias ghmerge='gh pr merge --rebase --delete-branch'
-ghpr() {
-	gh pr create
-	exit_code=$?
-
-	if [ $exit_code -eq 0 ]; then
-    	echo "Firing up the PR checker in the background..."
-        action-checker
-	#	gh pr view --web
-	else
-    	echo "Not running prchecker, pr create failed with exit code $exit_code"
-	fi
-}
 
 # docker
 alias d='docker'
