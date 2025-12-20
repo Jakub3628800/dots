@@ -1,9 +1,9 @@
 # ============================ CONFIGURATION =============================
 # Package lists
-NODE_PACKAGES := @anthropic-ai/claude-code wrangler @google/gemini-cli
-APT_PACKAGES := zsh vim tig gh curl unzip jq direnv python3-virtualenv tmux ripgrep fzf bat nodejs gnupg2
+NODE_PACKAGES := @anthropic-ai/claude-code
+APT_PACKAGES := zsh vim tig gh curl unzip jq direnv tmux ripgrep fzf bat nodejs gnupg2
 CARGO_PACKAGES := starship
-UV_TOOL_PACKAGES := pre-commit
+UV_TOOL_PACKAGES := pre-commit ruff
 
 # Helper variables
 BUN_PATH_EXPORT := export PATH="$$HOME/.bun/bin:$$PATH"
