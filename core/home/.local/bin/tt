@@ -1,0 +1,299 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+"""
+tt - test triggered
+
+Run pytest only on files changed in git.
+
+Automatically discovers test files by searching for test_{basename}.py.
+When multiple matches exist, picks the one with the most similar path structure.
+
+Usage:
+    tt                  # run tests for changed files
+    tt -v --cov         # same, with pytest args
+    tt --entr           # watch mode using entr
+    tt --entr -v        # watch mode with pytest args
+    tt -d               # debug mode, show file mapping
+
+Flags tt owns: --entr, -d. Everything else is passed to pytest.
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def find_all_project_roots() -> list[str]:
+    """Find all directories containing pyproject.toml."""
+    result = subprocess.run(
+        ["find", ".", "-name", "pyproject.toml", "-type", "f"],
+        capture_output=True,
+        text=True,
+    )
+    roots = []
+    for line in result.stdout.strip().split("\n"):
+        if line:
+            root = os.path.dirname(line.removeprefix("./"))
+            roots.append(root)
+    return sorted(roots, key=lambda x: -len(x))  # longest first
+
+
+def find_project_root_for_file(filepath: str, project_roots: list[str]) -> str:
+    """Find the closest project root for a given file path."""
+    for root in project_roots:
+        if root and filepath.startswith(root + "/"):
+            return root
+        if root == "":
+            return ""
+    return ""
+
+
+def get_changed_files() -> list[str]:
+    """Get list of changed files from git (staged + unstaged + untracked)."""
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "HEAD"],
+        capture_output=True,
+        text=True,
+    )
+    staged = result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+    result = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        capture_output=True,
+        text=True,
+    )
+    untracked = result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+    return [f for f in staged + untracked if f]
+
+
+def build_test_index(project_root: str) -> dict[str, list[str]]:
+    """Build an index of test files: basename -> list of test file paths.
+
+    The basename is the name being tested (e.g., 'foo' for 'test_foo.py').
+    Paths are relative to the git root (not project root).
+    """
+    search_dir = project_root if project_root else "."
+    result = subprocess.run(
+        ["find", search_dir, "-name", "test_*.py", "-type", "f"],
+        capture_output=True,
+        text=True,
+    )
+
+    index: dict[str, list[str]] = {}
+    for line in result.stdout.strip().split("\n"):
+        if not line:
+            continue
+        test_path = line.removeprefix("./")
+        # Skip pycache and hidden directories
+        if "/__pycache__/" in test_path or "/." in test_path:
+            continue
+
+        filename = Path(test_path).stem  # test_foo
+        if filename.startswith("test_"):
+            basename = filename[5:]  # foo
+            if basename not in index:
+                index[basename] = []
+            index[basename].append(test_path)
+
+    return index
+
+
+def find_test_for_source(
+    source_file: str,
+    project_root: str,
+    test_index: dict[str, list[str]],
+) -> str | None:
+    """Find the best matching test file for a source file using discovery."""
+    p = Path(source_file)
+    basename = p.stem
+
+    # Skip special files
+    if basename in ("__init__", "conftest", "__main__"):
+        return None
+
+    candidates = test_index.get(basename, [])
+    if not candidates:
+        return None
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    # Multiple candidates - use path similarity to pick the best one
+    # Get source path components for matching
+    if project_root:
+        rel_source = source_file.removeprefix(project_root + "/")
+    else:
+        rel_source = source_file
+    source_components = set(Path(rel_source).parent.parts)
+
+    def score(test_path: str) -> tuple[int, int]:
+        """Score by (similarity, -length) - higher is better."""
+        if project_root:
+            rel_test = test_path.removeprefix(project_root + "/")
+        else:
+            rel_test = test_path
+        test_components = set(Path(rel_test).parent.parts)
+        similarity = len(source_components & test_components)
+        return (similarity, -len(test_path))
+
+    candidates.sort(key=score, reverse=True)
+    return candidates[0]
+
+
+def map_to_test_file(
+    changed_file: str,
+    project_root: str,
+    test_index: dict[str, list[str]],
+) -> str | None:
+    """Map a changed file to its corresponding test file."""
+    if "__pycache__" in changed_file or changed_file.endswith(".pyc"):
+        return None
+
+    if not changed_file.endswith(".py"):
+        return None
+
+    filename = os.path.basename(changed_file)
+    basename = Path(changed_file).stem
+
+    # Skip conftest
+    if basename == "conftest":
+        return None
+
+    # If it's already a test file, return it directly
+    if filename.startswith("test_"):
+        return changed_file
+
+    # Use discovery to find the corresponding test file
+    return find_test_for_source(changed_file, project_root, test_index)
+
+
+def collect_test_files(verbose: bool = False) -> dict[str, list[str]]:
+    """Collect test files for all changed files, grouped by project root."""
+    changed = get_changed_files()
+    if verbose:
+        print(f"Changed files: {changed}")
+
+    project_roots = find_all_project_roots()
+    if verbose:
+        print(f"Project roots: {project_roots}")
+
+    # Build test index for each project root
+    test_indices: dict[str, dict[str, list[str]]] = {}
+    for root in project_roots:
+        test_indices[root] = build_test_index(root)
+        if verbose:
+            index = test_indices[root]
+            print(f"Test index for '{root or '.'}': {len(index)} entries")
+
+    # Map changed files to test files, grouped by project root
+    groups: dict[str, set[str]] = {}
+
+    for f in changed:
+        project_root = find_project_root_for_file(f, project_roots)
+        test_index = test_indices.get(project_root, {})
+
+        mapped = map_to_test_file(f, project_root, test_index)
+        if verbose:
+            exists = mapped and os.path.exists(mapped)
+            print(f"  {f} -> {mapped} (exists: {exists})")
+
+        if mapped and os.path.exists(mapped):
+            if project_root not in groups:
+                groups[project_root] = set()
+            # Store path relative to project root
+            if project_root:
+                rel_path = mapped.removeprefix(project_root + "/")
+            else:
+                rel_path = mapped
+            groups[project_root].add(rel_path)
+
+    return {k: sorted(v) for k, v in groups.items()}
+
+
+def run_with_entr(pytest_args: list[str]) -> int:
+    """Run in watch mode using entr."""
+    changed = get_changed_files()
+    if not changed:
+        print("No changed files to watch")
+        return 1
+
+    # Build set of files to watch: changed files + their corresponding test files
+    project_roots = find_all_project_roots()
+    test_indices = {root: build_test_index(root) for root in project_roots}
+
+    files_to_watch = set()
+    for f in changed:
+        if not f.endswith(".py"):
+            continue
+        files_to_watch.add(f)
+        # Also watch the corresponding test file
+        project_root = find_project_root_for_file(f, project_roots)
+        test_index = test_indices.get(project_root, {})
+        mapped = map_to_test_file(f, project_root, test_index)
+        if mapped and os.path.exists(mapped):
+            files_to_watch.add(mapped)
+
+    if not files_to_watch:
+        print("No Python files to watch")
+        return 1
+
+    # Get absolute path to this script for entr to call
+    script_path = os.path.abspath(__file__)
+
+    file_list = "\n".join(sorted(files_to_watch)) + "\n"
+    print(f"Watching {len(files_to_watch)} files:")
+    for f in sorted(files_to_watch):
+        print(f"  {f}")
+
+    # -c clears screen before each run
+    entr_proc = subprocess.Popen(
+        ["entr", "-c", script_path] + pytest_args,
+        stdin=subprocess.PIPE,
+    )
+    entr_proc.communicate(input=file_list.encode())
+    return entr_proc.returncode or 0
+
+
+def main() -> int:
+    args = sys.argv[1:]
+
+    use_entr = "--entr" in args
+    if use_entr:
+        args.remove("--entr")
+
+    verbose = "-d" in args
+    if verbose:
+        args.remove("-d")
+
+    if use_entr:
+        return run_with_entr(args)
+
+    groups = collect_test_files(verbose=verbose)
+    if not groups:
+        print("No test files found for changed files")
+        return 0
+
+    if verbose:
+        print(f"Test groups: {groups}")
+        print()
+
+    # Run pytest for each project root
+    exit_code = 0
+    for root, files in groups.items():
+        cwd = root if root else None
+        cmd = ["uv", "run", "pytest"] + files + args
+        print(f"Running: {' '.join(cmd)}" + (f" (in {root}/)" if root else ""))
+        result = subprocess.run(cmd, cwd=cwd)
+        if result.returncode != 0:
+            exit_code = result.returncode
+
+    return exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
