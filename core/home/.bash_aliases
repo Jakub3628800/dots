@@ -36,8 +36,8 @@ alias dc='docker compose'
 alias dkill='docker ps -q | xargs docker kill'
 
 # python
-alias prec='pre-commit run'
-alias preca='pre-commit run --all-files'
+alias prec='prek run'
+alias preca='prek run --all-files'
 
 # vim
 alias vim='nvim'
