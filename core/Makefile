@@ -3,7 +3,7 @@
 NODE_PACKAGES := @anthropic-ai/claude-code
 APT_PACKAGES := zsh vim tig gh curl unzip jq direnv tmux ripgrep fzf bat nodejs gnupg2
 CARGO_PACKAGES := starship
-UV_TOOL_PACKAGES := pre-commit ruff
+UV_TOOL_PACKAGES := prek ruff pre-commit
 
 # Helper variables
 BUN_PATH_EXPORT := export PATH="$$HOME/.bun/bin:$$PATH"
