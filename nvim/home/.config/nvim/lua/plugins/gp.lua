@@ -22,7 +22,6 @@ return {
 			providers = {
 				openai = {},
 				azure = {},
-				copilot = {},
 				ollama = {},
 				lmstudio = {},
 				googleai = {},
