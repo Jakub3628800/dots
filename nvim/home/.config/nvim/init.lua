@@ -17,7 +17,6 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Set up plugins
 require("lazy").setup({
-	require("plugins.copilot"),
 	-- require("plugins.markdown"),
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
@@ -60,7 +59,7 @@ require("lazy").setup({
 		dependencies = { "williamboman/mason.nvim" },
 		config = function()
 			require("mason-lspconfig").setup({
-				ensure_installed = { "pyright" },
+				ensure_installed = { "pyright", "gopls" },
 			})
 		end,
 	},
@@ -194,7 +193,6 @@ vim.keymap.set("n", "<C-p>", builtin.find_files, { desc = "Telescope find files"
 vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
 vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers, { desc = "Buffers" })
 vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc = "Help Tags" })
-vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
 vim.keymap.set("n", "<C-h>", require("telescope.builtin").git_status, { desc = "Git status" })
 
 local on_attach = function(client, bufnr)
@@ -203,29 +201,38 @@ local on_attach = function(client, bufnr)
 		require("nvim-navic").attach(client, bufnr)
 	end
 
-	-- Function to open definition in new tab
-	local function goto_definition_in_tab()
-		vim.cmd("tab split") -- Open new tab
-		vim.lsp.buf.definition() -- Go to definition
-	end
-
+	vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = bufnr })
+	vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = bufnr })
+	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr })
+	vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { buffer = bufnr })
 	vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
 	vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
-	-- vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = bufnr })
-	vim.keymap.set("n", "gi", goto_definition_in_tab, { buffer = bufnr })
 	vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, { buffer = bufnr })
 	vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
 end
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
-require("lspconfig").pyright.setup({
+local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
+capabilities.textDocument.completion.completionItem.snippetSupport = false
+
+vim.lsp.config("*", {
 	on_attach = on_attach,
 	capabilities = capabilities,
 })
-require("lspconfig").gopls.setup({
-	on_attach = on_attach,
-	capabilities = capabilities,
+
+vim.lsp.config("pyright", {
+	settings = {
+		python = {
+			analysis = {
+				autoImportCompletions = true,
+			},
+		},
+	},
+})
+
+vim.lsp.config("gopls", {
 	settings = {
 		gopls = {
+			completeUnimported = true,
+			usePlaceholders = false,
 			analyses = {
 				unusedparams = true,
 			},
@@ -233,15 +240,27 @@ require("lspconfig").gopls.setup({
 		},
 	},
 })
+
+vim.lsp.enable({ "pyright", "gopls" })
+local cmp = require("cmp")
 require("cmp").setup({
+	preselect = cmp.PreselectMode.None,
+	completion = {
+		autocomplete = { cmp.TriggerEvent.TextChanged },
+	},
 	mapping = {
-		["<C-Space>"] = require("cmp").mapping.complete(),
-		["<CR>"] = require("cmp").mapping.confirm({ select = true }),
-		-- Tab/S-Tab disabled to avoid conflict with completion suggestions (Copilot/Supermaven)
-		-- ["<Tab>"] = require("cmp").mapping.select_next_item(),
-		-- ["<S-Tab>"] = require("cmp").mapping.select_prev_item(),
-		["<C-n>"] = require("cmp").mapping.select_next_item(),
-		["<C-p>"] = require("cmp").mapping.select_prev_item(),
+		["<C-Space>"] = cmp.mapping.complete(),
+		["<CR>"] = cmp.mapping.confirm({ select = true }),
+		["<C-y>"] = cmp.mapping.confirm({ select = true }),
+		["<C-n>"] = cmp.mapping.select_next_item(),
+		["<C-p>"] = cmp.mapping.select_prev_item(),
+		["<Tab>"] = cmp.mapping(function(fallback)
+			if cmp.visible() then
+				cmp.confirm({ select = true })
+			else
+				fallback()
+			end
+		end, { "i", "s" }),
 	},
 	sources = {
 		{ name = "nvim_lsp" },
@@ -250,7 +269,6 @@ require("cmp").setup({
 	},
 })
 
--- Setup cmdline completion
 require("cmp").setup.cmdline(":", {
 	mapping = require("cmp").mapping.preset.cmdline(),
 	sources = require("cmp").config.sources({
@@ -274,11 +292,32 @@ require("noice").setup({
 
 -- Basic Neovim settings
 vim.opt.number = true -- Show line numbers
+vim.opt.signcolumn = "yes"
 vim.opt.expandtab = true -- Use spaces instead of tabs
 vim.opt.shiftwidth = 2 -- Size of an indent
 vim.opt.softtabstop = 2 -- Number of spaces tabs count for in insert mode
 vim.opt.smartindent = true -- Insert indents automatically
 vim.opt.termguicolors = true -- Enable 24-bit RGB color in the TUI
+vim.opt.completeopt = { "menu", "menuone", "noselect" }
+vim.diagnostic.config({
+	virtual_text = false,
+	virtual_lines = false,
+	signs = true,
+	underline = true,
+	update_in_insert = false,
+	severity_sort = true,
+	float = {
+		border = "rounded",
+		source = "if_many",
+	},
+})
+vim.keymap.set("n", "[d", function()
+	vim.diagnostic.jump({ count = -1, float = true })
+end, { desc = "Previous diagnostic" })
+vim.keymap.set("n", "]d", function()
+	vim.diagnostic.jump({ count = 1, float = true })
+end, { desc = "Next diagnostic" })
+vim.keymap.set("n", "<leader>xx", vim.diagnostic.open_float, { desc = "Line diagnostics" })
 vim.keymap.set("n", "<Esc><Esc>", ":nohlsearch<CR>")
 -- Define the custom command
 vim.api.nvim_create_user_command("Tabn", "tabnew | Ex", {})
