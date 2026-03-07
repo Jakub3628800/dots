@@ -41,7 +41,7 @@ alias preca='prek run --all-files'
 
 # vim
 alias vim='nvim'
-alias llm='nvim -c "GpChatNew"'
+alias llm='ANTHROPIC_API_KEY=$(pass ANTHROPIC_API_KEY) nvim -c "GpChatNew"'
 alias nv='nvim .'
 alias nv.='nvim .'
 alias nano='nvim'
