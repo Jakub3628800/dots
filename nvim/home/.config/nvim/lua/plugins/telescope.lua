@@ -6,13 +6,20 @@ return {
 		require("telescope").setup({
 			defaults = {
 				file_ignore_patterns = {
-					".git",
-					".venv",
-					"node_modules",
-					"__pycache__",
-					".mypy_cache",
-					".pytest_cache",
-					".ruff_cache",
+					"^%.git/",
+					"/%.git/",
+					"^%.venv/",
+					"/%.venv/",
+					"^node_modules/",
+					"/node_modules/",
+					"^__pycache__/",
+					"/__pycache__/",
+					"^%.mypy_cache/",
+					"/%.mypy_cache/",
+					"^%.pytest_cache/",
+					"/%.pytest_cache/",
+					"^%.ruff_cache/",
+					"/%.ruff_cache/",
 				},
 				hidden = true,
 				mappings = {
