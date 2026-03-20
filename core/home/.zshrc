@@ -65,3 +65,17 @@ eval "$(direnv hook zsh)"
 eval "$(zoxide init zsh)"
 
 alias zf='cd "$(zoxide query -l | fzf)"'
+
+if (( ! $+functions[compdef] )); then
+  autoload -Uz compinit
+  compinit
+fi
+
+_rr() {
+  if (( CURRENT == 2 )); then
+    _command_names
+  fi
+}
+compdef _rr rr
+
+[[ -s "/home/jk-ui/.gvm/scripts/gvm" ]] && source "/home/jk-ui/.gvm/scripts/gvm"
