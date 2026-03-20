@@ -29,6 +29,7 @@ alias tg='tig'
 
 # gh
 alias ghmerge='gh pr merge --rebase --delete-branch'
+alias ghpr='gh pr create'
 
 # docker
 alias d='docker'
