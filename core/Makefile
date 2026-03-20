@@ -2,7 +2,7 @@
 # Package lists
 NODE_PACKAGES := @anthropic-ai/claude-code
 APT_PACKAGES := zsh vim tig gh curl unzip jq direnv tmux ripgrep fzf bat nodejs gnupg2
-CARGO_PACKAGES := starship
+CARGO_PACKAGES := starship git-delta
 UV_TOOL_PACKAGES := prek ruff pre-commit
 
 # Helper variables
