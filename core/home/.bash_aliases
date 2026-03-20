@@ -13,7 +13,7 @@ alias cdg='cd "$(git rev-parse --show-toplevel)"'
 # git
 alias g='git'
 alias gs='git status'
-alias gl='git log'
+alias gl='git log --decorate --graph'
 alias gc='git checkout'
 alias gpf='git push --force'
 alias gds='git diff --staged'
