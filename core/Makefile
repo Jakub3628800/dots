@@ -1,9 +1,9 @@
 # ============================ CONFIGURATION =============================
 # Package lists
-NODE_PACKAGES := @anthropic-ai/claude-code
+NODE_PACKAGES := @mariozechner/pi-coding-agent
 APT_PACKAGES := zsh vim tig gh curl unzip jq direnv tmux ripgrep fzf bat nodejs gnupg2
 CARGO_PACKAGES := starship git-delta
-UV_TOOL_PACKAGES := prek ruff pre-commit
+UV_TOOL_PACKAGES := prek
 
 # Helper variables
 BUN_PATH_EXPORT := export PATH="$$HOME/.bun/bin:$$PATH"
