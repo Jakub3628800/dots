@@ -10,6 +10,9 @@ return {
 			view = {
 				side = "left",
 			},
+			filters = {
+				custom = { "__pycache__" },
+			},
 			git = {
 				ignore = false, -- This will show gitignored files
 			},
