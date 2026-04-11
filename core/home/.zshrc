@@ -5,6 +5,10 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 
+
+export CARGO_BIN="$HOME/.cargo/bin"
+export PATH="$CARGO_BIN:$PATH"
+
 . $HOME/.profile
 . $HOME/.bash_aliases
 if [ -f "$HOME/.bash_aliases_local" ]; then
