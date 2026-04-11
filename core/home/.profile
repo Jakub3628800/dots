@@ -54,6 +54,5 @@ export LESSHISTFILE=$HOME/.cache/.lesshst
 
 # Cache files
 export RUFF_CACHE_DIR=$HOME"/.cache/ruff"
-. "$HOME/.cargo/env"
 
 if [ -e /home/jk/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jk/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer

@@ -4,8 +4,8 @@ FROM ubuntu:24.04
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install make and sudo (required for installation)
-RUN apt-get update && apt-get install -y make sudo
+# Install make, sudo and build-essential (required for installation)
+RUN apt-get update && apt-get install -y make sudo build-essential
 
 # Create a test user with home directory and add to sudo group
 RUN useradd -m -s /bin/bash testuser && \
@@ -21,20 +21,21 @@ RUN chown -R testuser:testuser /tmp/core
 USER testuser
 WORKDIR /home/testuser
 
-# Add UV and Bun to PATH for installation
-ENV PATH="/home/testuser/.local/bin:/home/testuser/.bun/bin:${PATH}"
+# Add Cargo to PATH for installation
+ENV PATH="/home/testuser/.local/bin:/home/testuser/.cargo/bin:${PATH}"
 
-# Run the installation (install everything except stow first)
+# Run the installation
 RUN cd /tmp/core && \
-    make install-stow apt-packages-install install-uv install-bun node-packages-install uv-tools-install && \
+    make apt-packages-install cargo-install && \
     rm -f ~/.profile && \
     make stow
 
 # Set shell to zsh (if installation was successful)
 SHELL ["/bin/zsh", "-c"]
 RUN command -v uv && \
-    command -v bun && \
-    command -v claude && \
+    command -v prek && \
+    command -v starship && \
+    command -v delta && \
     command -v zsh && \
     command -v tig && \
     test -f ~/.zshrc && \
