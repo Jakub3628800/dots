@@ -11,7 +11,7 @@ return {
 				side = "left",
 			},
 			filters = {
-				custom = { "__pycache__" },
+				custom = { "__pycache__", ".ruff_cache", ".pytest_cache", ".venv" },
 			},
 			git = {
 				ignore = false, -- This will show gitignored files
