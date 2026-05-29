@@ -6,6 +6,12 @@ install: install-core install-desktop install-nvim
 .PHONY: update
 update: update-core update-desktop update-nvim
 
+.PHONY: system-upgrade
+system-upgrade:
+	@echo "\n=== Upgrading system packages ==="
+	@sudo apt-get update
+	@sudo apt-get upgrade -y
+
 .PHONY: test
 test: test-core test-desktop test-nvim
 
@@ -69,6 +75,7 @@ help:
 	@echo "Main targets:"
 	@echo "  make install        - Install everything (core + desktop + nvim)"
 	@echo "  make update         - Update everything (core + desktop + nvim)"
+	@echo "  make system-upgrade - Upgrade all system APT packages"
 	@echo "  make test           - Test everything (core + desktop + nvim)"
 	@echo "  make install-core   - Install core packages only"
 	@echo "  make update-core    - Update core packages only"
