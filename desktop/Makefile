@@ -3,7 +3,7 @@
 APT_PACKAGES := bemenu xclip xdotool pass pass-extension-otp sway kanshi wtype mako-notifier gammastep swaylock
 
 # ============================ PHONY TARGETS =============================
-.PHONY: all install update clean test stow unstow
+.PHONY: all install update clean test stow unstow system-upgrade
 .PHONY: apt-packages-install apt-packages-update
 
 # ============================ MAIN TARGETS ==============================
@@ -19,7 +19,7 @@ all:
 install: apt-packages-install stow
 	@echo "Desktop environment installation complete!"
 
-update: apt-packages-update
+update: apt-packages-update stow
 	@echo "Desktop packages updated!"
 
 clean:
@@ -44,9 +44,13 @@ unstow:
 apt-packages-install:
 	@echo "Installing desktop APT packages..."
 	@sudo apt-get update
-	@sudo apt-get install -y $(APT_PACKAGES)
+	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
 
 apt-packages-update:
+	@sudo apt-get update
+	@sudo apt-get install --only-upgrade -y $(APT_PACKAGES)
+
+system-upgrade:
 	@sudo apt-get update
 	@sudo apt-get upgrade -y
 
@@ -60,5 +64,6 @@ help:
 	@echo "  make stow           - Symlink desktop dotfiles"
 	@echo "  make unstow         - Remove desktop dotfile symlinks"
 	@echo "  make update         - Update all packages"
+	@echo "  make system-upgrade - Upgrade all system APT packages"
 	@echo "  make test           - Build Docker image for testing"
 	@echo "  make clean          - Unstow dotfiles"

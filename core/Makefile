@@ -4,16 +4,19 @@ CARGO_PACKAGES := starship git-delta uv prek
 .PHONY : install update
 
 install: apt-packages-install cargo-install stow
-update: apt-packages-update cargo-update
+update: apt-packages-update cargo-update stow
 
 
 apt-update:
 	@sudo apt-get update
 
 apt-packages-install: apt-update
-	@sudo apt-get install -y $(APT_PACKAGES)
+	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
 
 apt-packages-update: apt-update
+	@sudo apt-get install --only-upgrade -y $(APT_PACKAGES)
+
+system-upgrade: apt-update
 	@sudo apt-get upgrade -y
 
 
@@ -39,7 +42,7 @@ cargo-update:
 		done
 
 
-stow: apt-packages-install
+stow:
 	@stow -v -d . -t $(HOME) --no-folding home
 
 unstow:

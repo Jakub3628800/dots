@@ -5,7 +5,9 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install make, sudo, and stow (required for installation)
-RUN apt-get update && apt-get install -y make sudo stow jq
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y make sudo stow jq ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create a test user with home directory and add to sudo group
 RUN useradd -m -s /bin/bash testuser && \
