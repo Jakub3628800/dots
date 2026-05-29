@@ -50,7 +50,17 @@ return {
 			default_command_agent = "Claude-Sonnet-4.5",
 		}
 		require("gp").setup(conf)
-		vim.keymap.set("n", "<space>g", "<cmd>GpChatRespond<CR>", { noremap = true, silent = true, desc = "gp chat respond" })
-		vim.keymap.set("n", "<space>c", "<cmd>GpChatToggle<CR>", { noremap = true, silent = true, desc = "gp chat toggle" })
+		vim.keymap.set(
+			"n",
+			"<space>g",
+			"<cmd>GpChatRespond<CR>",
+			{ noremap = true, silent = true, desc = "gp chat respond" }
+		)
+		vim.keymap.set(
+			"n",
+			"<space>c",
+			"<cmd>GpChatToggle<CR>",
+			{ noremap = true, silent = true, desc = "gp chat toggle" }
+		)
 	end,
 }

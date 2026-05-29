@@ -51,8 +51,31 @@ repos:
     hooks:
     - id: hadolint-docker
       name: Lint Dockerfiles with hadolint
-      files: ^Dockerfile.*$
+      files: (^|/)Dockerfile$
       types: [dockerfile]
+      args: [--ignore, DL3008]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+    - id: shellcheck
+      name: Lint shell scripts with ShellCheck
+      files: (^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases|\.profile)$
+
+  - repo: local
+    hooks:
+    - id: zsh-syntax
+      name: Check zsh syntax
+      entry: zsh -n
+      language: system
+      files: (^|/)(\.zshrc|.*\.zsh)$
+
+  - repo: https://github.com/JohnnyMorganz/StyLua
+    rev: v2.5.2
+    hooks:
+    - id: stylua
+      name: Format Lua with StyLua
+      files: ^nvim/home/.+\.lua$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

@@ -21,14 +21,13 @@ RUN chown -R testuser:testuser /tmp/desktop
 
 # Switch to test user for installation
 USER testuser
-WORKDIR /home/testuser
+WORKDIR /tmp/desktop
 
 # Set Wayland session for testing (skip the check)
 ENV XDG_SESSION_TYPE=wayland
 
 # Run the installation
-RUN cd /tmp/desktop && \
-    make apt-packages-install && \
+RUN make apt-packages-install && \
     rm -f ~/.wezterm.lua && \
     make stow
 

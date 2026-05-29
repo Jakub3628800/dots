@@ -21,19 +21,17 @@ RUN chown -R testuser:testuser /tmp/core
 
 # Switch to test user for installation
 USER testuser
-WORKDIR /home/testuser
+WORKDIR /tmp/core
 
 # Add Cargo to PATH for installation
 ENV PATH="/home/testuser/.local/bin:/home/testuser/.cargo/bin:${PATH}"
 
 # Run the installation
-RUN cd /tmp/core && \
-    make apt-packages-install cargo-install && \
+RUN make apt-packages-install cargo-install && \
     rm -f ~/.profile && \
     make stow
 
-# Set shell to zsh (if installation was successful)
-SHELL ["/bin/zsh", "-c"]
+# Verify installation
 RUN command -v uv && \
     command -v prek && \
     command -v starship && \
