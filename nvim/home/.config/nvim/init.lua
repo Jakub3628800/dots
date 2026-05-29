@@ -13,13 +13,15 @@ if not vim.loop.fs_stat(lazypath) then
 		lazypath,
 	})
 end
-local current_lazy_commit = vim.fn.system({
-	"git",
-	"-C",
-	lazypath,
-	"rev-parse",
-	"HEAD",
-}):gsub("%s+$", "")
+local current_lazy_commit = vim.fn
+	.system({
+		"git",
+		"-C",
+		lazypath,
+		"rev-parse",
+		"HEAD",
+	})
+	:gsub("%s+$", "")
 if current_lazy_commit ~= lazy_commit then
 	vim.fn.system({
 		"git",
