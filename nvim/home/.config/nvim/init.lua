@@ -703,16 +703,8 @@ function OpenGithubLine()
 	-- Construct the GitHub URL
 	local url = string.format("%s/blob/%s/%s#L%d", remote, branch, relative_path, line_num)
 
-	-- Open URL in default browser
-	local open_cmd
-	if vim.fn.has("unix") == 1 then
-		open_cmd = "xdg-open"
-	else
-		open_cmd = "start"
-	end
-
-	-- os.execute(open_cmd .. ' "' .. url .. '"')
-	os.execute(open_cmd .. ' "' .. url .. '" > /dev/null 2>&1')
+	-- Open URL without constructing a shell command from repository data.
+	vim.ui.open(url)
 end
 
 -- Create command
