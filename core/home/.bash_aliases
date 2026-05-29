@@ -47,13 +47,9 @@ alias nv='nvim .'
 alias nv.='nvim .'
 alias nano='nvim'
 
-# claude
-alias cc='claude --dangerously-skip-permissions'
-
 # other
 function rr() {  # retry cmd
-# shellcheck disable=SC2294
-    until eval "$@"; do
+    until "$@"; do
         sleep 2
     done
 }

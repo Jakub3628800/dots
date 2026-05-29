@@ -1,19 +1,28 @@
 #!/bin/zsh
 
 export PATH="$PATH:/opt/nvim-linux64/bin"
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
 export NVM_DIR="$HOME/.nvm"
 
 
 export CARGO_BIN="$HOME/.cargo/bin"
 export PATH="$CARGO_BIN:$PATH"
 
-. $HOME/.profile
-. $HOME/.bash_aliases
-if [ -f "$HOME/.bash_aliases_local" ]; then
-    . $HOME/.bash_aliases_local
-fi
+_source_if_safe() {
+  local file="$1"
+  if [ ! -e "$file" ]; then
+    return 0
+  fi
+  if [ -n "$(find "$file" -maxdepth 0 -type f -user "$(id -un)" ! -perm /022 2>/dev/null)" ]; then
+    . "$file"
+  else
+    echo "Skipping unsafe source file: $file" >&2
+  fi
+}
+
+. "$HOME/.profile"
+. "$HOME/.bash_aliases"
+_source_if_safe "$HOME/.bash_aliases_local"
+_source_if_safe "$HOME/.zshrc_local"
 
 setopt PROMPT_SUBST
 setopt HIST_FIND_NO_DUPS
@@ -24,10 +33,11 @@ export HISTSIZE=1000000000
 export HISTFILE=~/.cache/.zsh_history
 
 zstyle ':omz:plugins:ssh-agent' lazy no
+zstyle ':omz:plugins:ssh-agent' lifetime 8h
 export SSH_ASKPASS_REQUIRE=force_cli
 
 if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
-  . $HOME/.zshlib/plugins/ssh-agent.plugin.zsh
+  . "$HOME/.zshlib/plugins/ssh-agent.plugin.zsh"
 fi
 
 show_virtual_env() {
@@ -56,10 +66,8 @@ bindkey '^R' fzf-history-widget
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
 
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-[ -s "/home/jk/.bun/_bun" ] && source "/home/jk/.bun/_bun"
+_source_if_safe "$NVM_DIR/nvm.sh"
+_source_if_safe "$NVM_DIR/bash_completion"
 
 if [ ! -f /usr/local/bin/starship ]; then
     eval "$(starship init zsh)"
@@ -82,4 +90,7 @@ _rr() {
 }
 compdef _rr rr
 
-[[ -s "/home/jk-ui/.gvm/scripts/gvm" ]] && source "/home/jk-ui/.gvm/scripts/gvm"
+_source_if_safe "/home/jk-ui/.gvm/scripts/gvm"
+
+typeset -U path PATH
+unfunction _source_if_safe
