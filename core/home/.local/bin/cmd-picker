@@ -191,8 +191,8 @@ class TmuxTool(Tool):
                 try:
                     subprocess.run(["tmux", "kill-session", "-t", item["name"]], check=True)
                     return True
-                except subprocess.CalledProcessError:
-                    pass
+                except subprocess.CalledProcessError as exc:
+                    print(f"{Colors.RED}Failed to delete session '{item['name']}': {exc}{Colors.RESET}")
         elif key == "a":
             return self.create_new_item()
         return False
@@ -213,8 +213,8 @@ class TmuxTool(Tool):
                     subprocess.run(["tmux", "new-session", "-d", "-s", session_name], check=True)
                     print(f"{Colors.GREEN}✓ Session '{session_name}' created{Colors.RESET}")
                     return True
-                except subprocess.CalledProcessError:
-                    print(f"{Colors.RED}✗ Failed to create session '{session_name}'{Colors.RESET}")
+                except subprocess.CalledProcessError as exc:
+                    print(f"{Colors.RED}✗ Failed to create session '{session_name}': {exc}{Colors.RESET}")
         except (EOFError, KeyboardInterrupt):
             pass
         finally:
@@ -309,8 +309,8 @@ class DockerTool(Tool):
                 else:
                     subprocess.run(["docker", "start", item["id"]], check=True)
                 return True
-            except subprocess.CalledProcessError:
-                pass
+            except subprocess.CalledProcessError as exc:
+                print(f"{Colors.RED}Docker action failed for {item['id']}: {exc}{Colors.RESET}")
         elif key == "l":
             subprocess.run(["docker", "logs", "-f", item["id"]])
             return False
@@ -411,8 +411,8 @@ class GhTool(Tool):
             try:
                 subprocess.run(["gh", "pr", "checkout", str(item["number"])], check=True)
                 return False
-            except subprocess.CalledProcessError:
-                pass
+            except subprocess.CalledProcessError as exc:
+                print(f"{Colors.RED}Failed to checkout PR #{item['number']}: {exc}{Colors.RESET}")
         elif key == "m":
             print(f"\n{Colors.YELLOW}Merge PR #{item['number']}? (y/N): {Colors.RESET}", end="", flush=True)
             confirm = sys.stdin.read(1)
@@ -420,8 +420,8 @@ class GhTool(Tool):
                 try:
                     subprocess.run(["gh", "pr", "merge", str(item["number"])], check=True)
                     return True
-                except subprocess.CalledProcessError:
-                    pass
+                except subprocess.CalledProcessError as exc:
+                    print(f"{Colors.RED}Failed to merge PR #{item['number']}: {exc}{Colors.RESET}")
         elif key == "a":
             return self.create_new_item()
         return False
@@ -434,8 +434,8 @@ class GhTool(Tool):
         try:
             subprocess.run(["gh", "pr", "create"], check=False)
             return True
-        except subprocess.CalledProcessError:
-            print(f"{Colors.RED}✗ Failed to create PR{Colors.RESET}")
+        except subprocess.CalledProcessError as exc:
+            print(f"{Colors.RED}✗ Failed to create PR: {exc}{Colors.RESET}")
             return False
 
 
