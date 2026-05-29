@@ -3,14 +3,40 @@
 vim.g.mapleader = " " -- Set leader key to space
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+local lazy_commit = "306a05526ada86a7b30af95c5cc81ffba93fef97"
 if not vim.loop.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
 		"--filter=blob:none",
 		"https://github.com/folke/lazy.nvim.git",
-		"--branch=stable",
 		lazypath,
+	})
+end
+local current_lazy_commit = vim.fn.system({
+	"git",
+	"-C",
+	lazypath,
+	"rev-parse",
+	"HEAD",
+}):gsub("%s+$", "")
+if current_lazy_commit ~= lazy_commit then
+	vim.fn.system({
+		"git",
+		"-C",
+		lazypath,
+		"fetch",
+		"--filter=blob:none",
+		"origin",
+		lazy_commit,
+	})
+	vim.fn.system({
+		"git",
+		"-C",
+		lazypath,
+		"checkout",
+		"--detach",
+		lazy_commit,
 	})
 end
 vim.opt.rtp:prepend(lazypath)
@@ -58,9 +84,7 @@ require("lazy").setup({
 		"williamboman/mason-lspconfig.nvim",
 		dependencies = { "williamboman/mason.nvim" },
 		config = function()
-			require("mason-lspconfig").setup({
-				ensure_installed = { "pyright", "gopls" },
-			})
+			require("mason-lspconfig").setup()
 		end,
 	},
 	{
