@@ -1,2 +1,14 @@
 #!/bin/sh
-grim -g "$(slurp)" - | wl-copy
+set -eu
+
+for cmd in grim slurp wl-copy; do
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		echo "$cmd is required" >&2
+		exit 1
+	fi
+done
+
+geometry=$(slurp)
+[ -n "$geometry" ] || exit 0
+
+grim -g "$geometry" - | wl-copy

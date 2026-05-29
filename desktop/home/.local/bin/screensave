@@ -1,3 +1,20 @@
 #!/bin/bash
-# shellcheck disable=SC2046
-grim -g "$(slurp)" - > ~/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png
+set -euo pipefail
+
+for cmd in grim slurp; do
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		echo "$cmd is required" >&2
+		exit 1
+	fi
+done
+
+umask 077
+screenshot_dir="$HOME/Pictures/Screenshots"
+mkdir -p "$screenshot_dir"
+chmod 700 "$screenshot_dir"
+
+geometry=$(slurp)
+[ -n "$geometry" ] || exit 0
+
+output_path="$screenshot_dir/$(date +%Y-%m-%d_%H-%M-%S).png"
+grim -g "$geometry" - > "$output_path"

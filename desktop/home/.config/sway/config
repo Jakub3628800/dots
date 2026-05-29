@@ -93,7 +93,7 @@ bindsym $mod+d exec env $extended_path bemenu-run -l 10 -W 0.7 --fn "monospace 1
 # start bookmark dmenu
 bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | env $extended_path bemenu -i -l 10 -W 0.7 --fn "monospace 14")"
 # start passwords dmenu
-bindsym $mod+p exec wtype "$(grep -v "^#" ~/.local/share/snippets/passwords | env $extended_path bemenu -i -l 10 -W 0.7 --fn "monospace 14" | xargs --no-run-if-empty -n 2 pass)"
+bindsym $mod+p exec env $extended_path pass-type
 
 # commands not used now
 #bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
