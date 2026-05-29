@@ -1,0 +1,53 @@
+#!/bin/sh
+set -eu
+
+SNIPPETS="${PASSWORD_SNIPPETS:-$HOME/.local/share/snippets/passwords}"
+MENU_FONT="${MENU_FONT:-monospace 14}"
+MENU_WIDTH="${MENU_WIDTH:-0.7}"
+MENU_LINES="${MENU_LINES:-10}"
+
+require() {
+	if ! command -v "$1" >/dev/null 2>&1; then
+		echo "$1 is required" >&2
+		exit 1
+	fi
+}
+
+require bemenu
+require pass
+require wtype
+
+if [ ! -r "$SNIPPETS" ]; then
+	echo "Password snippet file is not readable: $SNIPPETS" >&2
+	exit 1
+fi
+
+selection=$(
+	grep -v '^[[:space:]]*#' "$SNIPPETS" |
+		grep -v '^[[:space:]]*$' |
+		bemenu -i -l "$MENU_LINES" -W "$MENU_WIDTH" --fn "$MENU_FONT" -p "Password"
+)
+
+if [ -z "$selection" ]; then
+	exit 0
+fi
+
+confirm=$(
+	printf 'no\nyes\n' |
+		bemenu -i -l 2 -W "$MENU_WIDTH" --fn "$MENU_FONT" -p "Type password for $selection?"
+)
+
+if [ "$confirm" != "yes" ]; then
+	exit 0
+fi
+
+# Preserve the existing snippets format, where one line maps to pass arguments.
+# shellcheck disable=SC2086
+secret=$(pass $selection | sed -n '1p')
+
+if [ -z "$secret" ]; then
+	echo "No secret returned for selection: $selection" >&2
+	exit 1
+fi
+
+printf '%s' "$secret" | wtype -
