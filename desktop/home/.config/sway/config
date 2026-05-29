@@ -99,8 +99,8 @@ bindsym $mod+p exec env $extended_path pass-type
 #bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
 
 # Record for as long as the key is pressed
-bindsym --no-repeat Mod4+u exec env $extended_path bash /home/jk/repos/gists/s2t/record.sh
-bindsym --release Mod4+u exec touch /home/jk/tmp/stop_recording
+bindsym --no-repeat Mod4+u exec test -x "$HOME/repos/gists/s2t/record.sh" && env $extended_path bash "$HOME/repos/gists/s2t/record.sh"
+bindsym --release Mod4+u exec mkdir -p "$HOME/tmp" && touch "$HOME/tmp/stop_recording"
 
 # Start a browser
 bindsym $mod+f exec $browser

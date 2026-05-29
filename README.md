@@ -35,3 +35,13 @@ For headless/no-desktop setup:
 ```bash
 make update-core update-nvim
 ```
+
+## Local overrides
+
+Machine-specific shell customizations should live outside the tracked files:
+
+- `~/.bash_aliases_local` for local Bash-compatible aliases/functions.
+- `~/.zshrc_local` for local zsh startup such as machine-specific tool paths.
+
+The zsh config only sources these files when they are owned by the current user
+and are not group/world writable.
