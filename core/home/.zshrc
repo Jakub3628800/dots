@@ -9,18 +9,20 @@ export PATH="$CARGO_BIN:$PATH"
 
 _source_if_safe() {
   local file="$1"
+  local resolved
   if [ ! -e "$file" ]; then
     return 0
   fi
-  if [ -n "$(find "$file" -maxdepth 0 -type f -user "$(id -un)" ! -perm /022 2>/dev/null)" ]; then
+  resolved="$(realpath "$file" 2>/dev/null)" || return 0
+  if [ -n "$(find "$resolved" -maxdepth 0 -type f -user "$(id -un)" ! -perm /022 2>/dev/null)" ]; then
     . "$file"
   else
     echo "Skipping unsafe source file: $file" >&2
   fi
 }
 
-. "$HOME/.profile"
-. "$HOME/.bash_aliases"
+_source_if_safe "$HOME/.profile"
+_source_if_safe "$HOME/.bash_aliases"
 _source_if_safe "$HOME/.bash_aliases_local"
 _source_if_safe "$HOME/.zshrc_local"
 
@@ -37,7 +39,7 @@ zstyle ':omz:plugins:ssh-agent' lifetime 8h
 export SSH_ASKPASS_REQUIRE=force_cli
 
 if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
-  . "$HOME/.zshlib/plugins/ssh-agent.plugin.zsh"
+  _source_if_safe "$HOME/.zshlib/plugins/ssh-agent.plugin.zsh"
 fi
 
 show_virtual_env() {
@@ -90,7 +92,7 @@ _rr() {
 }
 compdef _rr rr
 
-_source_if_safe "/home/jk-ui/.gvm/scripts/gvm"
+_source_if_safe "$HOME/.gvm/scripts/gvm"
 
 typeset -U path PATH
 unfunction _source_if_safe
