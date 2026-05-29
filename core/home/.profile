@@ -26,11 +26,6 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-# set PATH so it includes bun if it exists
-if [ -d "$HOME/.bun/bin" ] ; then
-    PATH="$HOME/.bun/bin:$PATH"
-fi
-
 # set PATH so it includes go if it exists
 if [ -d "$HOME/go/bin" ] ; then
     PATH="$HOME/go/bin:$PATH"

@@ -1,9 +1,17 @@
-# Get the filename to store/lookup the environment from
-ssh_env_cache="$HOME/.ssh/environment-$SHORT_HOST"
+_ssh_agent_cache_suffix="${SHORT_HOST:-${HOST%%.*}}"
+if [[ -z "$_ssh_agent_cache_suffix" ]]; then
+  _ssh_agent_cache_suffix="$(hostname -s 2>/dev/null || hostname)"
+fi
+ssh_env_cache="$HOME/.ssh/environment-$_ssh_agent_cache_suffix"
+
+function _ssh_agent_env_is_safe() {
+  [[ -f "$ssh_env_cache" && ! -L "$ssh_env_cache" && -O "$ssh_env_cache" ]] || return 1
+  [[ -z "$(find "$ssh_env_cache" -maxdepth 0 -perm /077 2>/dev/null)" ]]
+}
 
 function _start_agent() {
   # Check if ssh-agent is already running
-  if [[ -f "$ssh_env_cache" ]]; then
+  if _ssh_agent_env_is_safe; then
     . "$ssh_env_cache" > /dev/null
 
     # Test if $SSH_AUTH_SOCK is visible
@@ -17,6 +25,7 @@ function _start_agent() {
     echo "[oh-my-zsh] ssh-agent plugin requires ~/.ssh directory"
     return 1
   fi
+  chmod 700 "$HOME/.ssh"
 
   # Set a maximum lifetime for identities added to ssh-agent
   local lifetime
@@ -115,5 +124,5 @@ if ! zstyle -t :omz:plugins:ssh-agent lazy; then
   _add_identities
 fi
 
-unset agent_forwarding ssh_env_cache
-unfunction _start_agent _add_identities
+unset agent_forwarding ssh_env_cache _ssh_agent_cache_suffix
+unfunction _start_agent _add_identities _ssh_agent_env_is_safe
