@@ -1,0 +1,294 @@
+# Security and hardening improvement plan
+
+## Scope reviewed
+
+Reviewed the dotfile install/update flow, shell startup files, local helper scripts,
+desktop keybindings, Neovim bootstrap/plugin configuration, Docker test images,
+GitHub Actions, Dependabot, pre-commit hooks, executable permissions, and obvious
+secret patterns.
+
+Current useful controls:
+- `nvim/install-nvim.sh` downloads over HTTPS and verifies a pinned SHA256 before
+  extracting.
+- `.pre-commit-config.yaml` includes private-key and AWS credential detection.
+- `.github/dependabot.yml` updates pre-commit and uv metadata.
+- `nvim/home/.config/nvim/lazy-lock.json` pins Neovim plugin commits after the
+  lazy.nvim bootstrap completes.
+
+Review checks run:
+- `pre-commit run detect-private-key --all-files`: passed.
+- `pre-commit run detect-aws-credentials --all-files`: passed.
+- Regex scan for common token/private-key patterns found no committed secret
+  values; the `ANTHROPIC_API_KEY` match is an environment lookup, not a literal
+  secret.
+
+## Highest priority
+
+### 1. Remove shell `eval` from the retry helper
+
+Evidence: `core/home/.bash_aliases` defines `rr()` with `until eval "$@"; do`.
+
+Risk: every argument is re-parsed by the shell, so accidental quoting mistakes or
+untrusted arguments can become command execution.
+
+Plan:
+- Replace the helper with `until "$@"; do sleep 2; done`.
+- If a pipeline or compound shell expression is needed, call it explicitly as
+  `rr sh -c 'cmd1 | cmd2'` so the dangerous parsing is opt-in at the call site.
+- Add a short comment documenting that behavior.
+
+Verification:
+- `rr false` retries until interrupted.
+- `rr sh -c 'exit 0'` exits successfully.
+- `git grep -n 'eval \"\\$@\"\\|eval \\$@' -- core/home/.bash_aliases` returns no
+  matches.
+
+### 2. Harden shell startup sourcing and PATH precedence
+
+Evidence:
+- `core/home/.zshrc` sources `$HOME/.profile`, `$HOME/.bash_aliases`, the SSH
+  agent plugin, nvm, bun, gvm, and generated tool hooks.
+- User-writable directories such as `$HOME/.grok/bin`, `$HOME/.bun/bin`,
+  `$HOME/.cargo/bin`, `$HOME/.local/bin`, and `$HOME/go/bin` are placed before or
+  near system paths.
+
+Risk: a compromised or accidentally created executable in a high-precedence
+user-writable directory can shadow system commands. Unquoted source paths are also
+unnecessary fragility.
+
+Plan:
+- Quote every sourced path: `. "$HOME/.profile"` etc.
+- Normalize zsh `path` with `typeset -U path PATH` to avoid duplicate and stale
+  entries.
+- Prefer one intentional block that builds PATH in documented order instead of
+  modifying PATH across `.profile` and `.zshrc`.
+- Gate optional sourced files with ownership/permission checks before sourcing:
+  source only if the file is owned by the current user and is not group/world
+  writable.
+- Keep user tool directories in PATH, but document which ones intentionally
+  precede system binaries and move low-trust/generated tool directories later
+  unless they need precedence.
+
+Verification:
+- New login and interactive zsh sessions start without errors.
+- `print -rl -- $path` shows each entry once and in the intended order.
+- `compaudit` reports no insecure completion directories before `compinit`.
+
+### 3. Fix SSH agent cache safety and key lifetime defaults
+
+Evidence:
+- `core/home/.zshlib/plugins/ssh-agent.plugin.zsh` writes and sources
+  `$HOME/.ssh/environment-$SHORT_HOST`.
+- The plugin auto-adds default private key names when no identity list is
+  configured.
+- No default lifetime is set in `core/home/.zshrc`.
+
+Risk: if `$SHORT_HOST` is empty, cache names can collide. Sourcing an agent env
+file without validating ownership, symlinks, and mode is avoidable risk. Loading
+all default private keys increases key exposure in long-running sessions.
+
+Plan:
+- Derive a safe cache suffix locally, for example `${SHORT_HOST:-${HOST%%.*}}`.
+- Before sourcing the cache, require that it is a regular file, owned by the
+  current user, not a symlink, and mode `0600`.
+- Ensure `~/.ssh` exists with mode `0700` before writing cache files.
+- Add a default agent lifetime, for example `zstyle ':omz:plugins:ssh-agent'
+  lifetime 8h`.
+- Prefer explicit configured identities over auto-loading every default key name.
+
+Verification:
+- New shell starts one agent and reuses it on the next shell.
+- `stat -c '%a %U %n' ~/.ssh ~/.ssh/environment-*` shows `700` for the directory
+  and `600` for env files.
+- `ssh-add -l` shows only expected identities and lifetimes.
+
+### 4. Reduce password-typing and clipboard exposure in desktop shortcuts
+
+Evidence:
+- `desktop/home/.config/sway/config` binds `$mod+p` to select a password entry,
+  run `pass`, and type the result into the focused window with `wtype`.
+- `desktop/home/.local/bin/screencopy` copies screenshots to the clipboard.
+- `desktop/home/.local/bin/screensave` saves screenshots with default umask-derived
+  permissions.
+
+Risk: global password typing can send secrets into the wrong focused window.
+Clipboard screenshots may contain sensitive data and persist until overwritten.
+Saved screenshots may be readable by more users than intended if umask is loose.
+
+Plan:
+- Replace or remove the `$mod+p` auto-type shortcut, or require an explicit
+  confirmation that includes the selected entry name before typing.
+- Prefer a workflow that copies secrets briefly and clears the clipboard after a
+  short timeout, or one that scopes auto-type to known password prompts.
+- In `screensave`, create `~/Pictures/Screenshots` if needed with mode `0700`,
+  set `umask 077`, and write with a quoted path variable.
+- Consider a separate shortcut for screenshots that avoids clipboard persistence
+  when the image should only be saved.
+
+Verification:
+- Password selection cannot type without a confirmation or deliberate separate
+  action.
+- `stat -c '%a %n' ~/Pictures/Screenshots` reports `700`.
+- New screenshot files are `600`.
+
+## Medium priority
+
+### 5. Tighten Neovim supply-chain behavior
+
+Evidence:
+- `nvim/home/.config/nvim/init.lua` bootstraps `lazy.nvim` by cloning the
+  `stable` branch when missing.
+- `nvim/home/.config/nvim/lua/plugins/treesitter.lua` uses `auto_install = true`.
+- Mason installs LSP tools from inside Neovim.
+
+Risk: first-run bootstrap follows a moving branch before the lockfile can help.
+Auto-installing parsers and tools during editor startup expands network and code
+execution surface.
+
+Plan:
+- Pin lazy.nvim bootstrap to a specific commit or tag and verify it after clone.
+- Disable Tree-sitter `auto_install`; install parsers through an explicit update
+  target or documented manual command.
+- Keep Mason, but make tool installation explicit during setup/update instead of
+  surprising startup-time installation.
+- Document a regular lockfile update cadence and review plugin diffs before
+  committing `lazy-lock.json`.
+
+Verification:
+- Removing the local lazy.nvim clone and starting Neovim checks out the expected
+  commit.
+- Neovim startup does not install parsers or LSP binaries without an explicit
+  update command.
+- `lazy-lock.json` changes only during intentional plugin update work.
+
+### 6. Split package installation from broad system upgrades
+
+Evidence:
+- `core/Makefile` and `desktop/Makefile` use `sudo apt-get upgrade -y` in update
+  targets.
+- The root `make update` delegates to those update targets and also updates Cargo
+  tools.
+
+Risk: updating dotfiles can unexpectedly upgrade the whole host. This makes
+rollback and debugging harder and widens the blast radius of a routine repo
+operation.
+
+Plan:
+- Make `update` refresh only managed user-space tools and dotfiles.
+- Move full host package upgrades to a clearly named target such as
+  `system-upgrade`.
+- Use `apt-get install --no-install-recommends` for the test images and consider it
+  for host package installs where optional packages are not needed.
+- Keep package lists grouped by purpose so removing unused packages is easy.
+
+Verification:
+- `make update` no longer runs `apt-get upgrade`.
+- `make system-upgrade` or equivalent is the only target that performs a full
+  system upgrade.
+- Docker tests still build after package list changes.
+
+### 7. Add shell and Lua static checks to the existing pre-commit workflow
+
+Evidence:
+- Pre-commit checks Dockerfiles and GitHub Actions, but not shell scripts,
+  Makefile shell fragments, zsh files, or Lua config.
+- `shellcheck` and `actionlint` are not installed locally in the current PATH;
+  pre-commit can manage those tools.
+
+Risk: shell quoting, eval, missing `set -eu`, unquoted paths, and command
+substitution issues can regress without review-time feedback.
+
+Plan:
+- Add ShellCheck for `*.sh`, executable scripts, `.bash_aliases`, `.profile`, and
+  relevant zsh files, with targeted ignores only where zsh syntax makes ShellCheck
+  unsuitable.
+- Add `shfmt` for POSIX/Bash scripts if formatting churn is acceptable.
+- Add Stylua or Luacheck for Neovim Lua files.
+- Add a lightweight Makefile lint if a suitable low-noise hook fits the repo.
+
+Verification:
+- `pre-commit run --all-files` passes.
+- CI continues to run the same hooks on pull requests.
+- Any ignored diagnostics are documented inline or in hook config.
+
+### 8. Harden Docker test images without changing their purpose
+
+Evidence:
+- `core/Dockerfile` and `desktop/Dockerfile` install packages as root, create a
+  passwordless sudo test user, copy the full package directory, and run install
+  targets.
+
+Risk: these are local test images, so risk is limited, but they do not model a
+  least-privilege host setup and they leave apt cache/layer bloat.
+
+Plan:
+- Keep passwordless sudo only if tests require exercising sudo paths; otherwise
+  install root-owned packages first and run only stow/user checks as `testuser`.
+- Add `--no-install-recommends` and clean `/var/lib/apt/lists/*` in the same RUN
+  layer after apt installs.
+- Keep Dockerfiles test-only and avoid copying files outside each package scope.
+
+Verification:
+- `make -C core test` succeeds.
+- `make -C desktop test` succeeds.
+- Hadolint has no high-signal findings after the changes.
+
+## Lower priority cleanup
+
+### 9. Remove dead or host-specific startup assumptions
+
+Evidence:
+- `core/home/.zshrc` references `/home/jk-ui/.gvm/scripts/gvm` and generated grok
+  installer PATH lines.
+- `desktop/home/.config/sway/config` references absolute paths under
+  `/home/jk/repos/gists` and starts local workstation apps.
+
+Risk: host-specific paths make the repo harder to reason about and can fail open
+or fail noisy on other machines.
+
+Plan:
+- Move host-specific startup commands into local, ignored files that are sourced
+  only after ownership/permission checks.
+- Keep the repo version focused on portable defaults for the `core`, `desktop`,
+  and `nvim` packages.
+- Add a short README section listing supported local override files.
+
+Verification:
+- Fresh Docker tests do not depend on `/home/jk` host-only paths.
+- A new machine can run `make install-core install-nvim` without editing tracked
+  files.
+
+### 10. Make helper scripts fail more predictably
+
+Evidence:
+- `desktop/home/.local/bin/screencopy` and `screensave` have minimal error
+  handling.
+- `core/home/.local/bin/cmd-picker` catches many subprocess failures silently.
+
+Risk: silent failures make security-sensitive workflows hard to audit. Screenshot
+helpers can fail halfway and leave confusing state.
+
+Plan:
+- Add `set -eu` to simple shell scripts and check required commands with clear
+  errors.
+- Quote output paths and create required directories explicitly.
+- In Python helpers, print concise errors for failed destructive actions such as
+  deleting tmux sessions, stopping containers, or merging PRs.
+
+Verification:
+- Running each helper without required dependencies exits non-zero with a clear
+  message.
+- Existing happy-path behavior remains unchanged.
+
+## Suggested order of work
+
+1. Merge or keep the existing uncommitted hardening edits that remove the
+   dangerous Claude alias, verify Neovim downloads, and replace `os.execute` with
+   `vim.ui.open`.
+2. Do the low-risk shell fixes: remove `rr` eval, quote sources, normalize PATH,
+   and add SSH agent cache validation.
+3. Harden screenshot/password desktop shortcuts.
+4. Split `make update` from full system upgrades.
+5. Tighten Neovim bootstrap and auto-install behavior.
+6. Expand pre-commit checks so the fixed patterns stay fixed.
+7. Clean up host-specific tracked config and Docker test image hardening.
