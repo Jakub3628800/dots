@@ -88,6 +88,7 @@ class Session:
     duration_minutes: int
     status: str
     tags: str | None
+    process_id: int | None
     created_at_raw: str
 
     @property
@@ -199,7 +200,6 @@ def connect() -> sqlite3.Connection:
 
 def initialize_db(conn: sqlite3.Connection) -> None:
     with conn:
-        conn.execute("DROP TABLE IF EXISTS spotify_tokens")
         ensure_pomodori_table(conn)
         conn.execute(
             """
@@ -233,6 +233,7 @@ def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
         "duration_minutes",
         "status",
         "tags",
+        "process_id",
         "created_at",
     }
     if desired.issubset(columns) and "completed" not in columns:
@@ -264,12 +265,13 @@ def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
     end_expr = "end_time" if "end_time" in columns else "NULL"
     duration_expr = "duration_minutes" if "duration_minutes" in columns else "25"
     tags_expr = "tags" if "tags" in columns else "NULL"
+    process_id_expr = "process_id" if "process_id" in columns else "NULL"
     created_expr = "created_at" if "created_at" in columns else start_expr
 
     conn.execute(
         f"""
         INSERT INTO pomodori_new (
-            id, start_time, end_time, duration_minutes, status, tags, created_at
+            id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
         )
         SELECT
             id,
@@ -278,6 +280,7 @@ def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
             {duration_expr},
             {status_expr},
             {tags_expr},
+            {process_id_expr},
             COALESCE({created_expr}, {start_expr})
         FROM pomodori
         """
@@ -296,6 +299,7 @@ def create_pomodori_table(conn: sqlite3.Connection, table_name: str) -> None:
             duration_minutes INTEGER NOT NULL,
             status TEXT NOT NULL CHECK(status IN ('running', 'completed', 'cancelled')),
             tags TEXT,
+            process_id INTEGER,
             created_at TEXT NOT NULL
         )
         """
@@ -417,14 +421,15 @@ def create_running_session(
         cursor = conn.execute(
             """
             INSERT INTO pomodori (
-                start_time, end_time, duration_minutes, status, tags, created_at
+                start_time, end_time, duration_minutes, status, tags, process_id, created_at
             )
-            VALUES (?, NULL, ?, 'running', ?, ?)
+            VALUES (?, NULL, ?, 'running', ?, ?, ?)
             """,
             (
                 format_datetime(started_at),
                 duration_minutes,
                 ",".join(tags) if tags else None,
+                os.getpid(),
                 format_datetime(now_local()),
             ),
         )
@@ -439,7 +444,7 @@ def finish_session(conn: sqlite3.Connection, session_id: int, status: str) -> No
         conn.execute(
             """
             UPDATE pomodori
-            SET end_time = ?, status = ?
+            SET end_time = ?, status = ?, process_id = NULL
             WHERE id = ?
             """,
             (format_datetime(now_local()), status, session_id),
@@ -449,7 +454,7 @@ def finish_session(conn: sqlite3.Connection, session_id: int, status: str) -> No
 def get_active_session(conn: sqlite3.Connection) -> Session | None:
     row = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
         FROM pomodori
         WHERE status = 'running' AND end_time IS NULL
         ORDER BY start_time DESC
@@ -465,7 +470,7 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
     current_time = now_local()
     rows = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
         FROM pomodori
         WHERE status = 'running' AND end_time IS NULL
         """
@@ -474,8 +479,7 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
     stale_ids: list[int] = []
     for row in rows:
         session = row_to_session(row)
-        expected_end = session.start_time + timedelta(minutes=session.duration_minutes)
-        if current_time >= expected_end:
+        if session.process_id is not None and not process_is_running(session.process_id):
             stale_ids.append(session.id)
 
     if not stale_ids:
@@ -485,17 +489,30 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
         conn.executemany(
             """
             UPDATE pomodori
-            SET end_time = ?, status = 'cancelled'
+            SET end_time = ?, status = 'cancelled', process_id = NULL
             WHERE id = ?
             """,
             [(format_datetime(current_time), session_id) for session_id in stale_ids],
         )
 
 
+def process_is_running(process_id: int) -> bool:
+    if process_id <= 0:
+        return False
+
+    try:
+        os.kill(process_id, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def list_sessions(conn: sqlite3.Connection, args: ListArgs) -> list[Session]:
     rows = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
         FROM pomodori
         """
     ).fetchall()
@@ -519,6 +536,7 @@ def row_to_session(row: sqlite3.Row) -> Session:
 
     end_time = row["end_time"]
     tags = row["tags"]
+    process_id = row["process_id"]
     return Session(
         id=int(row["id"]),
         start_time_raw=str(row["start_time"]),
@@ -526,6 +544,7 @@ def row_to_session(row: sqlite3.Row) -> Session:
         duration_minutes=int(row["duration_minutes"]),
         status=status,
         tags=None if tags is None else str(tags),
+        process_id=None if process_id is None else int(process_id),
         created_at_raw=str(row["created_at"]),
     )
 
@@ -577,10 +596,11 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
         raise PomoError("timer requires an interactive terminal")
 
     duration = parsed.duration_minutes or get_default_duration(conn)
-    session_id = create_running_session(conn, duration, parsed.tags, now_local())
+    session_id: int | None = None
     status = "cancelled"
 
     try:
+        session_id = create_running_session(conn, duration, parsed.tags, now_local())
         play_music(conn)
         completed = run_timer(duration)
         status = "completed" if completed else "cancelled"
@@ -588,7 +608,8 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
         status = "cancelled"
     finally:
         stop_music(conn)
-        finish_session(conn, session_id, status)
+        if session_id is not None:
+            finish_session(conn, session_id, status)
 
     if status == "completed":
         send_notification(conn, f"pomo session {duration}m done")
@@ -827,10 +848,12 @@ def main(argv: list[str]) -> int:
     return 0
 
 
-def handle_sigint(_signum: int, _frame: FrameType | None) -> NoReturn:
+def handle_termination_signal(_signum: int, _frame: FrameType | None) -> NoReturn:
     raise KeyboardInterrupt
 
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, handle_sigint)
+    signal.signal(signal.SIGINT, handle_termination_signal)
+    signal.signal(signal.SIGTERM, handle_termination_signal)
+    signal.signal(signal.SIGHUP, handle_termination_signal)
     raise SystemExit(main(sys.argv[1:]))
