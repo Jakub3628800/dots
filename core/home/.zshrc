@@ -76,9 +76,6 @@ if [ ! -f /usr/local/bin/starship ]; then
 fi
 
 eval "$(direnv hook zsh)"
-eval "$(zoxide init zsh)"
-
-alias zf='cd "$(zoxide query -l | fzf)"'
 
 if (( ! $+functions[compdef] )); then
   autoload -Uz compinit
