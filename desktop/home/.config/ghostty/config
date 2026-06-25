@@ -1,0 +1,49 @@
+# Port of desktop/home/.wezterm.lua.
+
+background-opacity = 1
+window-padding-x = 0
+window-padding-y = 0
+cursor-style-blink = false
+
+# WezTerm uses lines; Ghostty uses bytes. This approximates 3500 lines.
+scrollback-limit = 3500000
+scrollbar = system
+
+confirm-close-surface = true
+copy-on-select = clipboard
+link-url = true
+
+keybind = clear
+
+# Ghostty 1.3.1 has no equivalent for WezTerm's ActivateCopyMode.
+keybind = ctrl+shift+y=start_search
+
+keybind = ctrl+shift+v=paste_from_clipboard
+keybind = alt+enter=new_tab
+keybind = alt+c=close_tab:this
+
+keybind = alt+h=previous_tab
+keybind = alt+arrow_left=previous_tab
+keybind = alt+l=next_tab
+keybind = alt+arrow_right=next_tab
+
+keybind = ctrl+alt+h=move_tab:-1
+keybind = ctrl+alt+arrow_left=move_tab:-1
+keybind = ctrl+alt+l=move_tab:1
+keybind = ctrl+alt+arrow_right=move_tab:1
+
+keybind = ctrl+==increase_font_size:1
+keybind = ctrl+-=decrease_font_size:1
+keybind = ctrl+shift+c=copy_to_clipboard:mixed
+
+keybind = alt+k=scroll_page_up
+keybind = alt+j=scroll_page_down
+
+keybind = alt+1=goto_tab:1
+keybind = alt+2=goto_tab:2
+keybind = alt+3=goto_tab:3
+keybind = alt+4=goto_tab:4
+keybind = alt+5=goto_tab:5
+keybind = alt+6=goto_tab:6
+keybind = alt+7=goto_tab:7
+keybind = alt+8=goto_tab:8
