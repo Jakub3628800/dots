@@ -22,10 +22,8 @@ from typing import Callable, NoReturn, TextIO, cast
 VERSION = "0.1.0"
 
 DB_PATH_ENV = "POMO_DB_PATH"
-LEGACY_DB_PATH_ENV = "TD_DB_PATH"
 DB_PATH = Path(
     os.environ.get(DB_PATH_ENV)
-    or os.environ.get(LEGACY_DB_PATH_ENV)
     or Path.home() / ".local" / "share" / "pomo" / "pomo.db"
 )
 
@@ -50,7 +48,6 @@ Other flags:
 
 Environment:
   POMO_DB_PATH             Override database path
-  TD_DB_PATH               Legacy database path override, used if POMO_DB_PATH is unset
 """
 
 LIST_HELP = """Usage:
