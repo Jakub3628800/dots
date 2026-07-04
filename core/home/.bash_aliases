@@ -63,6 +63,12 @@ wt() {
     dir="$(cmd-picker worktree --print-path)" || return
     [ -n "$dir" ] && cd "$dir" || return
 }
-alias xcc='wl-copy'
+xcc() {
+    if [ "$#" -gt 0 ]; then
+        cat -- "$@" | wl-copy
+    else
+        wl-copy
+    fi
+}
 
 alias suspend='systemctl suspend'
