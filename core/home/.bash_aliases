@@ -58,6 +58,11 @@ alias dots='make -C ~/repos/dots update'
 
 alias wget='wget --no-hsts' # disable history file
 alias tm='cmd-picker tmux'
+wt() {
+    local dir
+    dir="$(cmd-picker worktree --print-path)" || return
+    [ -n "$dir" ] && cd "$dir" || return
+}
 alias xcc='wl-copy'
 
 alias suspend='systemctl suspend'
