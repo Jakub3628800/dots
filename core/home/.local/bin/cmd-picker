@@ -13,7 +13,8 @@ import tty
 import json
 import webbrowser
 import argparse
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import List, Dict, Any, TextIO
 from abc import ABC, abstractmethod
 
 
@@ -439,40 +440,181 @@ class GhTool(Tool):
             return False
 
 
+class WorktreeTool(Tool):
+    """Pick among git worktrees for the current repository.
+
+    The normal Enter action starts a nested shell with cwd set to the selected
+    worktree. That is useful from a standalone process, but it cannot change the
+    directory of the parent shell that launched cmd-picker.
+
+    For real shell `cd` integration, use `cmd-picker worktree --print-path` from
+    a shell function. In that mode only the selected path is printed to stdout;
+    the interactive UI is written directly to /dev/tty (falling back to stderr)
+    so command substitution can do:
+
+        dir="$(cmd-picker worktree --print-path)" && cd "$dir"
+    """
+
+    @property
+    def name(self) -> str:
+        return "worktree"
+
+    @property
+    def description(self) -> str:
+        return "Interactive git worktree picker"
+
+    def is_available(self) -> bool:
+        return shutil.which("git") is not None
+
+    def _git(self, args: List[str], cwd: str | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=check)
+
+    def _repo_root(self) -> str | None:
+        try:
+            return self._git(["rev-parse", "--show-toplevel"]).stdout.strip()
+        except subprocess.CalledProcessError:
+            return None
+
+    def get_items(self) -> List[Dict[str, Any]]:
+        root = self._repo_root()
+        if root is None:
+            return []
+
+        try:
+            # -z avoids git's path quoting and keeps unusual paths parseable.
+            result = self._git(["worktree", "list", "--porcelain", "-z"], cwd=root)
+        except subprocess.CalledProcessError:
+            return []
+
+        items: List[Dict[str, Any]] = []
+        current: Dict[str, Any] = {}
+        for entry in result.stdout.split("\0"):
+            if not entry:
+                if current:
+                    items.append(current)
+                    current = {}
+                continue
+
+            key, _, value = entry.partition(" ")
+            if key == "worktree":
+                current["path"] = value
+                current["name"] = Path(value).name or value
+            elif key == "HEAD":
+                current["head"] = value[:12]
+            elif key == "branch":
+                current["branch"] = value.removeprefix("refs/heads/")
+            elif key in {"bare", "detached", "prunable"}:
+                current[key] = True
+
+        if current:
+            items.append(current)
+
+        for item in items:
+            item.setdefault("branch", "detached" if item.get("detached") else "unknown")
+            item.setdefault("head", "")
+            item["current"] = item.get("path") == root
+
+        return sorted(items, key=lambda item: (not item.get("current", False), str(item.get("name", ""))))
+
+    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+        marker = "*" if item.get("current") else " "
+        prunable = f" {Colors.RED}prunable{Colors.RESET}" if item.get("prunable") else ""
+        prefix = f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        return (
+            f"{prefix}🌳{marker} {item['name']}{Colors.RESET} "
+            f"{Colors.GREEN}{item['branch']}{Colors.RESET} "
+            f"{Colors.DIM}{item['path']}{Colors.RESET}{prunable}"
+        )
+
+    def get_item_preview(self, item: Dict[str, Any]) -> str:
+        path = item["path"]
+        info = [
+            f"{Colors.CYAN}{item['name']}{Colors.RESET}",
+            f"{Colors.DIM}Path: {path}{Colors.RESET}",
+            f"{Colors.DIM}Branch: {item['branch']} | HEAD: {item.get('head', '')}{Colors.RESET}",
+            "",
+        ]
+
+        try:
+            status = self._git(["status", "--short", "--branch"], cwd=path).stdout.strip()
+        except subprocess.CalledProcessError:
+            status = "Unable to read status"
+
+        try:
+            commits = self._git(["log", "--oneline", "--decorate", "-5"], cwd=path).stdout.strip()
+        except subprocess.CalledProcessError:
+            commits = "Unable to read commits"
+
+        return (
+            "\n".join(info)
+            + f"{Colors.YELLOW}Status:{Colors.RESET}\n{status or 'Clean'}\n\n"
+            + f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n{commits}"
+        )
+
+    def execute_action(self, item: Dict[str, Any]) -> None:
+        shell = os.environ.get("SHELL", "/bin/sh")
+        subprocess.run([shell], cwd=item["path"])
+
+    def get_additional_actions(self) -> Dict[str, str]:
+        return {"e": "Open editor", "t": "Open tmux window"}
+
+    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+        if key == "e":
+            editor = os.environ.get("EDITOR", "nvim")
+            subprocess.run([editor, item["path"]])
+            return False
+        if key == "t":
+            if shutil.which("tmux") is None:
+                print(f"{Colors.RED}tmux is not available{Colors.RESET}")
+                return False
+            subprocess.run(["tmux", "new-window", "-c", item["path"], "-n", item["name"]], check=False)
+            return False
+        return False
+
+
 class CmdPicker:
-    def __init__(self, tool: Tool):
+    def __init__(
+        self,
+        tool: Tool,
+        output: TextIO = sys.stdout,
+        input_stream: TextIO = sys.stdin,
+        execute_on_select: bool = True,
+    ):
         self.tool = tool
+        self.output = output
+        self.input_stream = input_stream
+        self.execute_on_select = execute_on_select
         self.items: List[Dict[str, Any]] = []
         self.selected_index: int = 0
         self.preview_height: int = 20
 
     def get_key(self) -> str:
         """Get a single keypress"""
-        fd = sys.stdin.fileno()
+        fd = self.input_stream.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
-            tty.setraw(sys.stdin.fileno())
-            key = sys.stdin.read(1)
+            tty.setraw(fd)
+            key = self.input_stream.read(1)
             if ord(key) == 27:  # ESC sequence
-                key += sys.stdin.read(2)
+                key += self.input_stream.read(2)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return key
 
     def display_interface(self) -> None:
         """Display the picker interface"""
-        os.system("clear")
+        print("\033[H\033[2J", end="", file=self.output)
 
         if not self.items:
-            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}")
+            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}", file=self.output)
             return
 
         # Get terminal size
         try:
-            terminal_size = os.get_terminal_size()
+            terminal_size = os.get_terminal_size(self.output.fileno())
             cols = terminal_size.columns
             rows = terminal_size.lines
-        except OSError:
+        except (OSError, AttributeError):
             cols, rows = 80, 24
 
         width = cols
@@ -481,12 +623,13 @@ class CmdPicker:
         session_list_height = rows - self.preview_height - 5
 
         # Header with tool-specific emoji
-        tool_emoji = {"tmux": "🚀", "docker": "🐳", "gh": "🔀"}.get(self.tool.name, "🎯")
-        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}")
+        tool_emoji = {"tmux": "🚀", "docker": "🐳", "gh": "🔀", "worktree": "🌳"}.get(self.tool.name, "🎯")
+        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output)
         print(
-            f"{Colors.BOLD}{Colors.WHITE} {tool_emoji} {self.tool.name.upper()} Picker {Colors.RESET}{Colors.DIM}(j/k navigate, Enter select, q quit){Colors.RESET}"
+            f"{Colors.BOLD}{Colors.WHITE} {tool_emoji} {self.tool.name.upper()} Picker {Colors.RESET}{Colors.DIM}(j/k navigate, Enter select, q quit){Colors.RESET}",
+            file=self.output,
         )
-        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output)
 
         # Display items list
         for i, item in enumerate(self.items):
@@ -498,12 +641,12 @@ class CmdPicker:
                     marker = f"{Colors.DIM}  {Colors.RESET}"
                     display = self.tool.get_item_display(item, False)
 
-                print(f"{marker}{display}")
+                print(f"{marker}{display}", file=self.output)
 
         # Separator
-        print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.YELLOW} 📋 Item Details & Preview{Colors.RESET}")
-        print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}")
+        print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}", file=self.output)
+        print(f"{Colors.BOLD}{Colors.YELLOW} 📋 Item Details & Preview{Colors.RESET}", file=self.output)
+        print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}", file=self.output)
 
         # Display preview
         if self.items:
@@ -516,7 +659,7 @@ class CmdPicker:
             for i, line in enumerate(preview_lines[:available_lines]):
                 # Truncate lines to fit terminal width
                 truncated_line = line[: width - 1] if line else ""
-                print(f"{Colors.DIM}{truncated_line}{Colors.RESET}")
+                print(f"{Colors.DIM}{truncated_line}{Colors.RESET}", file=self.output)
 
         # Display controls at bottom
         controls = ["j/k: Navigate", "Enter: Select", "q: Quit"]
@@ -524,18 +667,19 @@ class CmdPicker:
         for key, desc in additional_actions.items():
             controls.append(f"{key}: {desc}")
 
-        print(f"\n{Colors.DIM}Controls: {' | '.join(controls)}{Colors.RESET}")
+        print(f"\n{Colors.DIM}Controls: {' | '.join(controls)}{Colors.RESET}", file=self.output)
+        self.output.flush()
 
-    def run(self) -> None:
-        """Run the picker interface"""
+    def run(self) -> Dict[str, Any] | None:
+        """Run the picker interface and return the selected item, if any."""
         if not self.tool.is_available():
-            print(f"{Colors.RED}Error: {self.tool.name} is not available{Colors.RESET}")
+            print(f"{Colors.RED}Error: {self.tool.name} is not available{Colors.RESET}", file=self.output)
             sys.exit(1)
 
         self.items = self.tool.get_items()
 
         if not self.items:
-            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}")
+            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}", file=self.output)
             sys.exit(1)
 
         while True:
@@ -543,23 +687,25 @@ class CmdPicker:
             key = self.get_key()
 
             if key == "q":
-                break
+                return None
             elif key in ["j", "\x1b[B"]:  # j or down arrow
                 self.selected_index = min(len(self.items) - 1, self.selected_index + 1)
             elif key in ["k", "\x1b[A"]:  # k or up arrow
                 self.selected_index = max(0, self.selected_index - 1)
             elif key == "\r":  # Enter
                 selected_item = self.items[self.selected_index]
-                os.system("clear")
-                self.tool.execute_action(selected_item)
-                break
+                print("\033[H\033[2J", end="", file=self.output)
+                self.output.flush()
+                if self.execute_on_select:
+                    self.tool.execute_action(selected_item)
+                return selected_item
             else:
                 # Check additional actions
                 if self.tool.handle_additional_action(key, self.items[self.selected_index]):
                     # Refresh items if action was handled and might have changed state
                     self.items = self.tool.get_items()
                     if not self.items:
-                        break
+                        return None
                     self.selected_index = min(self.selected_index, len(self.items) - 1)
 
 
@@ -567,6 +713,7 @@ TOOLS = {
     "tmux": TmuxTool(),
     "docker": DockerTool(),
     "gh": GhTool(),
+    "worktree": WorktreeTool(),
 }
 
 
@@ -582,10 +729,20 @@ Examples:
   cmd_picker tmux      # Pick tmux sessions
   cmd_picker docker    # Pick docker containers
   cmd_picker gh        # Pick GitHub pull requests
+  cmd_picker worktree  # Pick git worktrees
         """,
     )
 
     parser.add_argument("tool", nargs="?", choices=list(TOOLS.keys()), help="Tool to use for picking")
+    parser.add_argument(
+        "--print-path",
+        action="store_true",
+        help=(
+            "For the worktree picker: print the selected worktree path to stdout "
+            "instead of opening a shell. The UI is written directly to the terminal "
+            "so shell functions can safely use command substitution and cd there."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -599,9 +756,29 @@ Examples:
         print("\nUsage: cmd_picker <tool>")
         return
 
+    if args.print_path and args.tool != "worktree":
+        parser.error("--print-path is only supported with the worktree tool")
+
     tool = TOOLS[args.tool]
-    picker = CmdPicker(tool)
-    picker.run()
+    if args.print_path:
+        # stdout must contain only the selected path for command substitution.
+        # Use /dev/tty for the interactive UI so it remains visible even when
+        # stdout is captured by: dir="$(cmd-picker worktree --print-path)".
+        try:
+            with open("/dev/tty", "r+") as tty_io:
+                picker = CmdPicker(tool, output=tty_io, input_stream=tty_io, execute_on_select=False)
+                selected_item = picker.run()
+        except OSError:
+            picker = CmdPicker(tool, output=sys.stderr, execute_on_select=False)
+            selected_item = picker.run()
+    else:
+        picker = CmdPicker(tool)
+        selected_item = picker.run()
+
+    if args.print_path:
+        if selected_item is None:
+            sys.exit(1)
+        print(selected_item["path"])
 
 
 if __name__ == "__main__":
