@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenSSH authentication agent for dotfiles-managed shells
+Documentation=man:ssh-agent(1)
+
+[Service]
+Type=simple
+UMask=0077
+ExecStartPre=-/usr/bin/rm -f %t/dots-ssh-agent.socket
+ExecStart=/usr/bin/ssh-agent -D -a %t/dots-ssh-agent.socket
+ExecStopPost=-/usr/bin/rm -f %t/dots-ssh-agent.socket
+
+[Install]
+WantedBy=default.target

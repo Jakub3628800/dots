@@ -34,13 +34,26 @@ export HISTFILESIZE=1000000000
 export HISTSIZE=1000000000
 export HISTFILE=~/.cache/.zsh_history
 
-zstyle ':omz:plugins:ssh-agent' lazy no
-zstyle ':omz:plugins:ssh-agent' lifetime 8h
-export SSH_ASKPASS_REQUIRE=force_cli
+# Start one agent for the whole user session, but let ssh(1) add keys on first use.
+# This avoids passphrase prompts while opening a shell and keeps every terminal on
+# the same agent socket. Fall back to the portable plugin on non-systemd hosts.
+_ssh_agent_socket="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dots-ssh-agent.socket"
+if [[ ! -S "$_ssh_agent_socket" ]] && (( $+commands[systemctl] )); then
+  systemctl --user start dots-ssh-agent.service >/dev/null 2>&1
+fi
 
-if [ -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]; then
+if [[ -S "$_ssh_agent_socket" ]]; then
+  export SSH_AUTH_SOCK="$_ssh_agent_socket"
+  unset SSH_AGENT_PID
+else
+  zstyle ':omz:plugins:ssh-agent' lazy yes
+fi
+export SSH_ASKPASS_REQUIRE=never
+
+if [[ ! -S "$_ssh_agent_socket" && -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]]; then
   _source_if_safe "$HOME/.zshlib/plugins/ssh-agent.plugin.zsh"
 fi
+unset _ssh_agent_socket
 
 show_virtual_env() {
   if [[ -n "$VIRTUAL_ENV" && -n "$DIRENV_DIR" ]]; then
