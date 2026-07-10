@@ -252,15 +252,15 @@ exec {
   systemctl --user start kanshi.service
   systemctl --user start gammastep.service
   swaymsg 'workspace 1; exec $terminal start -- bash -c "cd ~/repos; zsh"'
-  swaymsg 'workspace 2; exec google-chrome'
+  swaymsg 'workspace 2; exec $browser'
   swaymsg 'workspace 3; exec $terminal start -- bash -c "cd ~/repos/dots; zsh"'
   swaymsg 'workspace 4; exec $terminal start'
   swaymsg 'workspace 5; exec $terminal start'
-  1password
+  command -v 1password >/dev/null && 1password
 
 }
 
 exec_always {
-  slack
+  command -v slack >/dev/null && slack
   mako
 }
