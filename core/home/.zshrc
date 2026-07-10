@@ -1,11 +1,21 @@
 #!/bin/zsh
 
-export PATH="$PATH:/opt/nvim-linux64/bin"
+typeset -U path PATH
+path=(
+  "$HOME/.local/bin"
+  "$HOME/.cargo/bin"
+  "$HOME/go/bin"
+  /usr/local/go/bin
+  /opt/nvim-linux64/bin
+  $path
+)
+
 export NVM_DIR="$HOME/.nvm"
-
-
-export CARGO_BIN="$HOME/.cargo/bin"
-export PATH="$CARGO_BIN:$PATH"
+export VISUAL=nvim
+export EDITOR="$VISUAL"
+export LESSHISTFILE="$HOME/.cache/.lesshst"
+export RUFF_CACHE_DIR="$HOME/.cache/ruff"
+export ZSH_COMPDUMP="$HOME/.cache/.zcompdump-$HOST"
 
 _source_if_safe() {
   local file="$1"
@@ -30,36 +40,25 @@ setopt PROMPT_SUBST
 setopt HIST_FIND_NO_DUPS
 setopt share_history
 
-export HISTFILESIZE=1000000000
-export HISTSIZE=1000000000
-export HISTFILE=~/.cache/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+[[ -d "${HISTFILE:h}" ]] || mkdir -p -- "${HISTFILE:h}"
 
 # Start one agent for the whole user session, but let ssh(1) add keys on first use.
-# This avoids passphrase prompts while opening a shell and keeps every terminal on
-# the same agent socket. Fall back to the portable plugin on non-systemd hosts.
-_ssh_agent_socket="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dots-ssh-agent.socket"
-if [[ ! -S "$_ssh_agent_socket" ]] && (( $+commands[systemctl] )); then
-  systemctl --user start dots-ssh-agent.service >/dev/null 2>&1
-fi
-
-if [[ -S "$_ssh_agent_socket" ]]; then
-  export SSH_AUTH_SOCK="$_ssh_agent_socket"
-  unset SSH_AGENT_PID
-else
-  zstyle ':omz:plugins:ssh-agent' lazy yes
+# Preserve a valid forwarded agent; otherwise use the systemd user service.
+if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S "$SSH_AUTH_SOCK" ]]; then
+  unset SSH_AUTH_SOCK SSH_AGENT_PID
+  _ssh_agent_socket="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dots-ssh-agent.socket"
+  if [[ ! -S "$_ssh_agent_socket" ]] && (( $+commands[systemctl] )); then
+    systemctl --user start dots-ssh-agent.service >/dev/null 2>&1
+  fi
+  if [[ -S "$_ssh_agent_socket" ]]; then
+    export SSH_AUTH_SOCK="$_ssh_agent_socket"
+  fi
+  unset _ssh_agent_socket
 fi
 export SSH_ASKPASS_REQUIRE=never
-
-if [[ ! -S "$_ssh_agent_socket" && -z "${DISABLE_SSH_AGENT_PLUGIN:-}" ]]; then
-  _source_if_safe "$HOME/.zshlib/plugins/ssh-agent.plugin.zsh"
-fi
-unset _ssh_agent_socket
-
-show_virtual_env() {
-  if [[ -n "$VIRTUAL_ENV" && -n "$DIRENV_DIR" ]]; then
-    echo "($(basename $VIRTUAL_ENV))"
-  fi
-}
 
 fzf-history-widget() {
   local selected num
@@ -84,15 +83,17 @@ bindkey "^[[1;5D" backward-word
 _source_if_safe "$NVM_DIR/nvm.sh"
 _source_if_safe "$NVM_DIR/bash_completion"
 
-if [ ! -f /usr/local/bin/starship ]; then
-    eval "$(starship init zsh)"
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
 fi
 
-eval "$(direnv hook zsh)"
+if (( $+commands[direnv] )); then
+  eval "$(direnv hook zsh)"
+fi
 
 if (( ! $+functions[compdef] )); then
   autoload -Uz compinit
-  compinit
+  compinit -d "$ZSH_COMPDUMP"
 fi
 
 _rr() {
@@ -104,5 +105,4 @@ compdef _rr rr
 
 _source_if_safe "$HOME/.gvm/scripts/gvm"
 
-typeset -U path PATH
 unfunction _source_if_safe

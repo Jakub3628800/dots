@@ -28,7 +28,6 @@ ENV PATH="/home/testuser/.local/bin:/home/testuser/.cargo/bin:${PATH}"
 
 # Run the installation
 RUN make apt-packages-install cargo-install && \
-    rm -f ~/.profile && \
     make stow
 
 # Verify installation
@@ -38,6 +37,7 @@ RUN command -v uv && \
     command -v delta && \
     command -v zsh && \
     command -v tig && \
+    test -f ~/.profile && \
     test -f ~/.zshrc && \
     test -f ~/.bash_aliases
 
