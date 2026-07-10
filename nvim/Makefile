@@ -11,9 +11,9 @@ upgrade: install-nvim stow
 clean: unstow
 
 test:
-	@echo "Checking Neovim installation..."
+	@echo "Loading the Neovim configuration..."
 	@if [ -x "/opt/nvim-linux64/bin/nvim" ]; then \
-		/opt/nvim-linux64/bin/nvim --version | head -n 1; \
+		/opt/nvim-linux64/bin/nvim --headless -i NONE -u home/.config/nvim/init.lua +qa; \
 	else \
 		echo "Neovim not installed"; \
 		exit 1; \
