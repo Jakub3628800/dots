@@ -27,7 +27,7 @@ WORKDIR /tmp/core
 ENV PATH="/home/testuser/.local/bin:/home/testuser/.cargo/bin:${PATH}"
 
 # Run the installation
-RUN make apt-packages-install cargo-install && \
+RUN make packages && \
     make stow
 
 # Verify installation

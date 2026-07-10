@@ -27,7 +27,7 @@ WORKDIR /tmp/desktop
 ENV XDG_SESSION_TYPE=wayland
 
 # Run the installation
-RUN make apt-packages-install && \
+RUN make packages && \
     rm -f ~/.wezterm.lua && \
     make stow
 

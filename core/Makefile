@@ -1,53 +1,63 @@
-APT_PACKAGES := zsh vim tig gh stow curl unzip jq direnv tmux ripgrep fzf bat nodejs gnupg2 rustup
-CARGO_PACKAGES := starship git-delta uv prek
+APT_PACKAGES := \
+	build-essential \
+	ca-certificates \
+	curl \
+	direnv \
+	entr \
+	fzf \
+	gh \
+	git \
+	gnupg2 \
+	jq \
+	nodejs \
+	openssh-client \
+	ripgrep \
+	rustup \
+	stow \
+	tig \
+	tmux \
+	unzip \
+	vim \
+	zsh
 
-.PHONY : install update
+CARGO_PACKAGES := git-delta prek starship uv
 
-install: apt-packages-install cargo-install stow
-update: apt-packages-update cargo-update stow
+.PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
+.PHONY: cargo-packages stow unstow system-upgrade test help
 
+install: packages stow
+
+# Configuration refreshes should stay cheap. Use `make upgrade` for packages.
+update: stow
+
+upgrade: packages stow
+
+packages: apt-packages cargo-packages
 
 apt-update:
 	@sudo apt-get update
 
-apt-packages-install: apt-update
+apt-packages: apt-update
 	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
 
-apt-packages-update: apt-update
-	@sudo apt-get install --only-upgrade -y $(APT_PACKAGES)
+rust-toolchain: apt-packages
+	@rustup default stable
 
-system-upgrade: apt-update
-	@sudo apt-get upgrade -y
-
-
-rust-toolchain: apt-packages-install
-	rustup default stable
-
-cargo-install: rust-toolchain
+cargo-packages: rust-toolchain
 	@if [ -f $$HOME/.cargo/env ]; then . $$HOME/.cargo/env; fi; \
 		for pkg in $(CARGO_PACKAGES); do \
-			if ! command -v $$pkg >/dev/null 2>&1; then \
-				echo "Installing $$pkg..."; \
-				cargo install $$pkg --locked; \
-			else \
-				echo "$$pkg is already installed"; \
-			fi; \
+			echo "Reconciling $$pkg..."; \
+			cargo install "$$pkg" --locked; \
 		done
-
-cargo-update:
-	@if [ -f $$HOME/.cargo/env ]; then . $$HOME/.cargo/env; fi; \
-		for pkg in $(CARGO_PACKAGES); do \
-			echo "Updating $$pkg..."; \
-			cargo install $$pkg --locked --force; \
-		done
-
 
 stow:
-	@stow -v -d . -t $(HOME) --no-folding home
+	@stow -R -v -d . -t $(HOME) --no-folding home
 
 unstow:
 	@stow -v -D -d . -t $(HOME) --no-folding home
 
+system-upgrade: apt-update
+	@sudo apt-get upgrade -y
 
 test:
 	@docker build -t core-dotfiles-test .

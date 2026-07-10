@@ -1,94 +1,77 @@
-# Root Makefile - delegates to package-specific Makefiles
+.PHONY: install update link upgrade system-upgrade test clean help
+.PHONY: install-core install-desktop install-nvim
+.PHONY: link-core link-desktop link-nvim
+.PHONY: update-core update-desktop update-nvim
+.PHONY: upgrade-core upgrade-desktop upgrade-nvim
+.PHONY: test-core test-desktop test-nvim
 
-.PHONY: install
 install: install-core install-desktop install-nvim
 
-.PHONY: update
-update: update-core update-desktop update-nvim
+# Backward-compatible, cheap configuration refresh.
+update: link
 
-.PHONY: system-upgrade
+link: link-core link-desktop link-nvim
+
+upgrade: upgrade-core upgrade-desktop upgrade-nvim
+
 system-upgrade:
-	@echo "\n=== Upgrading system packages ==="
 	@sudo apt-get update
 	@sudo apt-get upgrade -y
 
-.PHONY: test
 test: test-core test-desktop test-nvim
 
-.PHONY: install-core
 install-core:
-	@echo "\n=== Installing core packages ==="
 	@$(MAKE) -C core install
 
-.PHONY: update-core
-update-core:
-	@echo "\n=== Updating core packages ==="
-	@$(MAKE) -C core update
-
-.PHONY: install-desktop
 install-desktop:
-	@echo "\n=== Installing desktop environment ==="
-	@$(MAKE) -C desktop all
+	@$(MAKE) -C desktop install
 
-.PHONY: update-desktop
-update-desktop:
-	@echo "\n=== Updating desktop packages ==="
-	@$(MAKE) -C desktop update
-
-.PHONY: install-nvim
 install-nvim:
-	@echo "\n=== Installing Neovim ==="
 	@$(MAKE) -C nvim install
 
-.PHONY: update-nvim
-update-nvim:
-	@echo "\n=== Updating Neovim ==="
-	@$(MAKE) -C nvim update
+link-core:
+	@$(MAKE) -C core stow
 
-.PHONY: test-core
+link-desktop:
+	@$(MAKE) -C desktop stow
+
+link-nvim:
+	@$(MAKE) -C nvim stow
+
+update-core: link-core
+
+update-desktop: link-desktop
+
+update-nvim: link-nvim
+
+upgrade-core:
+	@$(MAKE) -C core upgrade
+
+upgrade-desktop:
+	@$(MAKE) -C desktop upgrade
+
+upgrade-nvim:
+	@$(MAKE) -C nvim upgrade
+
 test-core:
-	@echo "\n=== Testing core packages ==="
 	@$(MAKE) -C core test
 
-.PHONY: test-desktop
 test-desktop:
-	@echo "\n=== Testing desktop environment ==="
 	@$(MAKE) -C desktop test
 
-.PHONY: test-nvim
 test-nvim:
-	@echo "\n=== Testing Neovim ==="
 	@$(MAKE) -C nvim test
 
-.PHONY: clean
 clean:
-	@echo "\n=== Cleaning all packages ==="
 	@$(MAKE) -C core unstow
 	@$(MAKE) -C desktop unstow
 	@$(MAKE) -C nvim unstow
 
-.PHONY: help
 help:
-	@echo "Dotfiles installation system"
-	@echo "Usage: make [target]"
-	@echo ""
-	@echo "Main targets:"
-	@echo "  make install        - Install everything (core + desktop + nvim)"
-	@echo "  make update         - Update everything (core + desktop + nvim)"
-	@echo "  make system-upgrade - Upgrade all system APT packages"
-	@echo "  make test           - Test everything (core + desktop + nvim)"
-	@echo "  make install-core   - Install core packages only"
-	@echo "  make update-core    - Update core packages only"
-	@echo "  make test-core      - Test core packages only"
-	@echo "  make install-desktop - Install desktop environment only"
-	@echo "  make update-desktop  - Update desktop packages only"
-	@echo "  make test-desktop   - Test desktop environment only"
-	@echo "  make install-nvim   - Install Neovim only"
-	@echo "  make update-nvim    - Update Neovim only"
-	@echo "  make test-nvim      - Test Neovim only"
-	@echo "  make clean          - Unstow all dotfiles"
-	@echo ""
-	@echo "For package-specific options, use:"
-	@echo "  make -C core help"
-	@echo "  make -C desktop help"
-	@echo "  make -C nvim help"
+	@echo "Dotfiles targets:"
+	@echo "  install         Install packages, Neovim, and dotfiles"
+	@echo "  link / update   Refresh dotfile links only"
+	@echo "  upgrade         Reconcile managed packages and dotfile links"
+	@echo "  system-upgrade  Upgrade all APT packages on the host"
+	@echo "  test             Run package tests"
+	@echo "  clean            Remove managed dotfile links"

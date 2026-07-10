@@ -6,21 +6,13 @@ NVIM_ARCHIVE="nvim-linux-x86_64.tar.gz"
 NVIM_URL="https://github.com/neovim/neovim/releases/download/$NVIM_VERSION/$NVIM_ARCHIVE"
 NVIM_SHA256="728321db960a9b6af6c03881892a6abfd743bf759bc62d233f52fa1be64ace3c"
 INSTALL_DIR="/opt/nvim-linux64"
-FORCE=false
 
-while [ $# -gt 0 ]; do
-	case $1 in
-		--force)
-			FORCE=true
-			shift
-			;;
-		*)
-			shift
-			;;
-	esac
-done
+if [ "$#" -ne 0 ]; then
+	echo "Usage: $0" >&2
+	exit 2
+fi
 
-if [ "$FORCE" = false ] && [ -f "$INSTALL_DIR/bin/nvim" ]; then
+if [ -x "$INSTALL_DIR/bin/nvim" ]; then
 	INSTALLED_VERSION=$("$INSTALL_DIR/bin/nvim" --version | head -n 1 | awk '{print $2}')
 	if [ "$INSTALLED_VERSION" = "$NVIM_VERSION" ]; then
 		echo "Neovim $NVIM_VERSION is already installed at $INSTALL_DIR/bin/nvim"
