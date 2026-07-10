@@ -53,7 +53,7 @@ function rr() {  # retry cmd
     done
 }
 alias nn='cd ~/repos/notes'
-alias dots='make -C ~/repos/dots update'
+alias dots='make -C ~/repos/dots link'
 
 alias wget='wget --no-hsts' # disable history file
 alias tm='cmd-picker tmux'

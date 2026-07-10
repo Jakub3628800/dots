@@ -1,69 +1,36 @@
-# ============================ CONFIGURATION =============================
-# APT packages for desktop environment
 APT_PACKAGES := bemenu xclip xdotool pass pass-extension-otp sway kanshi wtype mako-notifier gammastep swaylock
 
-# ============================ PHONY TARGETS =============================
-.PHONY: all install update clean test stow unstow system-upgrade
-.PHONY: apt-packages-install apt-packages-update
+.PHONY: all install update upgrade packages stow unstow clean system-upgrade test help
 
-# ============================ MAIN TARGETS ==============================
+# Keep `all` as a compatibility alias without depending on the active session.
+all: install
 
-all:
-	@if [ "$$XDG_SESSION_TYPE" = "wayland" ] || [ -n "$$WAYLAND_DISPLAY" ]; then \
-		$(MAKE) install; \
-	else \
-		echo "⚠️  Not in a Wayland session (XDG_SESSION_TYPE=$$XDG_SESSION_TYPE)"; \
-		echo "Run 'make install' if you really want to install"; \
-	fi
-
-install: apt-packages-install stow
+install: packages stow
 	@echo "Desktop environment installation complete!"
 
-update: apt-packages-update stow
+update: stow
+
+upgrade: packages stow
 	@echo "Desktop packages updated!"
 
-clean:
-	@echo "Unstowing desktop dotfiles..."
-	@stow -v -D -d . -t $(HOME) --no-folding home
-
-test:
-	@echo "Building Docker image for testing..."
-	@docker build -t desktop-dotfiles-test .
-	@echo "Test build completed successfully!"
-
-stow:
-	@echo "Stowing desktop dotfiles..."
-	@stow -v -d . -t $(HOME) --no-folding home
-
-unstow:
-	@echo "Unstowing desktop dotfiles..."
-	@stow -v -D -d . -t $(HOME) --no-folding home
-
-# ============================ APT PACKAGES ==============================
-
-apt-packages-install:
-	@echo "Installing desktop APT packages..."
+packages:
 	@sudo apt-get update
 	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
 
-apt-packages-update:
-	@sudo apt-get update
-	@sudo apt-get install --only-upgrade -y $(APT_PACKAGES)
+stow:
+	@stow -R -v -d . -t $(HOME) --no-folding home
+
+unstow:
+	@stow -v -D -d . -t $(HOME) --no-folding home
+
+clean: unstow
 
 system-upgrade:
 	@sudo apt-get update
 	@sudo apt-get upgrade -y
 
-# ============================ HELP ====================================
+test:
+	@docker build -t desktop-dotfiles-test .
 
 help:
-	@echo "Desktop environment installation targets:"
-	@echo "  make install        - Install everything (apt packages + stow dotfiles)"
-	@echo "  make apt-packages-install - Install APT packages only"
-	@echo "  make apt-packages-update  - Update APT packages"
-	@echo "  make stow           - Symlink desktop dotfiles"
-	@echo "  make unstow         - Remove desktop dotfile symlinks"
-	@echo "  make update         - Update all packages"
-	@echo "  make system-upgrade - Upgrade all system APT packages"
-	@echo "  make test           - Build Docker image for testing"
-	@echo "  make clean          - Unstow dotfiles"
+	@echo "Desktop targets: install update upgrade packages stow unstow test clean"
