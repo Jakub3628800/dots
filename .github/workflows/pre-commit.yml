@@ -17,8 +17,5 @@ jobs:
       - name: Install syntax-check dependencies
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y zsh
       - uses: pre-commit/action@v3.0.1
-        if: github.event_name != 'push' || github.ref != 'refs/heads/master'
-      - uses: pre-commit/action@v3.0.1
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         env:
-          SKIP: no-commit-to-branch
+          SKIP: ${{ github.ref == 'refs/heads/master' && 'no-commit-to-branch' || '' }}

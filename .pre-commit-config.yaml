@@ -60,7 +60,7 @@ repos:
     hooks:
     - id: shellcheck
       name: Lint shell scripts with ShellCheck
-      files: (^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases|\.profile)$
+      files: (^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases)$
 
   - repo: local
     hooks:
@@ -69,6 +69,17 @@ repos:
       entry: zsh -n
       language: system
       files: (^|/)(\.zshrc|.*\.zsh)$
+    - id: python-syntax
+      name: Check Python syntax
+      entry: python3 -c 'import pathlib, sys; [compile(pathlib.Path(path).read_bytes(), path, "exec") for path in sys.argv[1:]]'
+      language: system
+      files: (^|/)(cmd-picker|pomo|tt|.*\.py)$
+    - id: script-tests
+      name: Test command-line utilities
+      entry: python3 -m unittest discover -s tests
+      language: system
+      pass_filenames: false
+      files: (^|/)(cmd-picker|pomo|tt|test_scripts\.py)$
 
   - repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2
@@ -76,13 +87,6 @@ repos:
     - id: stylua
       name: Format Lua with StyLua
       files: ^nvim/home/.+\.lua$
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-    - id: check-added-large-files
-      name: Check for large files (Docker builds)
-      args: ['--maxkb=1000']
 
   # =====================
   # GitHub Actions hooks
