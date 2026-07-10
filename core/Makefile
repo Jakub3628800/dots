@@ -23,7 +23,7 @@ APT_PACKAGES := \
 CARGO_PACKAGES := git-delta prek starship uv
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
-.PHONY: cargo-packages stow unstow system-upgrade test help
+.PHONY: cargo-packages stow unstow system-upgrade test test-bootstrap help
 
 install: packages stow
 
@@ -60,6 +60,15 @@ system-upgrade: apt-update
 	@sudo apt-get upgrade -y
 
 test:
+	@zsh -n home/.zshrc
+	@set -e; tmp_home=$$(mktemp -d); \
+		trap 'rm -rf "$$tmp_home"' 0 1 2 15; \
+		touch "$$tmp_home/.profile"; \
+		stow -R -d . -t "$$tmp_home" --no-folding home; \
+		test -L "$$tmp_home/.zshrc"; \
+		test -f "$$tmp_home/.profile"
+
+test-bootstrap:
 	@docker build -t core-dotfiles-test .
 
 help:

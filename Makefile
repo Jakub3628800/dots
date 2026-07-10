@@ -1,9 +1,10 @@
-.PHONY: install update link upgrade system-upgrade test clean help
+.PHONY: install update link upgrade system-upgrade test test-scripts test-bootstrap clean help
 .PHONY: install-core install-desktop install-nvim
 .PHONY: link-core link-desktop link-nvim
 .PHONY: update-core update-desktop update-nvim
 .PHONY: upgrade-core upgrade-desktop upgrade-nvim
 .PHONY: test-core test-desktop test-nvim
+.PHONY: test-bootstrap-core test-bootstrap-desktop
 
 install: install-core install-desktop install-nvim
 
@@ -18,7 +19,12 @@ system-upgrade:
 	@sudo apt-get update
 	@sudo apt-get upgrade -y
 
-test: test-core test-desktop test-nvim
+test: test-scripts test-core test-desktop test-nvim
+
+test-scripts:
+	@python3 -m unittest discover -s tests
+
+test-bootstrap: test-bootstrap-core test-bootstrap-desktop
 
 install-core:
 	@$(MAKE) -C core install
@@ -62,6 +68,12 @@ test-desktop:
 test-nvim:
 	@$(MAKE) -C nvim test
 
+test-bootstrap-core:
+	@$(MAKE) -C core test-bootstrap
+
+test-bootstrap-desktop:
+	@$(MAKE) -C desktop test-bootstrap
+
 clean:
 	@$(MAKE) -C core unstow
 	@$(MAKE) -C desktop unstow
@@ -73,5 +85,6 @@ help:
 	@echo "  link / update   Refresh dotfile links only"
 	@echo "  upgrade         Reconcile managed packages and dotfile links"
 	@echo "  system-upgrade  Upgrade all APT packages on the host"
-	@echo "  test             Run package tests"
+	@echo "  test             Run fast configuration tests"
+	@echo "  test-bootstrap   Test clean Ubuntu package bootstrap in Docker"
 	@echo "  clean            Remove managed dotfile links"
