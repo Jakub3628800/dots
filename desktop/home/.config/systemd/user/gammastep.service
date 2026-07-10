@@ -8,7 +8,4 @@ ConditionEnvironment=XDG_CURRENT_DESKTOP=sway
 
 [Service]
 ExecStart=/usr/bin/gammastep
-Restart=always
-
-[Install]
-WantedBy=default.target
+Restart=on-failure

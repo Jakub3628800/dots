@@ -1,4 +1,18 @@
-APT_PACKAGES := bemenu xclip xdotool pass pass-extension-otp sway kanshi wtype mako-notifier gammastep swaylock
+APT_PACKAGES := \
+	bemenu \
+	gammastep \
+	grim \
+	i3status \
+	kanshi \
+	mako-notifier \
+	pass \
+	pass-extension-otp \
+	pulseaudio-utils \
+	slurp \
+	sway \
+	swaylock \
+	wl-clipboard \
+	wtype
 
 .PHONY: all install update upgrade packages stow unstow clean system-upgrade test help
 

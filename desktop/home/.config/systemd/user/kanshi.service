@@ -11,6 +11,3 @@ Type=simple
 ExecStart=/usr/bin/kanshi
 Restart=on-failure
 RestartSec=5
-
-[Install]
-WantedBy=default.target
