@@ -28,15 +28,18 @@ ENV XDG_SESSION_TYPE=wayland
 
 # Run the installation
 RUN make packages && \
-    rm -f ~/.wezterm.lua && \
     make stow
 
 # Verify installation
 RUN command -v sway && \
     command -v bemenu && \
-    command -v xdotool && \
+    command -v grim && \
+    command -v slurp && \
+    command -v wl-copy && \
+    command -v i3status && \
+    command -v pactl && \
     command -v pass && \
     command -v swaylock && \
-    test -f ~/.config/sway/config || echo "Sway config file ready to be stowed"
+    test -f ~/.config/sway/config
 
 CMD ["/bin/bash"]
