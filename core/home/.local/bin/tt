@@ -27,18 +27,19 @@ import sys
 from pathlib import Path
 
 
-def find_all_project_roots() -> list[str]:
-    """Find all directories containing pyproject.toml."""
+def list_repo_files() -> list[str]:
+    """List tracked and unignored untracked files in the repository."""
     result = subprocess.run(
-        ["find", ".", "-name", "pyproject.toml", "-type", "f"],
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
         capture_output=True,
         text=True,
     )
-    roots = []
-    for line in result.stdout.strip().split("\n"):
-        if line:
-            root = os.path.dirname(line.removeprefix("./"))
-            roots.append(root)
+    return [path for path in result.stdout.split("\0") if path]
+
+
+def find_all_project_roots() -> list[str]:
+    """Find all directories containing pyproject.toml."""
+    roots = [os.path.dirname(path) for path in list_repo_files() if Path(path).name == "pyproject.toml"]
     return sorted(roots, key=lambda x: -len(x))  # longest first
 
 
@@ -77,23 +78,18 @@ def build_test_index(project_root: str) -> dict[str, list[str]]:
     The basename is the name being tested (e.g., 'foo' for 'test_foo.py').
     Paths are relative to the git root (not project root).
     """
-    search_dir = project_root if project_root else "."
-    result = subprocess.run(
-        ["find", search_dir, "-name", "test_*.py", "-type", "f"],
-        capture_output=True,
-        text=True,
-    )
-
     index: dict[str, list[str]] = {}
-    for line in result.stdout.strip().split("\n"):
-        if not line:
+    root_path = Path(project_root) if project_root else None
+    for test_path in list_repo_files():
+        path = Path(test_path)
+        if path.suffix != ".py" or not path.name.startswith("test_"):
             continue
-        test_path = line.removeprefix("./")
-        # Skip pycache and hidden directories
-        if "/__pycache__/" in test_path or "/." in test_path:
+        if root_path is not None and not path.is_relative_to(root_path):
+            continue
+        if "__pycache__" in path.parts or any(part.startswith(".") for part in path.parts):
             continue
 
-        filename = Path(test_path).stem  # test_foo
+        filename = path.stem  # test_foo
         if filename.startswith("test_"):
             basename = filename[5:]  # foo
             if basename not in index:

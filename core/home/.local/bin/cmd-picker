@@ -203,11 +203,7 @@ class TmuxTool(Tool):
 
     def create_new_item(self) -> bool:
         print(f"\n{Colors.CYAN}Enter new session name: {Colors.RESET}", end="", flush=True)
-        # Temporarily restore terminal settings to read input
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
         try:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
             session_name = input().strip()
             if session_name:
                 try:
@@ -218,8 +214,6 @@ class TmuxTool(Tool):
                     print(f"{Colors.RED}✗ Failed to create session '{session_name}': {exc}{Colors.RESET}")
         except (EOFError, KeyboardInterrupt):
             pass
-        finally:
-            tty.setraw(sys.stdin.fileno())
         return False
 
 
@@ -631,17 +625,20 @@ class CmdPicker:
         )
         print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output)
 
-        # Display items list
-        for i, item in enumerate(self.items):
-            if i < session_list_height - 3:  # Leave space for borders
-                if i == self.selected_index:
-                    marker = f"{Colors.BRIGHT_GREEN}▶ {Colors.RESET}"
-                    display = self.tool.get_item_display(item, True)
-                else:
-                    marker = f"{Colors.DIM}  {Colors.RESET}"
-                    display = self.tool.get_item_display(item, False)
+        # Keep the selected item visible when the list is taller than the terminal.
+        visible_count = max(1, session_list_height - 3)
+        max_start = max(0, len(self.items) - visible_count)
+        start = min(max(0, self.selected_index - visible_count + 1), max_start)
+        for offset, item in enumerate(self.items[start : start + visible_count]):
+            item_index = start + offset
+            if item_index == self.selected_index:
+                marker = f"{Colors.BRIGHT_GREEN}▶ {Colors.RESET}"
+                display = self.tool.get_item_display(item, True)
+            else:
+                marker = f"{Colors.DIM}  {Colors.RESET}"
+                display = self.tool.get_item_display(item, False)
 
-                print(f"{marker}{display}", file=self.output)
+            print(f"{marker}{display}", file=self.output)
 
         # Separator
         print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}", file=self.output)
@@ -726,10 +723,10 @@ Available tools:
 {chr(10).join(f"  {name}: {tool.description}" for name, tool in TOOLS.items())}
 
 Examples:
-  cmd_picker tmux      # Pick tmux sessions
-  cmd_picker docker    # Pick docker containers
-  cmd_picker gh        # Pick GitHub pull requests
-  cmd_picker worktree  # Pick git worktrees
+  cmd-picker tmux      # Pick tmux sessions
+  cmd-picker docker    # Pick docker containers
+  cmd-picker gh        # Pick GitHub pull requests
+  cmd-picker worktree  # Pick git worktrees
         """,
     )
 
@@ -753,7 +750,7 @@ Examples:
         for name, tool in TOOLS.items():
             available = "✅" if tool.is_available() else "❌"
             print(f"  {available} {Colors.GREEN}{name}{Colors.RESET}: {tool.description}")
-        print("\nUsage: cmd_picker <tool>")
+        print("\nUsage: cmd-picker <tool>")
         return
 
     if args.print_path and args.tool != "worktree":

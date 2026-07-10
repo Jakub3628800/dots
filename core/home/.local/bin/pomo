@@ -12,6 +12,7 @@ import sqlite3
 import subprocess
 import sys
 import termios
+import time
 import tty
 from dataclasses import dataclass
 from datetime import date, datetime, time as dt_time, timedelta
@@ -617,21 +618,19 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
 
 def run_timer(duration_minutes: int) -> bool:
     duration = timedelta(minutes=duration_minutes)
-    started = datetime.now()
+    started = time.monotonic()
     paused = False
-    paused_at: datetime | None = None
-    paused_total = timedelta()
+    paused_at: float | None = None
+    paused_total = 0.0
 
     with RawTerminal(sys.stdin) as terminal:
         while True:
-            current = datetime.now()
+            current = time.monotonic()
             if paused and paused_at is not None:
-                elapsed = paused_at - started - paused_total
+                elapsed_seconds = paused_at - started - paused_total
             else:
-                elapsed = current - started - paused_total
-
-            if elapsed < timedelta():
-                elapsed = timedelta()
+                elapsed_seconds = current - started - paused_total
+            elapsed = timedelta(seconds=max(0.0, elapsed_seconds))
 
             if elapsed >= duration:
                 render_timer(duration, duration, paused=False, done=True)
@@ -646,11 +645,11 @@ def run_timer(duration_minutes: int) -> bool:
             if key in {"p", "space"}:
                 if paused:
                     if paused_at is not None:
-                        paused_total += datetime.now() - paused_at
+                        paused_total += time.monotonic() - paused_at
                     paused_at = None
                     paused = False
                 else:
-                    paused_at = datetime.now()
+                    paused_at = time.monotonic()
                     paused = True
 
 
