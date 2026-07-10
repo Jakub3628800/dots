@@ -61,5 +61,6 @@ return {
 		vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
 		vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
 		vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Help Tags" })
+		vim.keymap.set("n", "<C-h>", builtin.git_status, { desc = "Git status" })
 	end,
 }

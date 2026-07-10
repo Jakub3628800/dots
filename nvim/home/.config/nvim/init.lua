@@ -45,7 +45,6 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Set up plugins
 require("lazy").setup({
-	-- require("plugins.markdown"),
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
 	require("plugins.nvim-tree"),
@@ -85,7 +84,9 @@ require("lazy").setup({
 		"williamboman/mason-lspconfig.nvim",
 		dependencies = { "williamboman/mason.nvim" },
 		config = function()
-			require("mason-lspconfig").setup()
+			require("mason-lspconfig").setup({
+				ensure_installed = { "pyright", "gopls" },
+			})
 		end,
 	},
 	{
@@ -178,48 +179,6 @@ vim.keymap.set("n", "<leader>base", function()
 	end
 end, { noremap = true, silent = true, desc = "Change base ref (global)" })
 
-local builtin = require("telescope.builtin")
--- require("telescope").setup({
--- 	defaults = {
--- 		file_ignore_patterns = {
--- 			".git",
--- 			".venv",
--- 			"node_modules",
--- 			"__pycache__",
--- 			".mypy_cache",
--- 			".pytest_cache",
--- 			".ruff_cache",
--- 		},
--- 		hidden = true,
--- 		mappings = {
--- 			i = {
--- 				["<C-j>"] = "move_selection_next",
--- 				["<C-k>"] = "move_selection_previous",
--- 				["<C-n>"] = false,
--- 				["<C-p>"] = false,
--- 			},
--- 			n = {
--- 				["<C-j>"] = "move_selection_next",
--- 				["<C-k>"] = "move_selection_previous",
--- 				["<C-n>"] = false,
--- 				["<C-p>"] = false,
--- 			},
--- 		},
--- 	},
--- 	pickers = {
--- 		find_files = {
--- 			hidden = true,
--- 			no_ignore = true,
--- 		},
--- 	},
--- })
-
-vim.keymap.set("n", "<C-p>", builtin.find_files, { desc = "Telescope find files" })
-vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep, { desc = "Live Grep" })
-vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers, { desc = "Buffers" })
-vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags, { desc = "Help Tags" })
-vim.keymap.set("n", "<C-h>", require("telescope.builtin").git_status, { desc = "Git status" })
-
 local on_attach = function(client, bufnr)
 	-- Attach navic if available
 	if client.server_capabilities.documentSymbolProvider then
@@ -311,10 +270,6 @@ require("noice").setup({
 	},
 })
 
--- vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
--- vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
--- vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
-
 -- Basic Neovim settings
 vim.opt.number = true -- Show line numbers
 vim.opt.signcolumn = "yes"
@@ -357,63 +312,8 @@ vim.api.nvim_create_user_command("Hh", function()
 	vim.cmd("edit " .. vim.fn.fnameescape(current_dir))
 end, {})
 
--- Yank code block content
-vim.keymap.set("n", "<space>yc", function()
-	-- Find the current position
-	local cursor_pos = vim.api.nvim_win_get_cursor(0)
-	local current_line = cursor_pos[1]
-	local current_buffer = vim.api.nvim_get_current_buf()
-	local lines = vim.api.nvim_buf_get_lines(current_buffer, 0, -1, false)
-
-	-- Find the start of the code block (```)
-	local start_line = nil
-	for i = current_line, 1, -1 do
-		if lines[i] and lines[i]:match("^```") then
-			start_line = i
-			break
-		end
-	end
-
-	-- Find the end of the code block (```)
-	local end_line = nil
-	for i = current_line, #lines do
-		if lines[i] and lines[i]:match("^```") and i ~= start_line then
-			end_line = i
-			break
-		end
-	end
-
-	-- If we found a complete code block
-	if start_line and end_line then
-		-- Extract the code content (skip the first line with ```)
-		local code_content = table.concat(
-			vim.api.nvim_buf_get_lines(
-				current_buffer,
-				start_line, -- Start line (inclusive, 0-indexed)
-				end_line, -- End line (exclusive, 0-indexed)
-				false
-			),
-			"\n"
-		)
-
-		-- Remove the first line (language specifier)
-		code_content = code_content:gsub("^```.-\n", "")
-
-		-- Remove the last line (```)
-		code_content = code_content:gsub("\n```$", "")
-
-		-- Copy to system clipboard
-		vim.fn.setreg("+", code_content)
-
-		-- Provide feedback
-		vim.api.nvim_echo({ { "Code block copied to clipboard", "Normal" } }, true, {})
-	else
-		vim.api.nvim_echo({ { "No code block found", "ErrorMsg" } }, true, {})
-	end
-end, { noremap = true, silent = true, desc = "Yank code block content" })
-
 -- Tmux integration configuration
-local TMUX_SESSION = "test"
+local TMUX_SESSION = vim.g.tmux_test_session or "test"
 local TMUX_CAPTURE_LINES = 1000
 local MAX_OUTPUT_LINES = 50
 
@@ -450,6 +350,19 @@ local function extract_code_content(start_line, end_line)
 	local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
 	return table.concat(lines, "\n")
 end
+
+-- Yank code block content
+vim.keymap.set("n", "<space>yc", function()
+	local start_line, end_line = find_code_block_bounds()
+
+	if not start_line or not end_line then
+		vim.api.nvim_echo({ { "No code block found", "ErrorMsg" } }, true, {})
+		return
+	end
+
+	vim.fn.setreg("+", extract_code_content(start_line, end_line))
+	vim.api.nvim_echo({ { "Code block copied to clipboard", "Normal" } }, true, {})
+end, { noremap = true, silent = true, desc = "Yank code block content" })
 
 -- Send code block to tmux session
 vim.keymap.set("n", "<space>yt", function()
@@ -688,7 +601,7 @@ vim.api.nvim_create_user_command("Cc", function()
 end, {})
 
 -- Function to open current line on GitHub
-function OpenGithubLine()
+local function open_github_line()
 	-- Get the remote URL
 	local handle = io.popen("git remote get-url origin")
 	if not handle then
@@ -733,4 +646,4 @@ function OpenGithubLine()
 end
 
 -- Create command
-vim.api.nvim_create_user_command("GHline", OpenGithubLine, {})
+vim.api.nvim_create_user_command("GHline", open_github_line, {})
