@@ -45,16 +45,16 @@ SAVEHIST=100000
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 [[ -d "${HISTFILE:h}" ]] || mkdir -p -- "${HISTFILE:h}"
 
-# Start one agent for the whole user session, but let ssh(1) add keys on first use.
-# Preserve a valid forwarded agent; otherwise use the systemd user service.
-if [[ -z "${SSH_AUTH_SOCK:-}" || ! -S "$SSH_AUTH_SOCK" ]]; then
-  unset SSH_AUTH_SOCK SSH_AGENT_PID
+# Start one agent for the whole local user session, but preserve agent forwarding
+# when this shell itself was opened over SSH.
+if [[ -z "${SSH_CONNECTION:-}" ]]; then
   _ssh_agent_socket="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dots-ssh-agent.socket"
   if [[ ! -S "$_ssh_agent_socket" ]] && (( $+commands[systemctl] )); then
     systemctl --user start dots-ssh-agent.service >/dev/null 2>&1
   fi
   if [[ -S "$_ssh_agent_socket" ]]; then
     export SSH_AUTH_SOCK="$_ssh_agent_socket"
+    unset SSH_AGENT_PID
   fi
   unset _ssh_agent_socket
 fi
