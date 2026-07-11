@@ -20,7 +20,7 @@ APT_PACKAGES := \
 	vim \
 	zsh
 
-CARGO_PACKAGES := git-delta prek starship uv
+CARGO_PACKAGES := git-delta prek@0.4.8 starship uv
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
 .PHONY: cargo-packages stow unstow system-upgrade test test-bootstrap help
@@ -44,7 +44,8 @@ rust-toolchain: apt-packages
 	@rustup default stable
 
 cargo-packages: rust-toolchain
-	@if [ -f $$HOME/.cargo/env ]; then . $$HOME/.cargo/env; fi; \
+	@set -e; \
+		if [ -f $$HOME/.cargo/env ]; then . $$HOME/.cargo/env; fi; \
 		for pkg in $(CARGO_PACKAGES); do \
 			echo "Reconciling $$pkg..."; \
 			cargo install "$$pkg" --locked; \
