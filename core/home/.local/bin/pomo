@@ -34,6 +34,7 @@ HELP = """pomo - a lean pomodoro timer
 
 Usage:
   pomo [flags]
+  pomo --today
   pomo list [--after YYYY-MM-DD] [--before YYYY-MM-DD]
   pomo config [list]
   pomo config get <key>
@@ -44,6 +45,7 @@ Timer flags:
   -t, --tag TAG            Add a tag, can be repeated
 
 Other flags:
+  --today                  List today's sessions
   -h, --help               Show help
   --version                Show version
 
@@ -757,6 +759,11 @@ def run_list_command(conn: sqlite3.Connection, args: list[str]) -> None:
     print_session_table(sessions)
 
 
+def run_today_command(conn: sqlite3.Connection) -> None:
+    today = now_local().date().isoformat()
+    run_list_command(conn, ["--after", today, "--before", today])
+
+
 def print_session_table(sessions: list[Session]) -> None:
     if not sessions:
         print("No pomodoro sessions recorded yet.")
@@ -829,7 +836,9 @@ def main(argv: list[str]) -> int:
     try:
         conn = connect()
         try:
-            if argv and argv[0] == "list":
+            if argv == ["--today"]:
+                run_today_command(conn)
+            elif argv and argv[0] == "list":
                 run_list_command(conn, argv[1:])
             elif argv and argv[0] == "config":
                 run_config_command(conn, argv[1:])
