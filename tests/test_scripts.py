@@ -74,6 +74,32 @@ class PomoTests(unittest.TestCase):
         self.assertEqual("25", pomo.get_config(conn, "default_duration_minutes"))
         self.assertEqual("true", pomo.get_config(conn, "notifications_enabled"))
 
+    def test_today_uses_equivalent_list_date_range(self):
+        conn = mock.Mock()
+        current_time = pomo.datetime.fromisoformat("2026-07-16T12:00:00+00:00")
+
+        with (
+            mock.patch.object(pomo, "now_local", return_value=current_time),
+            mock.patch.object(pomo, "run_list_command") as run_list_command,
+        ):
+            pomo.run_today_command(conn)
+
+        run_list_command.assert_called_once_with(
+            conn,
+            ["--after", "2026-07-16", "--before", "2026-07-16"],
+        )
+
+    def test_today_top_level_flag_runs_today_command(self):
+        conn = mock.Mock()
+        with (
+            mock.patch.object(pomo, "connect", return_value=conn),
+            mock.patch.object(pomo, "run_today_command") as run_today_command,
+        ):
+            self.assertEqual(0, pomo.main(["--today"]))
+
+        run_today_command.assert_called_once_with(conn)
+        conn.close.assert_called_once_with()
+
     def test_timer_uses_elapsed_monotonic_time(self):
         class FakeTerminal:
             def __init__(self, _stream):
