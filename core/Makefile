@@ -20,7 +20,7 @@ APT_PACKAGES := \
 	vim \
 	zsh
 
-CARGO_PACKAGES := git-delta prek@0.4.8 starship uv
+CARGO_PACKAGES := git-delta prek@0.4.8 starship uv@0.11.28
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
 .PHONY: cargo-packages stow unstow system-upgrade test test-bootstrap help
