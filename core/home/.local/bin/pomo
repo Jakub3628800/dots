@@ -201,6 +201,7 @@ def connect() -> sqlite3.Connection:
 def initialize_db(conn: sqlite3.Connection) -> None:
     with conn:
         ensure_pomodori_table(conn)
+        ensure_single_running_session(conn)
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS config (
@@ -218,6 +219,36 @@ def initialize_db(conn: sqlite3.Connection) -> None:
                 """,
                 (key, spec.default, format_datetime(now_local())),
             )
+
+
+def ensure_single_running_session(conn: sqlite3.Connection) -> None:
+    running_rows = conn.execute(
+        """
+        SELECT id
+        FROM pomodori
+        WHERE status = 'running' AND end_time IS NULL
+        ORDER BY start_time DESC, id DESC
+        """
+    ).fetchall()
+
+    if len(running_rows) > 1:
+        ended_at = format_datetime(now_local())
+        conn.executemany(
+            """
+            UPDATE pomodori
+            SET end_time = ?, status = 'cancelled', process_id = NULL
+            WHERE id = ?
+            """,
+            [(ended_at, int(row["id"])) for row in running_rows[1:]],
+        )
+
+    conn.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS pomodori_one_running
+        ON pomodori(status)
+        WHERE status = 'running' AND end_time IS NULL
+        """
+    )
 
 
 def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
@@ -417,22 +448,25 @@ def create_running_session(
     tags: list[str],
     started_at: datetime,
 ) -> int:
-    with conn:
-        cursor = conn.execute(
-            """
-            INSERT INTO pomodori (
-                start_time, end_time, duration_minutes, status, tags, process_id, created_at
+    try:
+        with conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO pomodori (
+                    start_time, end_time, duration_minutes, status, tags, process_id, created_at
+                )
+                VALUES (?, NULL, ?, 'running', ?, ?, ?)
+                """,
+                (
+                    format_datetime(started_at),
+                    duration_minutes,
+                    ",".join(tags) if tags else None,
+                    os.getpid(),
+                    format_datetime(now_local()),
+                ),
             )
-            VALUES (?, NULL, ?, 'running', ?, ?, ?)
-            """,
-            (
-                format_datetime(started_at),
-                duration_minutes,
-                ",".join(tags) if tags else None,
-                os.getpid(),
-                format_datetime(now_local()),
-            ),
-        )
+    except sqlite3.IntegrityError as exc:
+        raise PomoError("a pomodoro is already running") from exc
     return int(cursor.lastrowid)
 
 

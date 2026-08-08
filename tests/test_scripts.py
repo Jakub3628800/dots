@@ -72,6 +72,41 @@ class PomoTests(unittest.TestCase):
         self.assertEqual("25", pomo.get_config(conn, "default_duration_minutes"))
         self.assertEqual("true", pomo.get_config(conn, "notifications_enabled"))
 
+    def test_database_rejects_second_running_session(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        pomo.initialize_db(conn)
+        started_at = pomo.now_local()
+
+        pomo.create_running_session(conn, 25, [], started_at)
+
+        with self.assertRaisesRegex(pomo.PomoError, "already running"):
+            pomo.create_running_session(conn, 25, [], started_at)
+
+    def test_database_migration_cancels_older_running_sessions(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        pomo.create_pomodori_table(conn, "pomodori")
+        conn.executemany(
+            """
+            INSERT INTO pomodori (
+                start_time, end_time, duration_minutes, status, tags, process_id, created_at
+            )
+            VALUES (?, NULL, 25, 'running', NULL, ?, ?)
+            """,
+            [
+                ("2026-08-08T09:00:00+02:00", 100, "2026-08-08T09:00:00+02:00"),
+                ("2026-08-08T10:00:00+02:00", 200, "2026-08-08T10:00:00+02:00"),
+            ],
+        )
+
+        pomo.initialize_db(conn)
+
+        rows = conn.execute("SELECT status, process_id FROM pomodori ORDER BY id").fetchall()
+        self.assertEqual(["cancelled", "running"], [row["status"] for row in rows])
+        self.assertIsNone(rows[0]["process_id"])
+        self.assertEqual(200, rows[1]["process_id"])
+
     def test_today_uses_equivalent_list_date_range(self):
         conn = mock.Mock()
         current_time = pomo.datetime.fromisoformat("2026-07-16T12:00:00+00:00")
