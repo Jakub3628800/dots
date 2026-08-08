@@ -399,7 +399,7 @@ class GhTool(Tool):
         webbrowser.open(item["url"])
 
     def get_additional_actions(self) -> Dict[str, str]:
-        return {"c": "Checkout PR", "m": "Merge PR", "a": "Create PR"}
+        return {"c": "Checkout PR", "m": "Merge PR"}
 
     def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
         if key == "c":
@@ -417,21 +417,7 @@ class GhTool(Tool):
                     return True
                 except subprocess.CalledProcessError as exc:
                     print(f"{Colors.RED}Failed to merge PR #{item['number']}: {exc}{Colors.RESET}")
-        elif key == "a":
-            return self.create_new_item()
         return False
-
-    def can_create_new(self) -> bool:
-        return True
-
-    def create_new_item(self) -> bool:
-        print(f"\n{Colors.CYAN}Creating new PR...{Colors.RESET}")
-        try:
-            subprocess.run(["gh", "pr", "create"], check=False)
-            return True
-        except subprocess.CalledProcessError as exc:
-            print(f"{Colors.RED}✗ Failed to create PR: {exc}{Colors.RESET}")
-            return False
 
 
 class WorktreeTool(Tool):
