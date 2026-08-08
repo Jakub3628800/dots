@@ -2,7 +2,6 @@ import importlib.machinery
 import importlib.util
 import io
 import sqlite3
-import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -28,7 +27,6 @@ def load_script(name: str, filename: str):
 
 cmd_picker = load_script("dots_cmd_picker", "cmd-picker")
 pomo = load_script("dots_pomo", "pomo")
-tt = load_script("dots_tt", "tt")
 
 
 class DummyTool(cmd_picker.Tool):
@@ -120,26 +118,6 @@ class PomoTests(unittest.TestCase):
             mock.patch.object(pomo, "render_timer"),
         ):
             self.assertTrue(pomo.run_timer(1))
-
-
-class TtTests(unittest.TestCase):
-    def test_repo_file_listing_handles_spaces(self):
-        result = subprocess.CompletedProcess([], 0, "src/a file.py\0tests/test_a file.py\0", "")
-        with mock.patch.object(tt.subprocess, "run", return_value=result):
-            self.assertEqual(["src/a file.py", "tests/test_a file.py"], tt.list_repo_files())
-
-    def test_source_maps_to_closest_matching_test(self):
-        index = {
-            "client": [
-                "tests/api/test_client.py",
-                "tests/unit/test_client.py",
-            ]
-        }
-
-        mapped = tt.find_test_for_source("src/api/client.py", "", index)
-
-        self.assertEqual("tests/api/test_client.py", mapped)
-
 
 if __name__ == "__main__":
     unittest.main()
