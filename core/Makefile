@@ -3,7 +3,6 @@ APT_PACKAGES := \
 	ca-certificates \
 	curl \
 	direnv \
-	entr \
 	fzf \
 	gh \
 	git \

@@ -80,5 +80,3 @@ ssh-add ~/.ssh/id_ed25519
 - `cmd-picker` selects tmux sessions, containers, pull requests, or worktrees.
 - `pomo` is an interactive Pomodoro timer. Its database defaults to
   `~/.local/share/pomo/pomo.db`; set `POMO_DB_PATH` to override it.
-- `tt` maps changed Python files to their matching tests and runs them with
-  pytest, with optional `--entr` watch mode.
