@@ -49,7 +49,7 @@ floating_modifier $mod
 # ____________________________________________________________________________
 
 # Start a terminal
-bindsym $mod+Return exec $terminal start -- bash -c 'command -v cowsay >/dev/null 2>&1 && cowsay -f dragon "There must be a better way!"; exec zsh'
+bindsym $mod+Return exec $terminal start -- zsh
 
 # kill focused window
 bindsym $mod+c kill
