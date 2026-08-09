@@ -10,6 +10,7 @@ APT_PACKAGES := \
 	pulseaudio-utils \
 	slurp \
 	sway \
+	swayidle \
 	swaylock \
 	wl-clipboard \
 	wtype

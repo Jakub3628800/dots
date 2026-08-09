@@ -2,7 +2,6 @@ import importlib.machinery
 import importlib.util
 import io
 import sqlite3
-import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -28,7 +27,6 @@ def load_script(name: str, filename: str):
 
 cmd_picker = load_script("dots_cmd_picker", "cmd-picker")
 pomo = load_script("dots_pomo", "pomo")
-tt = load_script("dots_tt", "tt")
 
 
 class DummyTool(cmd_picker.Tool):
@@ -73,6 +71,41 @@ class PomoTests(unittest.TestCase):
 
         self.assertEqual("25", pomo.get_config(conn, "default_duration_minutes"))
         self.assertEqual("true", pomo.get_config(conn, "notifications_enabled"))
+
+    def test_database_rejects_second_running_session(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        pomo.initialize_db(conn)
+        started_at = pomo.now_local()
+
+        pomo.create_running_session(conn, 25, [], started_at)
+
+        with self.assertRaisesRegex(pomo.PomoError, "already running"):
+            pomo.create_running_session(conn, 25, [], started_at)
+
+    def test_database_migration_cancels_older_running_sessions(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        pomo.create_pomodori_table(conn, "pomodori")
+        conn.executemany(
+            """
+            INSERT INTO pomodori (
+                start_time, end_time, duration_minutes, status, tags, process_id, created_at
+            )
+            VALUES (?, NULL, 25, 'running', NULL, ?, ?)
+            """,
+            [
+                ("2026-08-08T09:00:00+02:00", 100, "2026-08-08T09:00:00+02:00"),
+                ("2026-08-08T10:00:00+02:00", 200, "2026-08-08T10:00:00+02:00"),
+            ],
+        )
+
+        pomo.initialize_db(conn)
+
+        rows = conn.execute("SELECT status, process_id FROM pomodori ORDER BY id").fetchall()
+        self.assertEqual(["cancelled", "running"], [row["status"] for row in rows])
+        self.assertIsNone(rows[0]["process_id"])
+        self.assertEqual(200, rows[1]["process_id"])
 
     def test_today_uses_equivalent_list_date_range(self):
         conn = mock.Mock()
@@ -120,26 +153,6 @@ class PomoTests(unittest.TestCase):
             mock.patch.object(pomo, "render_timer"),
         ):
             self.assertTrue(pomo.run_timer(1))
-
-
-class TtTests(unittest.TestCase):
-    def test_repo_file_listing_handles_spaces(self):
-        result = subprocess.CompletedProcess([], 0, "src/a file.py\0tests/test_a file.py\0", "")
-        with mock.patch.object(tt.subprocess, "run", return_value=result):
-            self.assertEqual(["src/a file.py", "tests/test_a file.py"], tt.list_repo_files())
-
-    def test_source_maps_to_closest_matching_test(self):
-        index = {
-            "client": [
-                "tests/api/test_client.py",
-                "tests/unit/test_client.py",
-            ]
-        }
-
-        mapped = tt.find_test_for_source("src/api/client.py", "", index)
-
-        self.assertEqual("tests/api/test_client.py", mapped)
-
 
 if __name__ == "__main__":
     unittest.main()

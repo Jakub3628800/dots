@@ -73,13 +73,13 @@ repos:
       name: Check Python syntax
       entry: python3 -c 'import pathlib, sys; [compile(pathlib.Path(path).read_bytes(), path, "exec") for path in sys.argv[1:]]'
       language: system
-      files: (^|/)(cmd-picker|pomo|tt|.*\.py)$
+      files: (^|/)(cmd-picker|pomo|.*\.py)$
     - id: script-tests
       name: Test command-line utilities
       entry: python3 -m unittest discover -s tests
       language: system
       pass_filenames: false
-      files: (^|/)(cmd-picker|pomo|tt|test_scripts\.py)$
+      files: (^|/)(cmd-picker|pomo|test_scripts\.py)$
 
   - repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2
