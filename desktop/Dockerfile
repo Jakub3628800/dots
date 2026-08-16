@@ -10,7 +10,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Create a test user with home directory and add to sudo group
-RUN useradd -m -s /bin/bash testuser && \
+RUN useradd --uid 1000 -m -s /bin/bash testuser && \
     usermod -aG sudo testuser && \
     echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
@@ -20,7 +20,7 @@ COPY . .
 RUN chown -R testuser:testuser /tmp/desktop
 
 # Switch to test user for installation
-USER testuser
+USER 1000
 WORKDIR /tmp/desktop
 
 # Set Wayland session for testing (skip the check)
