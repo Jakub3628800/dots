@@ -144,7 +144,7 @@ CONFIG_SPECS: dict[str, ConfigSpec] = {
     "music_control_enabled": ConfigSpec(
         default="false",
         validate=validate_bool,
-        description="Run playerctl play/stop around timer sessions.",
+        description="Run playerctl play/pause/stop during timer sessions.",
     ),
     "notifications_enabled": ConfigSpec(
         default="true",
@@ -599,6 +599,11 @@ def play_music(conn: sqlite3.Connection) -> None:
         run_playerctl("play")
 
 
+def pause_music(conn: sqlite3.Connection) -> None:
+    if get_bool_config(conn, "music_control_enabled"):
+        run_playerctl("pause")
+
+
 def stop_music(conn: sqlite3.Connection) -> None:
     if get_bool_config(conn, "music_control_enabled"):
         run_playerctl("stop")
@@ -636,7 +641,11 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
     try:
         session_id = create_running_session(conn, duration, parsed.tags, now_local())
         play_music(conn)
-        completed = run_timer(duration)
+        completed = run_timer(
+            duration,
+            on_pause=lambda: pause_music(conn),
+            on_resume=lambda: play_music(conn),
+        )
         status = "completed" if completed else "cancelled"
     except KeyboardInterrupt:
         status = "cancelled"
@@ -652,7 +661,11 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
         print("\nCancelled.")
 
 
-def run_timer(duration_minutes: int) -> bool:
+def run_timer(
+    duration_minutes: int,
+    on_pause: Callable[[], None] | None = None,
+    on_resume: Callable[[], None] | None = None,
+) -> bool:
     duration = timedelta(minutes=duration_minutes)
     started = time.monotonic()
     paused = False
@@ -684,9 +697,13 @@ def run_timer(duration_minutes: int) -> bool:
                         paused_total += time.monotonic() - paused_at
                     paused_at = None
                     paused = False
+                    if on_resume is not None:
+                        on_resume()
                 else:
                     paused_at = time.monotonic()
                     paused = True
+                    if on_pause is not None:
+                        on_pause()
 
 
 def render_timer(elapsed: timedelta, duration: timedelta, paused: bool, done: bool) -> None:

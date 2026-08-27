@@ -154,5 +154,64 @@ class PomoTests(unittest.TestCase):
         ):
             self.assertTrue(pomo.run_timer(1))
 
+    def test_timer_runs_pause_and_resume_callbacks(self):
+        class FakeTerminal:
+            def __init__(self, _stream):
+                self.keys = iter(["p", "p", "q"])
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return None
+
+            def read_key(self, _timeout):
+                return next(self.keys)
+
+        events = []
+        with (
+            mock.patch.object(pomo, "RawTerminal", FakeTerminal),
+            mock.patch.object(pomo.time, "monotonic", return_value=10.0),
+            mock.patch.object(pomo, "render_timer"),
+        ):
+            completed = pomo.run_timer(
+                1,
+                on_pause=lambda: events.append("pause"),
+                on_resume=lambda: events.append("resume"),
+            )
+
+        self.assertFalse(completed)
+        self.assertEqual(["pause", "resume"], events)
+
+    def test_timer_command_pauses_and_resumes_music(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        pomo.initialize_db(conn)
+        pomo.set_config(conn, "music_control_enabled", "true")
+
+        def run_timer(_duration, on_pause, on_resume):
+            on_pause()
+            on_resume()
+            return False
+
+        with (
+            mock.patch.object(pomo.sys.stdin, "isatty", return_value=True),
+            mock.patch.object(pomo, "run_timer", side_effect=run_timer),
+            mock.patch.object(pomo, "run_playerctl") as run_playerctl,
+            mock.patch("sys.stdout", new=io.StringIO()),
+        ):
+            pomo.run_timer_command(conn, ["--duration", "1"])
+
+        self.assertEqual(
+            [
+                mock.call("play"),
+                mock.call("pause"),
+                mock.call("play"),
+                mock.call("stop"),
+            ],
+            run_playerctl.call_args_list,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
