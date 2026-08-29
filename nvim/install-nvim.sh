@@ -1,10 +1,10 @@
 #!/bin/sh
 set -eu
 
-NVIM_VERSION="v0.11.5"
+NVIM_VERSION="v0.12.5"
 NVIM_ARCHIVE="nvim-linux-x86_64.tar.gz"
 NVIM_URL="https://github.com/neovim/neovim/releases/download/$NVIM_VERSION/$NVIM_ARCHIVE"
-NVIM_SHA256="728321db960a9b6af6c03881892a6abfd743bf759bc62d233f52fa1be64ace3c"
+NVIM_SHA256="bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875"
 INSTALL_DIR="/opt/nvim-linux64"
 
 if [ "$#" -ne 0 ]; then
