@@ -1,4 +1,0 @@
-telemetry = false
-
-[install]
-minimumReleaseAge = 604800
