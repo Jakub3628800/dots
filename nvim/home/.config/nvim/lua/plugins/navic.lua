@@ -49,7 +49,6 @@ return {
 			click = false,
 		})
 
-		-- Set up winbar
-		vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+		-- The current symbol is displayed by lualine.
 	end,
 }
