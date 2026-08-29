@@ -1,6 +1,2 @@
-.idea
-/env
-.envrc
-CLAUDE.md
 __pycache__/
 *.py[cod]
