@@ -47,6 +47,8 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	require("plugins.treesitter"),
 	require("plugins.gruvbox"),
+	require("plugins.onehalfdark"),
+	require("plugins.lualine"),
 	require("plugins.nvim-tree"),
 	require("plugins.telescope"),
 	require("plugins.git-blame"),
@@ -120,26 +122,21 @@ require("lazy").setup({
 
 -- Setup gitsigns highlights after colorscheme loads
 local function setup_gitsigns_highlights()
-	-- Gruvbox-compatible highlights for line-level changes
-	-- Added and changed use darker bg (bg2)
-	-- Deleted uses red-tinted bg
-	vim.api.nvim_set_hl(0, "GitSignsAdd", {})
-	vim.api.nvim_set_hl(0, "GitSignsAddNr", {})
-	vim.api.nvim_set_hl(0, "GitSignsAddLn", { bg = "#32302f" })
-	vim.api.nvim_set_hl(0, "GitSignsChange", {})
-	vim.api.nvim_set_hl(0, "GitSignsChangeNr", {})
-	vim.api.nvim_set_hl(0, "GitSignsChangeLn", { bg = "#32302f" })
-	vim.api.nvim_set_hl(0, "GitSignsDelete", {})
-	vim.api.nvim_set_hl(0, "GitSignsDeleteNr", {})
-	vim.api.nvim_set_hl(0, "GitSignsDeleteLn", { bg = "#3f2323" })
+	-- One Half Dark diff colors: green add, yellow change, red delete, blue text.
+	vim.api.nvim_set_hl(0, "GitSignsAdd", { fg = "#98c379" })
+	vim.api.nvim_set_hl(0, "GitSignsAddNr", { fg = "#98c379" })
+	vim.api.nvim_set_hl(0, "GitSignsAddLn", {})
+	vim.api.nvim_set_hl(0, "GitSignsChange", { fg = "#e5c07b" })
+	vim.api.nvim_set_hl(0, "GitSignsChangeNr", { fg = "#e5c07b" })
+	vim.api.nvim_set_hl(0, "GitSignsChangeLn", {})
+	vim.api.nvim_set_hl(0, "GitSignsDelete", { fg = "#e06c75" })
+	vim.api.nvim_set_hl(0, "GitSignsDeleteNr", { fg = "#e06c75" })
+	vim.api.nvim_set_hl(0, "GitSignsDeleteLn", {})
 
-	-- Inline word-level diff highlights (shows exact changed words)
-	-- Added words: light green background
-	vim.api.nvim_set_hl(0, "GitSignsAddInline", { bg = "#4a5f3b", bold = true })
-	-- Deleted words: light red background
-	vim.api.nvim_set_hl(0, "GitSignsDeleteInline", { bg = "#5f3b3b", bold = true })
-	-- Changed words: light yellow background
-	vim.api.nvim_set_hl(0, "GitSignsChangeInline", { bg = "#5f5f3b", bold = true })
+	-- Inline word-level diff highlights use the One Half Dark accent colors.
+	vim.api.nvim_set_hl(0, "GitSignsAddInline", { fg = "#98c379", bold = true })
+	vim.api.nvim_set_hl(0, "GitSignsDeleteInline", { fg = "#e06c75", bold = true })
+	vim.api.nvim_set_hl(0, "GitSignsChangeInline", { fg = "#e5c07b", bold = true })
 end
 
 -- Set highlights on startup and when colorscheme changes
