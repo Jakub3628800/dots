@@ -43,6 +43,12 @@ repos:
     - id: check-executables-have-shebangs
       name: Check executables have shebangs
 
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+    - id: gitleaks
+      name: Detect hardcoded secrets with Gitleaks
+
   # =====================
   # Docker hooks
   # =====================
