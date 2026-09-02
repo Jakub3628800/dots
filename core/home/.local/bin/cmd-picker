@@ -13,9 +13,32 @@ import tty
 import json
 import webbrowser
 import argparse
+import re
 from pathlib import Path
 from typing import List, Dict, Any, TextIO
 from abc import ABC, abstractmethod
+
+
+ANSI_ESCAPE_RE = re.compile(
+    r"""
+    \x1b\][^\x07]*(?:\x07|\x1b\\|$)
+    |\x1b(?:P|X|\^|_)[\s\S]*?(?:\x1b\\|$)
+    |\x1b\[[0-?]*[ -/]*[@-~]
+    |\x9d[^\x07]*(?:\x07|\x1b\\|\x9c|$)
+    |[\x90\x98\x9e\x9f][\s\S]*?(?:\x9c|$)
+    |\x9b[0-?]*[ -/]*[@-~]
+    |\x1b(?:\([0-2A-Z]|\)[0-2A-Z])
+    |\x1b[@-_]
+    """,
+    re.DOTALL | re.VERBOSE,
+)
+CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+
+
+def sanitize_terminal_text(value: object) -> str:
+    """Remove terminal control sequences from externally sourced text."""
+    text = ANSI_ESCAPE_RE.sub("", str(value))
+    return CONTROL_CHAR_RE.sub("", text)
 
 
 class Colors:
@@ -132,10 +155,12 @@ class TmuxTool(Tool):
             return []
 
     def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+        name = sanitize_terminal_text(item["name"])
+        windows = sanitize_terminal_text(item["windows"])
         if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}📺 {item['name']}{Colors.RESET} {Colors.DIM}({item['windows']} windows){Colors.RESET}"
+            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}📺 {name}{Colors.RESET} {Colors.DIM}({windows} windows){Colors.RESET}"
         else:
-            return f"{Colors.BRIGHT_CYAN}📺 {item['name']}{Colors.RESET} {Colors.DIM}({item['windows']} windows){Colors.RESET}"
+            return f"{Colors.BRIGHT_CYAN}📺 {name}{Colors.RESET} {Colors.DIM}({windows} windows){Colors.RESET}"
 
     def get_item_preview(self, item: Dict[str, Any]) -> str:
         try:
@@ -174,9 +199,13 @@ class TmuxTool(Tool):
                 ["tmux", "capture-pane", "-t", item["name"], "-p"], capture_output=True, text=True, check=True
             ).stdout
 
-            return f"{Colors.CYAN}{session_info}{Colors.RESET}\n\n{Colors.YELLOW}Windows:{Colors.RESET}\n{Colors.GREEN}{windows}{Colors.RESET}\n\n{Colors.YELLOW}Preview:{Colors.RESET}\n{preview[:500]}..."
+            session_info = sanitize_terminal_text(session_info)
+            windows = sanitize_terminal_text(windows)
+            preview = sanitize_terminal_text(preview)[:500]
+            return f"{Colors.CYAN}{session_info}{Colors.RESET}\n\n{Colors.YELLOW}Windows:{Colors.RESET}\n{Colors.GREEN}{windows}{Colors.RESET}\n\n{Colors.YELLOW}Preview:{Colors.RESET}\n{preview}..."
         except subprocess.CalledProcessError:
-            return f"{Colors.RED}Unable to get info for session: {item['name']}{Colors.RESET}"
+            name = sanitize_terminal_text(item["name"])
+            return f"{Colors.RED}Unable to get info for session: {name}{Colors.RESET}"
 
     def execute_action(self, item: Dict[str, Any]) -> None:
         subprocess.run(["tmux", "attach-session", "-t", item["name"]])
@@ -186,14 +215,18 @@ class TmuxTool(Tool):
 
     def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
         if key == "d":
-            print(f"\n{Colors.RED}Delete session '{item['name']}'? (y/N): {Colors.RESET}", end="", flush=True)
+            name = sanitize_terminal_text(item["name"])
+            print(f"\n{Colors.RED}Delete session '{name}'? (y/N): {Colors.RESET}", end="", flush=True)
             confirm = sys.stdin.read(1)
             if confirm.lower() == "y":
                 try:
                     subprocess.run(["tmux", "kill-session", "-t", item["name"]], check=True)
                     return True
                 except subprocess.CalledProcessError as exc:
-                    print(f"{Colors.RED}Failed to delete session '{item['name']}': {exc}{Colors.RESET}")
+                    print(
+                        f"{Colors.RED}Failed to delete session '{name}': "
+                        f"{sanitize_terminal_text(exc)}{Colors.RESET}"
+                    )
         elif key == "a":
             return self.create_new_item()
         return False
@@ -208,10 +241,13 @@ class TmuxTool(Tool):
             if session_name:
                 try:
                     subprocess.run(["tmux", "new-session", "-d", "-s", session_name], check=True)
-                    print(f"{Colors.GREEN}✓ Session '{session_name}' created{Colors.RESET}")
+                    print(f"{Colors.GREEN}✓ Session '{sanitize_terminal_text(session_name)}' created{Colors.RESET}")
                     return True
                 except subprocess.CalledProcessError as exc:
-                    print(f"{Colors.RED}✗ Failed to create session '{session_name}': {exc}{Colors.RESET}")
+                    print(
+                        f"{Colors.RED}✗ Failed to create session '{sanitize_terminal_text(session_name)}': "
+                        f"{sanitize_terminal_text(exc)}{Colors.RESET}"
+                    )
         except (EOFError, KeyboardInterrupt):
             pass
         return False
@@ -257,10 +293,13 @@ class DockerTool(Tool):
 
     def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
         status_color = Colors.GREEN if "Up" in item["status"] else Colors.RED
+        name = sanitize_terminal_text(item["name"])
+        container_id = sanitize_terminal_text(item["id"])
+        status = sanitize_terminal_text(item["status"])
         if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🐳 {item['name']}{Colors.RESET} {Colors.DIM}({item['id']}){Colors.RESET} {status_color}{item['status']}{Colors.RESET}"
+            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🐳 {name}{Colors.RESET} {Colors.DIM}({container_id}){Colors.RESET} {status_color}{status}{Colors.RESET}"
         else:
-            return f"{Colors.BRIGHT_CYAN}🐳 {item['name']}{Colors.RESET} {Colors.DIM}({item['id']}){Colors.RESET} {status_color}{item['status']}{Colors.RESET}"
+            return f"{Colors.BRIGHT_CYAN}🐳 {name}{Colors.RESET} {Colors.DIM}({container_id}){Colors.RESET} {status_color}{status}{Colors.RESET}"
 
     def get_item_preview(self, item: Dict[str, Any]) -> str:
         try:
@@ -283,9 +322,12 @@ class DockerTool(Tool):
 
             logs = logs_result.stdout[-1000:] if logs_result.stdout else "No logs available"
 
-            return f"{Colors.CYAN}{info_result.stdout.strip()}{Colors.RESET}\n\n{Colors.YELLOW}Recent Logs:{Colors.RESET}\n{logs}"
+            info = sanitize_terminal_text(info_result.stdout.strip())
+            logs = sanitize_terminal_text(logs)
+            return f"{Colors.CYAN}{info}{Colors.RESET}\n\n{Colors.YELLOW}Recent Logs:{Colors.RESET}\n{logs}"
         except subprocess.CalledProcessError:
-            return f"{Colors.RED}Unable to get info for container: {item['id']}{Colors.RESET}"
+            container_id = sanitize_terminal_text(item["id"])
+            return f"{Colors.RED}Unable to get info for container: {container_id}{Colors.RESET}"
 
     def execute_action(self, item: Dict[str, Any]) -> None:
         if "Up" in item["status"]:
@@ -305,7 +347,10 @@ class DockerTool(Tool):
                     subprocess.run(["docker", "start", item["id"]], check=True)
                 return True
             except subprocess.CalledProcessError as exc:
-                print(f"{Colors.RED}Docker action failed for {item['id']}: {exc}{Colors.RESET}")
+                print(
+                    f"{Colors.RED}Docker action failed for {sanitize_terminal_text(item['id'])}: "
+                    f"{sanitize_terminal_text(exc)}{Colors.RESET}"
+                )
         elif key == "l":
             subprocess.run(["docker", "logs", "-f", item["id"]])
             return False
@@ -345,10 +390,13 @@ class GhTool(Tool):
             return []
 
     def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+        number = sanitize_terminal_text(item["number"])
+        title = sanitize_terminal_text(item["title"])[:50]
+        author = sanitize_terminal_text(item["author"]["login"])
         if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🔀 #{item['number']} {item['title'][:50]}{Colors.RESET} {Colors.DIM}by {item['author']['login']}{Colors.RESET}"
+            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🔀 #{number} {title}{Colors.RESET} {Colors.DIM}by {author}{Colors.RESET}"
         else:
-            return f"{Colors.BRIGHT_CYAN}🔀 #{item['number']} {item['title'][:50]}{Colors.RESET} {Colors.DIM}by {item['author']['login']}{Colors.RESET}"
+            return f"{Colors.BRIGHT_CYAN}🔀 #{number} {title}{Colors.RESET} {Colors.DIM}by {author}{Colors.RESET}"
 
     def get_item_preview(self, item: Dict[str, Any]) -> str:
         try:
@@ -366,10 +414,11 @@ class GhTool(Tool):
             commit_list = []
             for commit in commits[-5:]:
                 short_sha = commit["oid"][:8]
-                message = commit["messageHeadline"][:50]
+                message = sanitize_terminal_text(commit["messageHeadline"])[:50]
                 author = commit.get("author", {}).get("name", "Unknown") if commit.get("author") else "Unknown"
                 commit_list.append(
-                    f"{Colors.YELLOW}{short_sha}{Colors.RESET} {message} {Colors.DIM}({author}){Colors.RESET}"
+                    f"{Colors.YELLOW}{sanitize_terminal_text(short_sha)}{Colors.RESET} {message} "
+                    f"{Colors.DIM}({sanitize_terminal_text(author)}){Colors.RESET}"
                 )
 
             # Get changed files
@@ -379,8 +428,13 @@ class GhTool(Tool):
 
             files = files_result.stdout.strip().split("\n")[:10] if files_result.stdout.strip() else []
 
-            info = f"{Colors.CYAN}PR #{item['number']}: {item['title']}{Colors.RESET}\n"
-            info += f"{Colors.DIM}Author: {item['author']['login']} | {item['headRefName']} -> {item['baseRefName']}{Colors.RESET}\n"
+            number = sanitize_terminal_text(item["number"])
+            title = sanitize_terminal_text(item["title"])
+            author = sanitize_terminal_text(item["author"]["login"])
+            head_branch = sanitize_terminal_text(item["headRefName"])
+            base_branch = sanitize_terminal_text(item["baseRefName"])
+            info = f"{Colors.CYAN}PR #{number}: {title}{Colors.RESET}\n"
+            info += f"{Colors.DIM}Author: {author} | {head_branch} -> {base_branch}{Colors.RESET}\n"
             info += f"{Colors.GREEN}+{item.get('additions', 0)} -{item.get('deletions', 0)}{Colors.RESET} changes in {item.get('changedFiles', 0)} files\n\n"
 
             if commit_list:
@@ -388,12 +442,13 @@ class GhTool(Tool):
 
             if files:
                 info += f"{Colors.YELLOW}Changed Files:{Colors.RESET}\n" + "\n".join(
-                    f"{Colors.GREEN}{f}{Colors.RESET}" for f in files
+                    f"{Colors.GREEN}{sanitize_terminal_text(f)}{Colors.RESET}" for f in files
                 )
 
             return info
         except (subprocess.CalledProcessError, json.JSONDecodeError):
-            return f"{Colors.RED}Unable to get info for PR #{item['number']}{Colors.RESET}"
+            number = sanitize_terminal_text(item["number"])
+            return f"{Colors.RED}Unable to get info for PR #{number}{Colors.RESET}"
 
     def execute_action(self, item: Dict[str, Any]) -> None:
         webbrowser.open(item["url"])
@@ -407,16 +462,23 @@ class GhTool(Tool):
                 subprocess.run(["gh", "pr", "checkout", str(item["number"])], check=True)
                 return False
             except subprocess.CalledProcessError as exc:
-                print(f"{Colors.RED}Failed to checkout PR #{item['number']}: {exc}{Colors.RESET}")
+                print(
+                    f"{Colors.RED}Failed to checkout PR #{sanitize_terminal_text(item['number'])}: "
+                    f"{sanitize_terminal_text(exc)}{Colors.RESET}"
+                )
         elif key == "m":
-            print(f"\n{Colors.YELLOW}Merge PR #{item['number']}? (y/N): {Colors.RESET}", end="", flush=True)
+            number = sanitize_terminal_text(item["number"])
+            print(f"\n{Colors.YELLOW}Merge PR #{number}? (y/N): {Colors.RESET}", end="", flush=True)
             confirm = sys.stdin.read(1)
             if confirm.lower() == "y":
                 try:
                     subprocess.run(["gh", "pr", "merge", str(item["number"])], check=True)
                     return True
                 except subprocess.CalledProcessError as exc:
-                    print(f"{Colors.RED}Failed to merge PR #{item['number']}: {exc}{Colors.RESET}")
+                    print(
+                        f"{Colors.RED}Failed to merge PR #{number}: "
+                        f"{sanitize_terminal_text(exc)}{Colors.RESET}"
+                    )
         return False
 
 
@@ -500,18 +562,21 @@ class WorktreeTool(Tool):
         marker = "*" if item.get("current") else " "
         prunable = f" {Colors.RED}prunable{Colors.RESET}" if item.get("prunable") else ""
         prefix = f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        name = sanitize_terminal_text(item["name"])
+        branch = sanitize_terminal_text(item["branch"])
+        path = sanitize_terminal_text(item["path"])
         return (
-            f"{prefix}🌳{marker} {item['name']}{Colors.RESET} "
-            f"{Colors.GREEN}{item['branch']}{Colors.RESET} "
-            f"{Colors.DIM}{item['path']}{Colors.RESET}{prunable}"
+            f"{prefix}🌳{marker} {name}{Colors.RESET} "
+            f"{Colors.GREEN}{branch}{Colors.RESET} "
+            f"{Colors.DIM}{path}{Colors.RESET}{prunable}"
         )
 
     def get_item_preview(self, item: Dict[str, Any]) -> str:
         path = item["path"]
         info = [
-            f"{Colors.CYAN}{item['name']}{Colors.RESET}",
-            f"{Colors.DIM}Path: {path}{Colors.RESET}",
-            f"{Colors.DIM}Branch: {item['branch']} | HEAD: {item.get('head', '')}{Colors.RESET}",
+            f"{Colors.CYAN}{sanitize_terminal_text(item['name'])}{Colors.RESET}",
+            f"{Colors.DIM}Path: {sanitize_terminal_text(path)}{Colors.RESET}",
+            f"{Colors.DIM}Branch: {sanitize_terminal_text(item['branch'])} | HEAD: {sanitize_terminal_text(item.get('head', ''))}{Colors.RESET}",
             "",
         ]
 
@@ -527,8 +592,8 @@ class WorktreeTool(Tool):
 
         return (
             "\n".join(info)
-            + f"{Colors.YELLOW}Status:{Colors.RESET}\n{status or 'Clean'}\n\n"
-            + f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n{commits}"
+            + f"{Colors.YELLOW}Status:{Colors.RESET}\n{sanitize_terminal_text(status or 'Clean')}\n\n"
+            + f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n{sanitize_terminal_text(commits)}"
         )
 
     def execute_action(self, item: Dict[str, Any]) -> None:
