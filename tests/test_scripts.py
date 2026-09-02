@@ -61,6 +61,21 @@ class CmdPickerTests(unittest.TestCase):
         self.assertIn("item-9", output.getvalue())
         self.assertNotIn("item-0", output.getvalue())
 
+    def test_sanitize_terminal_text_removes_control_sequences(self):
+        text = "before\x1b[31mred\x1b[0m\x1b]52;c;secret\x07after\r\n"
+
+        self.assertEqual("beforeredafter\n", cmd_picker.sanitize_terminal_text(text))
+
+    def test_tmux_display_sanitizes_session_metadata(self):
+        display = cmd_picker.TmuxTool().get_item_display(
+            {"name": "session\x1b[31m", "windows": "1\x1b]52;c;secret\x07"}, selected=False
+        )
+
+        self.assertNotIn("\x1b[31m", display)
+        self.assertNotIn("\x1b]52", display)
+        self.assertIn("session", display)
+        self.assertIn("1", display)
+
 
 class PomoTests(unittest.TestCase):
     def test_database_defaults_are_initialized(self):
