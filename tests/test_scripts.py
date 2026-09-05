@@ -1,8 +1,12 @@
 import importlib.machinery
 import importlib.util
 import io
+import os
+import shutil
 import sqlite3
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -75,6 +79,87 @@ class CmdPickerTests(unittest.TestCase):
         self.assertNotIn("\x1b]52", display)
         self.assertIn("session", display)
         self.assertIn("1", display)
+
+
+class WorktreePickerTests(unittest.TestCase):
+    def setUp(self):
+        # Commit hooks export Git variables (notably GIT_INDEX_FILE) that must
+        # not leak into our temporary repositories or preview subprocesses.
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
+        self.enterContext(mock.patch.dict(os.environ, environment, clear=True))
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name) / "repo"
+        root.mkdir()
+        worktree = Path(temporary.name) / "worktree"
+
+        def git(*args):
+            subprocess.run(
+                [
+                    "git", "-C", str(root),
+                    "-c", "core.hooksPath=/dev/null",
+                    "-c", "commit.gpgsign=false",
+                    "-c", "user.name=Test",
+                    "-c", "user.email=test@example.com",
+                    *args,
+                ],
+                check=True, capture_output=True, text=True,
+            )
+
+        git("init", "-b", "main")
+        git("commit", "--allow-empty", "-m", "initial")
+        git("worktree", "add", "-b", "other", str(worktree))
+        self.tool = cmd_picker.WorktreeTool()
+        with mock.patch.object(self.tool, "_repo_root", return_value=str(root)):
+            self.existing, self.missing = self.tool.get_items()
+        # Simulate deletion after the picker has already listed the directory.
+        shutil.rmtree(worktree)
+        with mock.patch.object(self.tool, "_repo_root", return_value=str(root)):
+            self.assertTrue(self.tool.get_items()[1]["prunable"])
+
+    def test_missing_worktree_preview_explains_disabled_actions(self):
+        with mock.patch.object(self.tool, "_git") as git:
+            preview = self.tool.get_item_preview(self.missing)
+        self.assertIn("directory is unavailable", preview)
+        self.assertIn("actions are disabled", preview)
+        git.assert_not_called()
+
+    def test_missing_worktree_actions_do_not_start_processes(self):
+        with mock.patch.object(cmd_picker.subprocess, "run") as run:
+            self.tool.execute_action(self.missing)
+            for key in ("e", "t"):
+                self.assertFalse(self.tool.handle_additional_action(key, self.missing))
+        run.assert_not_called()
+
+    def test_enter_skips_missing_worktree_in_shell_and_print_path_modes(self):
+        for execute_on_select in (True, False):
+            with self.subTest(execute_on_select=execute_on_select):
+                picker = cmd_picker.CmdPicker(
+                    self.tool, output=io.StringIO(), execute_on_select=execute_on_select
+                )
+                with (
+                    mock.patch.object(self.tool, "get_items", return_value=[self.missing, self.existing]),
+                    mock.patch.object(self.tool, "execute_action") as execute,
+                    mock.patch.object(picker, "get_key", side_effect=["\r", "j", "\r"]),
+                ):
+                    self.assertEqual(self.existing, picker.run())
+                if execute_on_select:
+                    execute.assert_called_once_with(self.existing)
+                else:
+                    execute.assert_not_called()
+
+    def test_preview_handles_directory_disappearing_during_git_commands(self):
+        with mock.patch.object(self.tool, "_git", side_effect=FileNotFoundError):
+            preview = self.tool.get_item_preview(self.existing)
+        self.assertIn("Unable to read status", preview)
+        self.assertIn("Unable to read commits", preview)
+
+    def test_existing_worktree_preview_still_works(self):
+        preview = self.tool.get_item_preview(self.existing)
+        self.assertIn("main", preview)
+        self.assertIn("initial", preview)
+        self.assertTrue(self.tool.is_selectable(self.existing))
 
 
 class PomoTests(unittest.TestCase):

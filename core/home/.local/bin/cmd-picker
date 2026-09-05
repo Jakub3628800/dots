@@ -107,6 +107,10 @@ class Tool(ABC):
     def execute_action(self, item: Dict[str, Any]) -> None:
         pass
 
+    def is_selectable(self, item: Dict[str, Any]) -> bool:
+        """Return whether an item can currently be selected."""
+        return True
+
     def get_additional_actions(self) -> Dict[str, str]:
         """Return additional key bindings and their descriptions"""
         return {}
@@ -580,14 +584,17 @@ class WorktreeTool(Tool):
             "",
         ]
 
+        if not self.is_selectable(item):
+            return "\n".join(info) + f"{Colors.RED}Worktree directory is unavailable; selection and actions are disabled.{Colors.RESET}"
+
         try:
             status = self._git(["status", "--short", "--branch"], cwd=path).stdout.strip()
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, OSError):
             status = "Unable to read status"
 
         try:
             commits = self._git(["log", "--oneline", "--decorate", "-5"], cwd=path).stdout.strip()
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, OSError):
             commits = "Unable to read commits"
 
         return (
@@ -596,7 +603,12 @@ class WorktreeTool(Tool):
             + f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n{sanitize_terminal_text(commits)}"
         )
 
+    def is_selectable(self, item: Dict[str, Any]) -> bool:
+        return Path(item["path"]).is_dir()
+
     def execute_action(self, item: Dict[str, Any]) -> None:
+        if not self.is_selectable(item):
+            return
         shell = os.environ.get("SHELL", "/bin/sh")
         subprocess.run([shell], cwd=item["path"])
 
@@ -604,6 +616,8 @@ class WorktreeTool(Tool):
         return {"e": "Open editor", "t": "Open tmux window"}
 
     def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+        if key not in {"e", "t"} or not self.is_selectable(item):
+            return False
         if key == "e":
             editor = os.environ.get("EDITOR", "nvim")
             subprocess.run([editor, item["path"]])
@@ -742,6 +756,8 @@ class CmdPicker:
                 self.selected_index = max(0, self.selected_index - 1)
             elif key == "\r":  # Enter
                 selected_item = self.items[self.selected_index]
+                if not self.tool.is_selectable(selected_item):
+                    continue
                 print("\033[H\033[2J", end="", file=self.output)
                 self.output.flush()
                 if self.execute_on_select:
