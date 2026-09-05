@@ -9,8 +9,8 @@ RUN apt-get update && \
     apt-get install --no-install-recommends -y make sudo build-essential ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Create a test user with home directory and add to sudo group
-RUN useradd --uid 1000 -m -s /bin/bash testuser && \
+# Allocate a free UID; Ubuntu 24.04 already assigns UID 1000 to ubuntu.
+RUN useradd -m -s /bin/bash testuser && \
     usermod -aG sudo testuser && \
     echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
@@ -19,8 +19,9 @@ WORKDIR /tmp/core
 COPY . .
 RUN chown -R testuser:testuser /tmp/core
 
-# Switch to test user for installation
-USER 1000
+# Resolve the dynamically allocated UID inside this bootstrap-test image.
+# hadolint ignore=DL3066
+USER testuser
 WORKDIR /tmp/core
 
 # Add Cargo to PATH for installation
