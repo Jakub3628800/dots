@@ -3,21 +3,26 @@
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
+"""Select tmux sessions, containers, pull requests, and worktrees in a terminal."""
 
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
 import subprocess
 import sys
-import os
-import shutil
 import termios
 import tty
-import json
 import webbrowser
-import argparse
-import re
-from pathlib import Path
-from typing import List, Dict, Any, TextIO
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, override
 
+if TYPE_CHECKING:
+    from typing import TextIO
 
 ANSI_ESCAPE_RE = re.compile(
     r"""
@@ -32,6 +37,8 @@ ANSI_ESCAPE_RE = re.compile(
     re.DOTALL | re.VERBOSE,
 )
 CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+TMUX_FIELD_COUNT = 3
+DOCKER_FIELD_COUNT = 4
 
 
 def sanitize_terminal_text(value: object) -> str:
@@ -40,7 +47,33 @@ def sanitize_terminal_text(value: object) -> str:
     return CONTROL_CHAR_RE.sub("", text)
 
 
+def _run_command(
+    args: list[str],
+    *,
+    cwd: str | None = None,
+    capture_output: bool = False,
+    text: bool = True,
+    check: bool,
+) -> subprocess.CompletedProcess[str]:
+    """Run a local CLI with an explicit exit-status policy and no shell."""
+    executable = shutil.which(args[0])
+    if executable is None:
+        message = f"executable not found: {args[0]}"
+        raise FileNotFoundError(message)
+    # Resolve the executable on PATH; pass arguments literally, without a shell.
+    return subprocess.run(  # noqa: S603
+        [executable, *args[1:]],
+        shell=False,
+        cwd=cwd,
+        capture_output=capture_output,
+        text=text,
+        check=check,
+    )
+
+
 class Colors:
+    """Collect ANSI styling sequences used by the picker interface."""
+
     RESET = "\033[0m"
     BOLD = "\033[1m"
     DIM = "\033[2m"
@@ -74,52 +107,52 @@ class Colors:
 
 
 class Tool(ABC):
-    """Base class for all tools"""
+    """Define the data and action interface shared by picker backends."""
 
     @property
     @abstractmethod
     def name(self) -> str:
-        pass
+        """Return the command-line identifier of the backend."""
 
     @property
     @abstractmethod
     def description(self) -> str:
-        pass
+        """Return a short description for the available-tools listing."""
 
     @abstractmethod
     def is_available(self) -> bool:
-        pass
+        """Return whether the backend's executable is available."""
 
     @abstractmethod
-    def get_items(self) -> List[Dict[str, Any]]:
-        pass
+    def get_items(self) -> list[dict[str, Any]]:
+        """Collect selectable items from the external tool."""
 
     @abstractmethod
-    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
-        pass
+    def get_item_display(self, item: dict[str, Any], *, selected: bool) -> str:
+        """Render one list entry with selection styling and sanitized metadata."""
 
     @abstractmethod
-    def get_item_preview(self, item: Dict[str, Any]) -> str:
-        pass
+    def get_item_preview(self, item: dict[str, Any]) -> str:
+        """Return sanitized detail text for the selected entry."""
 
     @abstractmethod
-    def execute_action(self, item: Dict[str, Any]) -> None:
-        pass
+    def execute_action(self, item: dict[str, Any]) -> None:
+        """Perform the entry's default action when the user presses Enter."""
 
-    def is_selectable(self, item: Dict[str, Any]) -> bool:
+    def is_selectable(self, _item: dict[str, Any]) -> bool:
         """Return whether an item can currently be selected."""
         return True
 
-    def get_additional_actions(self) -> Dict[str, str]:
-        """Return additional key bindings and their descriptions"""
+    def get_additional_actions(self) -> dict[str, str]:
+        """Return additional key bindings and their descriptions."""
         return {}
 
-    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
-        """Handle additional actions. Return True if action was handled."""
+    def handle_additional_action(self, _key: str, _item: dict[str, Any]) -> bool:
+        """Handle additional actions and return whether items need refreshing."""
         return False
 
     def can_create_new(self) -> bool:
-        """Return True if this tool supports creating new items"""
+        """Return True if this tool supports creating new items."""
         return False
 
     def create_new_item(self) -> bool:
@@ -128,21 +161,32 @@ class Tool(ABC):
 
 
 class TmuxTool(Tool):
+    """List, preview, create, and attach to local tmux sessions."""
+
     @property
+    @override
     def name(self) -> str:
         return "tmux"
 
     @property
+    @override
     def description(self) -> str:
         return "Interactive tmux session picker"
 
+    @override
     def is_available(self) -> bool:
         return shutil.which("tmux") is not None
 
-    def get_items(self) -> List[Dict[str, Any]]:
+    @override
+    def get_items(self) -> list[dict[str, Any]]:
         try:
-            result = subprocess.run(
-                ["tmux", "list-sessions", "-F", "#{session_name}\t#{session_windows}\t#{session_created}"],
+            result = _run_command(
+                [
+                    "tmux",
+                    "list-sessions",
+                    "-F",
+                    "#{session_name}\t#{session_windows}\t#{session_created}",
+                ],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -151,31 +195,46 @@ class TmuxTool(Tool):
             for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     parts = line.split("\t")
-                    if len(parts) >= 3:
-                        items.append({"name": parts[0], "windows": parts[1], "created": parts[2], "type": "session"})
-            return items
+                    if len(parts) >= TMUX_FIELD_COUNT:
+                        items.append(
+                            {
+                                "name": parts[0],
+                                "windows": parts[1],
+                                "created": parts[2],
+                                "type": "session",
+                            }
+                        )
         except subprocess.CalledProcessError:
             return []
+        return items
 
-    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+    @override
+    def get_item_display(self, item: dict[str, Any], *, selected: bool) -> str:
         name = sanitize_terminal_text(item["name"])
         windows = sanitize_terminal_text(item["windows"])
-        if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}📺 {name}{Colors.RESET} {Colors.DIM}({windows} windows){Colors.RESET}"
-        else:
-            return f"{Colors.BRIGHT_CYAN}📺 {name}{Colors.RESET} {Colors.DIM}({windows} windows){Colors.RESET}"
+        prefix = (
+            f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        )
+        return (
+            f"{prefix}📺 {name}{Colors.RESET} "
+            f"{Colors.DIM}({windows} windows){Colors.RESET}"
+        )
 
-    def get_item_preview(self, item: Dict[str, Any]) -> str:
+    @override
+    def get_item_preview(self, item: dict[str, Any]) -> str:
         try:
             # Get session info
-            session_info = subprocess.run(
+            session_info = _run_command(
                 [
                     "tmux",
                     "display-message",
                     "-t",
                     item["name"],
                     "-p",
-                    "#{session_name}: #{session_windows} windows, created #{session_created}",
+                    (
+                        "#{session_name}: #{session_windows} windows, "
+                        "created #{session_created}"
+                    ),
                 ],
                 capture_output=True,
                 text=True,
@@ -183,7 +242,7 @@ class TmuxTool(Tool):
             ).stdout.strip()
 
             # Get window list
-            windows = subprocess.run(
+            windows = _run_command(
                 [
                     "tmux",
                     "list-windows",
@@ -198,80 +257,122 @@ class TmuxTool(Tool):
             ).stdout.strip()
 
             # Get preview of active window
-            preview = subprocess.run(
-                ["tmux", "capture-pane", "-t", item["name"], "-p"], capture_output=True, text=True, check=True
+            preview = _run_command(
+                ["tmux", "capture-pane", "-t", item["name"], "-p"],
+                capture_output=True,
+                text=True,
+                check=True,
             ).stdout
 
             session_info = sanitize_terminal_text(session_info)
             windows = sanitize_terminal_text(windows)
             preview = sanitize_terminal_text(preview)[:500]
-            return f"{Colors.CYAN}{session_info}{Colors.RESET}\n\n{Colors.YELLOW}Windows:{Colors.RESET}\n{Colors.GREEN}{windows}{Colors.RESET}\n\n{Colors.YELLOW}Preview:{Colors.RESET}\n{preview}..."
         except subprocess.CalledProcessError:
             name = sanitize_terminal_text(item["name"])
             return f"{Colors.RED}Unable to get info for session: {name}{Colors.RESET}"
+        return (
+            f"{Colors.CYAN}{session_info}{Colors.RESET}\n\n"
+            f"{Colors.YELLOW}Windows:{Colors.RESET}\n"
+            f"{Colors.GREEN}{windows}{Colors.RESET}\n\n"
+            f"{Colors.YELLOW}Preview:{Colors.RESET}\n{preview}..."
+        )
 
-    def execute_action(self, item: Dict[str, Any]) -> None:
-        subprocess.run(["tmux", "attach-session", "-t", item["name"]])
+    @override
+    def execute_action(self, item: dict[str, Any]) -> None:
+        _run_command(["tmux", "attach-session", "-t", item["name"]], check=False)
 
-    def get_additional_actions(self) -> Dict[str, str]:
+    @override
+    def get_additional_actions(self) -> dict[str, str]:
         return {"d": "Delete session", "a": "New session"}
 
-    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+    @override
+    def handle_additional_action(self, key: str, item: dict[str, Any]) -> bool:
         if key == "d":
             name = sanitize_terminal_text(item["name"])
-            print(f"\n{Colors.RED}Delete session '{name}'? (y/N): {Colors.RESET}", end="", flush=True)
+            print(
+                f"\n{Colors.RED}Delete session '{name}'? (y/N): {Colors.RESET}",
+                end="",
+                flush=True,
+            )
             confirm = sys.stdin.read(1)
             if confirm.lower() == "y":
                 try:
-                    subprocess.run(["tmux", "kill-session", "-t", item["name"]], check=True)
-                    return True
+                    _run_command(
+                        ["tmux", "kill-session", "-t", item["name"]], check=True
+                    )
                 except subprocess.CalledProcessError as exc:
                     print(
                         f"{Colors.RED}Failed to delete session '{name}': "
                         f"{sanitize_terminal_text(exc)}{Colors.RESET}"
                     )
+                else:
+                    return True
         elif key == "a":
             return self.create_new_item()
         return False
 
+    @override
     def can_create_new(self) -> bool:
         return True
 
+    @override
     def create_new_item(self) -> bool:
-        print(f"\n{Colors.CYAN}Enter new session name: {Colors.RESET}", end="", flush=True)
+        print(
+            f"\n{Colors.CYAN}Enter new session name: {Colors.RESET}", end="", flush=True
+        )
         try:
             session_name = input().strip()
             if session_name:
                 try:
-                    subprocess.run(["tmux", "new-session", "-d", "-s", session_name], check=True)
-                    print(f"{Colors.GREEN}✓ Session '{sanitize_terminal_text(session_name)}' created{Colors.RESET}")
-                    return True
+                    _run_command(
+                        ["tmux", "new-session", "-d", "-s", session_name], check=True
+                    )
                 except subprocess.CalledProcessError as exc:
                     print(
-                        f"{Colors.RED}✗ Failed to create session '{sanitize_terminal_text(session_name)}': "
+                        f"{Colors.RED}✗ Failed to create session "
+                        f"'{sanitize_terminal_text(session_name)}': "
                         f"{sanitize_terminal_text(exc)}{Colors.RESET}"
                     )
+                else:
+                    print(
+                        f"{Colors.GREEN}✓ Session "
+                        f"'{sanitize_terminal_text(session_name)}' "
+                        f"created{Colors.RESET}"
+                    )
+                    return True
         except (EOFError, KeyboardInterrupt):
             pass
         return False
 
 
 class DockerTool(Tool):
+    """List and inspect Docker containers and offer lifecycle actions."""
+
     @property
+    @override
     def name(self) -> str:
         return "docker"
 
     @property
+    @override
     def description(self) -> str:
         return "Interactive docker container picker"
 
+    @override
     def is_available(self) -> bool:
         return shutil.which("docker") is not None
 
-    def get_items(self) -> List[Dict[str, Any]]:
+    @override
+    def get_items(self) -> list[dict[str, Any]]:
         try:
-            result = subprocess.run(
-                ["docker", "ps", "-a", "--format", "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}"],
+            result = _run_command(
+                [
+                    "docker",
+                    "ps",
+                    "-a",
+                    "--format",
+                    "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
+                ],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -280,7 +381,7 @@ class DockerTool(Tool):
             for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     parts = line.split("\t")
-                    if len(parts) >= 4:
+                    if len(parts) >= DOCKER_FIELD_COUNT:
                         items.append(
                             {
                                 "id": parts[0][:12],
@@ -290,29 +391,40 @@ class DockerTool(Tool):
                                 "type": "container",
                             }
                         )
-            return items
         except subprocess.CalledProcessError:
             return []
+        return items
 
-    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+    @override
+    def get_item_display(self, item: dict[str, Any], *, selected: bool) -> str:
         status_color = Colors.GREEN if "Up" in item["status"] else Colors.RED
         name = sanitize_terminal_text(item["name"])
         container_id = sanitize_terminal_text(item["id"])
         status = sanitize_terminal_text(item["status"])
-        if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🐳 {name}{Colors.RESET} {Colors.DIM}({container_id}){Colors.RESET} {status_color}{status}{Colors.RESET}"
-        else:
-            return f"{Colors.BRIGHT_CYAN}🐳 {name}{Colors.RESET} {Colors.DIM}({container_id}){Colors.RESET} {status_color}{status}{Colors.RESET}"
+        prefix = (
+            f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        )
+        return (
+            f"{prefix}🐳 {name}{Colors.RESET} "
+            f"{Colors.DIM}({container_id}){Colors.RESET} "
+            f"{status_color}{status}{Colors.RESET}"
+        )
 
-    def get_item_preview(self, item: Dict[str, Any]) -> str:
+    @override
+    def get_item_preview(self, item: dict[str, Any]) -> str:
         try:
             # Get container details
-            info_result = subprocess.run(
+            info_result = _run_command(
                 [
                     "docker",
                     "inspect",
                     "--format",
-                    "{{.Name}}: {{.Config.Image}}\nStatus: {{.State.Status}}\nCreated: {{.Created}}\nPorts: {{range $p, $conf := .NetworkSettings.Ports}}{{$p}}->{{(index $conf 0).HostPort}} {{end}}",
+                    (
+                        "{{.Name}}: {{.Config.Image}}\nStatus: {{.State.Status}}\n"
+                        "Created: {{.Created}}\n"
+                        "Ports: {{range $p, $conf := .NetworkSettings.Ports}}"
+                        "{{$p}}->{{(index $conf 0).HostPort}} {{end}}"
+                    ),
                     item["id"],
                 ],
                 capture_output=True,
@@ -321,60 +433,88 @@ class DockerTool(Tool):
             )
 
             # Get recent logs
-            logs_result = subprocess.run(["docker", "logs", "--tail", "20", item["id"]], capture_output=True, text=True)
+            logs_result = _run_command(
+                ["docker", "logs", "--tail", "20", item["id"]],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
 
-            logs = logs_result.stdout[-1000:] if logs_result.stdout else "No logs available"
+            logs = (
+                logs_result.stdout[-1000:]
+                if logs_result.stdout
+                else "No logs available"
+            )
 
             info = sanitize_terminal_text(info_result.stdout.strip())
             logs = sanitize_terminal_text(logs)
-            return f"{Colors.CYAN}{info}{Colors.RESET}\n\n{Colors.YELLOW}Recent Logs:{Colors.RESET}\n{logs}"
         except subprocess.CalledProcessError:
             container_id = sanitize_terminal_text(item["id"])
-            return f"{Colors.RED}Unable to get info for container: {container_id}{Colors.RESET}"
+            return (
+                f"{Colors.RED}Unable to get info for container: "
+                f"{container_id}{Colors.RESET}"
+            )
+        return (
+            f"{Colors.CYAN}{info}{Colors.RESET}\n\n"
+            f"{Colors.YELLOW}Recent Logs:{Colors.RESET}\n{logs}"
+        )
 
-    def execute_action(self, item: Dict[str, Any]) -> None:
+    @override
+    def execute_action(self, item: dict[str, Any]) -> None:
         if "Up" in item["status"]:
-            subprocess.run(["docker", "exec", "-it", item["id"], "/bin/bash"])
+            _run_command(
+                ["docker", "exec", "-it", item["id"], "/bin/bash"], check=False
+            )
         else:
-            subprocess.run(["docker", "start", "-i", item["id"]])
+            _run_command(["docker", "start", "-i", item["id"]], check=False)
 
-    def get_additional_actions(self) -> Dict[str, str]:
+    @override
+    def get_additional_actions(self) -> dict[str, str]:
         return {"s": "Start/Stop container", "l": "View logs"}
 
-    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+    @override
+    def handle_additional_action(self, key: str, item: dict[str, Any]) -> bool:
         if key == "s":
             try:
                 if "Up" in item["status"]:
-                    subprocess.run(["docker", "stop", item["id"]], check=True)
+                    _run_command(["docker", "stop", item["id"]], check=True)
                 else:
-                    subprocess.run(["docker", "start", item["id"]], check=True)
-                return True
+                    _run_command(["docker", "start", item["id"]], check=True)
             except subprocess.CalledProcessError as exc:
                 print(
-                    f"{Colors.RED}Docker action failed for {sanitize_terminal_text(item['id'])}: "
+                    f"{Colors.RED}Docker action failed for "
+                    f"{sanitize_terminal_text(item['id'])}: "
                     f"{sanitize_terminal_text(exc)}{Colors.RESET}"
                 )
+            else:
+                return True
         elif key == "l":
-            subprocess.run(["docker", "logs", "-f", item["id"]])
+            _run_command(["docker", "logs", "-f", item["id"]], check=False)
             return False
         return False
 
 
 class GhTool(Tool):
+    """List, preview, open, check out, and merge GitHub pull requests."""
+
     @property
+    @override
     def name(self) -> str:
         return "gh"
 
     @property
+    @override
     def description(self) -> str:
         return "Interactive GitHub pull request picker"
 
+    @override
     def is_available(self) -> bool:
         return shutil.which("gh") is not None
 
-    def get_items(self) -> List[Dict[str, Any]]:
+    @override
+    def get_items(self) -> list[dict[str, Any]]:
         try:
-            result = subprocess.run(
+            result = _run_command(
                 [
                     "gh",
                     "pr",
@@ -388,23 +528,28 @@ class GhTool(Tool):
             )
 
             prs = json.loads(result.stdout)
-            return prs if prs else []
         except (subprocess.CalledProcessError, json.JSONDecodeError):
             return []
+        return prs or []
 
-    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+    @override
+    def get_item_display(self, item: dict[str, Any], *, selected: bool) -> str:
         number = sanitize_terminal_text(item["number"])
         title = sanitize_terminal_text(item["title"])[:50]
         author = sanitize_terminal_text(item["author"]["login"])
-        if selected:
-            return f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}🔀 #{number} {title}{Colors.RESET} {Colors.DIM}by {author}{Colors.RESET}"
-        else:
-            return f"{Colors.BRIGHT_CYAN}🔀 #{number} {title}{Colors.RESET} {Colors.DIM}by {author}{Colors.RESET}"
+        prefix = (
+            f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        )
+        return (
+            f"{prefix}🔀 #{number} {title}{Colors.RESET} "
+            f"{Colors.DIM}by {author}{Colors.RESET}"
+        )
 
-    def get_item_preview(self, item: Dict[str, Any]) -> str:
+    @override
+    def get_item_preview(self, item: dict[str, Any]) -> str:
         try:
             # Get PR commits
-            commits_result = subprocess.run(
+            commits_result = _run_command(
                 ["gh", "pr", "view", str(item["number"]), "--json", "commits"],
                 capture_output=True,
                 text=True,
@@ -418,18 +563,30 @@ class GhTool(Tool):
             for commit in commits[-5:]:
                 short_sha = commit["oid"][:8]
                 message = sanitize_terminal_text(commit["messageHeadline"])[:50]
-                author = commit.get("author", {}).get("name", "Unknown") if commit.get("author") else "Unknown"
+                author = (
+                    commit.get("author", {}).get("name", "Unknown")
+                    if commit.get("author")
+                    else "Unknown"
+                )
                 commit_list.append(
-                    f"{Colors.YELLOW}{sanitize_terminal_text(short_sha)}{Colors.RESET} {message} "
+                    f"{Colors.YELLOW}{sanitize_terminal_text(short_sha)}{Colors.RESET} "
+                    f"{message} "
                     f"{Colors.DIM}({sanitize_terminal_text(author)}){Colors.RESET}"
                 )
 
             # Get changed files
-            files_result = subprocess.run(
-                ["gh", "pr", "diff", str(item["number"]), "--name-only"], capture_output=True, text=True, check=True
+            files_result = _run_command(
+                ["gh", "pr", "diff", str(item["number"]), "--name-only"],
+                capture_output=True,
+                text=True,
+                check=True,
             )
 
-            files = files_result.stdout.strip().split("\n")[:10] if files_result.stdout.strip() else []
+            files = (
+                files_result.stdout.strip().split("\n")[:10]
+                if files_result.stdout.strip()
+                else []
+            )
 
             number = sanitize_terminal_text(item["number"])
             title = sanitize_terminal_text(item["title"])
@@ -437,51 +594,71 @@ class GhTool(Tool):
             head_branch = sanitize_terminal_text(item["headRefName"])
             base_branch = sanitize_terminal_text(item["baseRefName"])
             info = f"{Colors.CYAN}PR #{number}: {title}{Colors.RESET}\n"
-            info += f"{Colors.DIM}Author: {author} | {head_branch} -> {base_branch}{Colors.RESET}\n"
-            info += f"{Colors.GREEN}+{item.get('additions', 0)} -{item.get('deletions', 0)}{Colors.RESET} changes in {item.get('changedFiles', 0)} files\n\n"
+            info += (
+                f"{Colors.DIM}Author: {author} | "
+                f"{head_branch} -> {base_branch}{Colors.RESET}\n"
+            )
+            info += (
+                f"{Colors.GREEN}+{item.get('additions', 0)} "
+                f"-{item.get('deletions', 0)}{Colors.RESET} "
+                f"changes in {item.get('changedFiles', 0)} files\n\n"
+            )
 
             if commit_list:
-                info += f"{Colors.YELLOW}Recent Commits:{Colors.RESET}\n" + "\n".join(commit_list) + "\n\n"
+                info += (
+                    f"{Colors.YELLOW}Recent Commits:{Colors.RESET}\n"
+                    + "\n".join(commit_list)
+                    + "\n\n"
+                )
 
             if files:
                 info += f"{Colors.YELLOW}Changed Files:{Colors.RESET}\n" + "\n".join(
-                    f"{Colors.GREEN}{sanitize_terminal_text(f)}{Colors.RESET}" for f in files
+                    f"{Colors.GREEN}{sanitize_terminal_text(f)}{Colors.RESET}"
+                    for f in files
                 )
 
-            return info
         except (subprocess.CalledProcessError, json.JSONDecodeError):
             number = sanitize_terminal_text(item["number"])
             return f"{Colors.RED}Unable to get info for PR #{number}{Colors.RESET}"
+        return info
 
-    def execute_action(self, item: Dict[str, Any]) -> None:
+    @override
+    def execute_action(self, item: dict[str, Any]) -> None:
         webbrowser.open(item["url"])
 
-    def get_additional_actions(self) -> Dict[str, str]:
+    @override
+    def get_additional_actions(self) -> dict[str, str]:
         return {"c": "Checkout PR", "m": "Merge PR"}
 
-    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+    @override
+    def handle_additional_action(self, key: str, item: dict[str, Any]) -> bool:
         if key == "c":
             try:
-                subprocess.run(["gh", "pr", "checkout", str(item["number"])], check=True)
-                return False
+                _run_command(["gh", "pr", "checkout", str(item["number"])], check=True)
             except subprocess.CalledProcessError as exc:
                 print(
-                    f"{Colors.RED}Failed to checkout PR #{sanitize_terminal_text(item['number'])}: "
+                    f"{Colors.RED}Failed to checkout PR "
+                    f"#{sanitize_terminal_text(item['number'])}: "
                     f"{sanitize_terminal_text(exc)}{Colors.RESET}"
                 )
         elif key == "m":
             number = sanitize_terminal_text(item["number"])
-            print(f"\n{Colors.YELLOW}Merge PR #{number}? (y/N): {Colors.RESET}", end="", flush=True)
+            print(
+                f"\n{Colors.YELLOW}Merge PR #{number}? (y/N): {Colors.RESET}",
+                end="",
+                flush=True,
+            )
             confirm = sys.stdin.read(1)
             if confirm.lower() == "y":
                 try:
-                    subprocess.run(["gh", "pr", "merge", str(item["number"])], check=True)
-                    return True
+                    _run_command(["gh", "pr", "merge", str(item["number"])], check=True)
                 except subprocess.CalledProcessError as exc:
                     print(
                         f"{Colors.RED}Failed to merge PR #{number}: "
                         f"{sanitize_terminal_text(exc)}{Colors.RESET}"
                     )
+                else:
+                    return True
         return False
 
 
@@ -501,18 +678,25 @@ class WorktreeTool(Tool):
     """
 
     @property
+    @override
     def name(self) -> str:
         return "worktree"
 
     @property
+    @override
     def description(self) -> str:
         return "Interactive git worktree picker"
 
+    @override
     def is_available(self) -> bool:
         return shutil.which("git") is not None
 
-    def _git(self, args: List[str], cwd: str | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=check)
+    def _git(
+        self, args: list[str], *, cwd: str | None = None, check: bool = True
+    ) -> subprocess.CompletedProcess[str]:
+        return _run_command(
+            ["git", *args], cwd=cwd, capture_output=True, text=True, check=check
+        )
 
     def _repo_root(self) -> str | None:
         try:
@@ -520,7 +704,8 @@ class WorktreeTool(Tool):
         except subprocess.CalledProcessError:
             return None
 
-    def get_items(self) -> List[Dict[str, Any]]:
+    @override
+    def get_items(self) -> list[dict[str, Any]]:
         root = self._repo_root()
         if root is None:
             return []
@@ -531,9 +716,13 @@ class WorktreeTool(Tool):
         except subprocess.CalledProcessError:
             return []
 
-        items: List[Dict[str, Any]] = []
-        current: Dict[str, Any] = {}
-        for entry in result.stdout.split("\0"):
+        return self._parse_items(result.stdout, root)
+
+    def _parse_items(self, output: str, root: str) -> list[dict[str, Any]]:
+        """Parse NUL-separated records and put the current worktree first."""
+        items: list[dict[str, Any]] = []
+        current: dict[str, Any] = {}
+        for entry in output.split("\0"):
             if not entry:
                 if current:
                     items.append(current)
@@ -559,12 +748,23 @@ class WorktreeTool(Tool):
             item.setdefault("head", "")
             item["current"] = item.get("path") == root
 
-        return sorted(items, key=lambda item: (not item.get("current", False), str(item.get("name", ""))))
+        return sorted(
+            items,
+            key=lambda item: (
+                not item.get("current", False),
+                str(item.get("name", "")),
+            ),
+        )
 
-    def get_item_display(self, item: Dict[str, Any], selected: bool) -> str:
+    @override
+    def get_item_display(self, item: dict[str, Any], *, selected: bool) -> str:
         marker = "*" if item.get("current") else " "
-        prunable = f" {Colors.RED}prunable{Colors.RESET}" if item.get("prunable") else ""
-        prefix = f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        prunable = (
+            f" {Colors.RED}prunable{Colors.RESET}" if item.get("prunable") else ""
+        )
+        prefix = (
+            f"{Colors.BG_BLUE}{Colors.BRIGHT_WHITE}" if selected else Colors.BRIGHT_CYAN
+        )
         name = sanitize_terminal_text(item["name"])
         branch = sanitize_terminal_text(item["branch"])
         path = sanitize_terminal_text(item["path"])
@@ -574,97 +774,123 @@ class WorktreeTool(Tool):
             f"{Colors.DIM}{path}{Colors.RESET}{prunable}"
         )
 
-    def get_item_preview(self, item: Dict[str, Any]) -> str:
+    @override
+    def get_item_preview(self, item: dict[str, Any]) -> str:
         path = item["path"]
         info = [
             f"{Colors.CYAN}{sanitize_terminal_text(item['name'])}{Colors.RESET}",
             f"{Colors.DIM}Path: {sanitize_terminal_text(path)}{Colors.RESET}",
-            f"{Colors.DIM}Branch: {sanitize_terminal_text(item['branch'])} | HEAD: {sanitize_terminal_text(item.get('head', ''))}{Colors.RESET}",
+            (
+                f"{Colors.DIM}Branch: {sanitize_terminal_text(item['branch'])} | "
+                f"HEAD: {sanitize_terminal_text(item.get('head', ''))}{Colors.RESET}"
+            ),
             "",
         ]
 
         if not self.is_selectable(item):
-            return "\n".join(info) + f"{Colors.RED}Worktree directory is unavailable; selection and actions are disabled.{Colors.RESET}"
+            return (
+                "\n".join(info) + f"{Colors.RED}Worktree directory is unavailable; "
+                f"selection and actions are disabled.{Colors.RESET}"
+            )
 
         try:
-            status = self._git(["status", "--short", "--branch"], cwd=path).stdout.strip()
+            status = self._git(
+                ["status", "--short", "--branch"], cwd=path
+            ).stdout.strip()
         except (subprocess.CalledProcessError, OSError):
             status = "Unable to read status"
 
         try:
-            commits = self._git(["log", "--oneline", "--decorate", "-5"], cwd=path).stdout.strip()
+            commits = self._git(
+                ["log", "--oneline", "--decorate", "-5"], cwd=path
+            ).stdout.strip()
         except (subprocess.CalledProcessError, OSError):
             commits = "Unable to read commits"
 
         return (
-            "\n".join(info)
-            + f"{Colors.YELLOW}Status:{Colors.RESET}\n{sanitize_terminal_text(status or 'Clean')}\n\n"
-            + f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n{sanitize_terminal_text(commits)}"
+            "\n".join(info) + f"{Colors.YELLOW}Status:{Colors.RESET}\n"
+            f"{sanitize_terminal_text(status or 'Clean')}\n\n"
+            f"{Colors.YELLOW}Recent commits:{Colors.RESET}\n"
+            f"{sanitize_terminal_text(commits)}"
         )
 
-    def is_selectable(self, item: Dict[str, Any]) -> bool:
+    @override
+    def is_selectable(self, item: dict[str, Any]) -> bool:
         return Path(item["path"]).is_dir()
 
-    def execute_action(self, item: Dict[str, Any]) -> None:
+    @override
+    def execute_action(self, item: dict[str, Any]) -> None:
         if not self.is_selectable(item):
             return
         shell = os.environ.get("SHELL", "/bin/sh")
-        subprocess.run([shell], cwd=item["path"])
+        _run_command([shell], cwd=item["path"], check=False)
 
-    def get_additional_actions(self) -> Dict[str, str]:
+    @override
+    def get_additional_actions(self) -> dict[str, str]:
         return {"e": "Open editor", "t": "Open tmux window"}
 
-    def handle_additional_action(self, key: str, item: Dict[str, Any]) -> bool:
+    @override
+    def handle_additional_action(self, key: str, item: dict[str, Any]) -> bool:
         if key not in {"e", "t"} or not self.is_selectable(item):
             return False
         if key == "e":
             editor = os.environ.get("EDITOR", "nvim")
-            subprocess.run([editor, item["path"]])
+            _run_command([editor, item["path"]], check=False)
             return False
         if key == "t":
             if shutil.which("tmux") is None:
                 print(f"{Colors.RED}tmux is not available{Colors.RESET}")
                 return False
-            subprocess.run(["tmux", "new-window", "-c", item["path"], "-n", item["name"]], check=False)
+            _run_command(
+                ["tmux", "new-window", "-c", item["path"], "-n", item["name"]],
+                check=False,
+            )
             return False
         return False
 
 
 class CmdPicker:
+    """Render a scrollable list and dispatch keyboard actions to a backend."""
+
     def __init__(
         self,
         tool: Tool,
+        *,
         output: TextIO = sys.stdout,
         input_stream: TextIO = sys.stdin,
         execute_on_select: bool = True,
-    ):
+    ) -> None:
+        """Bind a backend and terminal streams with an optional selection action."""
         self.tool = tool
         self.output = output
         self.input_stream = input_stream
         self.execute_on_select = execute_on_select
-        self.items: List[Dict[str, Any]] = []
+        self.items: list[dict[str, Any]] = []
         self.selected_index: int = 0
         self.preview_height: int = 20
 
     def get_key(self) -> str:
-        """Get a single keypress"""
+        """Read one keypress, including a three-byte cursor escape sequence."""
         fd = self.input_stream.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
             tty.setraw(fd)
             key = self.input_stream.read(1)
-            if ord(key) == 27:  # ESC sequence
+            if key == "\x1b":  # ESC sequence
                 key += self.input_stream.read(2)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return key
 
     def display_interface(self) -> None:
-        """Display the picker interface"""
+        """Display the list, selected item's preview, and available controls."""
         print("\033[H\033[2J", end="", file=self.output)
 
         if not self.items:
-            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}", file=self.output)
+            print(
+                f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}",
+                file=self.output,
+            )
             return
 
         # Get terminal size
@@ -681,13 +907,21 @@ class CmdPicker:
         session_list_height = rows - self.preview_height - 5
 
         # Header with tool-specific emoji
-        tool_emoji = {"tmux": "🚀", "docker": "🐳", "gh": "🔀", "worktree": "🌳"}.get(self.tool.name, "🎯")
-        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output)
+        tool_emoji = {"tmux": "🚀", "docker": "🐳", "gh": "🔀", "worktree": "🌳"}.get(
+            self.tool.name, "🎯"
+        )
         print(
-            f"{Colors.BOLD}{Colors.WHITE} {tool_emoji} {self.tool.name.upper()} Picker {Colors.RESET}{Colors.DIM}(j/k navigate, Enter select, q quit){Colors.RESET}",
+            f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output
+        )
+        print(
+            f"{Colors.BOLD}{Colors.WHITE} {tool_emoji} "
+            f"{self.tool.name.upper()} Picker {Colors.RESET}"
+            f"{Colors.DIM}(j/k navigate, Enter select, q quit){Colors.RESET}",
             file=self.output,
         )
-        print(f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output)
+        print(
+            f"{Colors.BOLD}{Colors.BLUE}{'═' * width}{Colors.RESET}", file=self.output
+        )
 
         # Keep the selected item visible when the list is taller than the terminal.
         visible_count = max(1, session_list_height - 3)
@@ -697,16 +931,19 @@ class CmdPicker:
             item_index = start + offset
             if item_index == self.selected_index:
                 marker = f"{Colors.BRIGHT_GREEN}▶ {Colors.RESET}"
-                display = self.tool.get_item_display(item, True)
+                display = self.tool.get_item_display(item, selected=True)
             else:
                 marker = f"{Colors.DIM}  {Colors.RESET}"
-                display = self.tool.get_item_display(item, False)
+                display = self.tool.get_item_display(item, selected=False)
 
             print(f"{marker}{display}", file=self.output)
 
         # Separator
         print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}", file=self.output)
-        print(f"{Colors.BOLD}{Colors.YELLOW} 📋 Item Details & Preview{Colors.RESET}", file=self.output)
+        print(
+            f"{Colors.BOLD}{Colors.YELLOW} 📋 Item Details & Preview{Colors.RESET}",
+            file=self.output,
+        )
         print(f"{Colors.YELLOW}{'─' * width}{Colors.RESET}", file=self.output)
 
         # Display preview
@@ -717,7 +954,7 @@ class CmdPicker:
 
             # Show preview content
             available_lines = self.preview_height - 3  # Account for headers
-            for i, line in enumerate(preview_lines[:available_lines]):
+            for line in preview_lines[:available_lines]:
                 # Truncate lines to fit terminal width
                 truncated_line = line[: width - 1] if line else ""
                 print(f"{Colors.DIM}{truncated_line}{Colors.RESET}", file=self.output)
@@ -728,19 +965,49 @@ class CmdPicker:
         for key, desc in additional_actions.items():
             controls.append(f"{key}: {desc}")
 
-        print(f"\n{Colors.DIM}Controls: {' | '.join(controls)}{Colors.RESET}", file=self.output)
+        print(
+            f"\n{Colors.DIM}Controls: {' | '.join(controls)}{Colors.RESET}",
+            file=self.output,
+        )
         self.output.flush()
 
-    def run(self) -> Dict[str, Any] | None:
+    def _move_selection(self, key: str) -> bool:
+        """Move within the list bounds and report whether a navigation key matched."""
+        if key in {"j", "\x1b[B"}:
+            self.selected_index = min(len(self.items) - 1, self.selected_index + 1)
+            return True
+        if key in {"k", "\x1b[A"}:
+            self.selected_index = max(0, self.selected_index - 1)
+            return True
+        return False
+
+    def _select_item(self) -> dict[str, Any] | None:
+        """Select an available item, optionally executing its backend action."""
+        item = self.items[self.selected_index]
+        if not self.tool.is_selectable(item):
+            return None
+        print("\033[H\033[2J", end="", file=self.output)
+        self.output.flush()
+        if self.execute_on_select:
+            self.tool.execute_action(item)
+        return item
+
+    def run(self) -> dict[str, Any] | None:
         """Run the picker interface and return the selected item, if any."""
         if not self.tool.is_available():
-            print(f"{Colors.RED}Error: {self.tool.name} is not available{Colors.RESET}", file=self.output)
+            print(
+                f"{Colors.RED}Error: {self.tool.name} is not available{Colors.RESET}",
+                file=self.output,
+            )
             sys.exit(1)
 
         self.items = self.tool.get_items()
 
         if not self.items:
-            print(f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}", file=self.output)
+            print(
+                f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}",
+                file=self.output,
+            )
             sys.exit(1)
 
         while True:
@@ -749,27 +1016,21 @@ class CmdPicker:
 
             if key == "q":
                 return None
-            elif key in ["j", "\x1b[B"]:  # j or down arrow
-                self.selected_index = min(len(self.items) - 1, self.selected_index + 1)
-            elif key in ["k", "\x1b[A"]:  # k or up arrow
-                self.selected_index = max(0, self.selected_index - 1)
-            elif key == "\r":  # Enter
-                selected_item = self.items[self.selected_index]
-                if not self.tool.is_selectable(selected_item):
-                    continue
-                print("\033[H\033[2J", end="", file=self.output)
-                self.output.flush()
-                if self.execute_on_select:
-                    self.tool.execute_action(selected_item)
-                return selected_item
-            else:
-                # Check additional actions
-                if self.tool.handle_additional_action(key, self.items[self.selected_index]):
-                    # Refresh items if action was handled and might have changed state
-                    self.items = self.tool.get_items()
-                    if not self.items:
-                        return None
-                    self.selected_index = min(self.selected_index, len(self.items) - 1)
+            if self._move_selection(key):
+                continue
+            if key == "\r":  # Enter
+                selected_item = self._select_item()
+                if selected_item is not None:
+                    return selected_item
+            # Check additional actions
+            elif self.tool.handle_additional_action(
+                key, self.items[self.selected_index]
+            ):
+                # Refresh items if action was handled and might have changed state
+                self.items = self.tool.get_items()
+                if not self.items:
+                    return None
+                self.selected_index = min(self.selected_index, len(self.items) - 1)
 
 
 TOOLS = {
@@ -780,7 +1041,8 @@ TOOLS = {
 }
 
 
-def main():
+def main() -> None:
+    """Parse the backend selection and launch the appropriate picker mode."""
     parser = argparse.ArgumentParser(
         description="Unified command picker for various tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -796,7 +1058,9 @@ Examples:
         """,
     )
 
-    parser.add_argument("tool", nargs="?", choices=list(TOOLS.keys()), help="Tool to use for picking")
+    parser.add_argument(
+        "tool", nargs="?", choices=list(TOOLS.keys()), help="Tool to use for picking"
+    )
     parser.add_argument(
         "--print-path",
         action="store_true",
@@ -815,7 +1079,9 @@ Examples:
         print("Available tools:\n")
         for name, tool in TOOLS.items():
             available = "✅" if tool.is_available() else "❌"
-            print(f"  {available} {Colors.GREEN}{name}{Colors.RESET}: {tool.description}")
+            print(
+                f"  {available} {Colors.GREEN}{name}{Colors.RESET}: {tool.description}"
+            )
         print("\nUsage: cmd-picker <tool>")
         return
 
@@ -828,8 +1094,10 @@ Examples:
         # Use /dev/tty for the interactive UI so it remains visible even when
         # stdout is captured by: dir="$(cmd-picker worktree --print-path)".
         try:
-            with open("/dev/tty", "r+") as tty_io:
-                picker = CmdPicker(tool, output=tty_io, input_stream=tty_io, execute_on_select=False)
+            with Path("/dev/tty").open("r+") as tty_io:
+                picker = CmdPicker(
+                    tool, output=tty_io, input_stream=tty_io, execute_on_select=False
+                )
                 selected_item = picker.run()
         except OSError:
             picker = CmdPicker(tool, output=sys.stderr, execute_on_select=False)

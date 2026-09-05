@@ -1,0 +1,10 @@
+# Keep documentation readable without enforcing a hard line-length limit.
+MD013: false
+
+# Allow the README logo while still checking other inline HTML.
+MD033:
+  allowed_elements: [img]
+
+# The README places its logo before the title heading.
+MD041:
+  allow_preamble: true

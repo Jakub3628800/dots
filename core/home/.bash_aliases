@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ls
-command -v eza &> /dev/null && alias ls="eza  -a --icons"
+command -v eza &>/dev/null && alias ls="eza  -a --icons"
 alias ll="ls -lh"
 
 # cd
@@ -18,10 +18,10 @@ alias gc='git checkout'
 alias gpf='git push --force'
 alias gds='git diff --staged'
 gbb() {
-  local branches branch
-  branches=$(git --no-pager branch -vv --sort=-committerdate) &&
-  branch=$(echo "$branches" | fzf +m) &&
-  git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
+    local branches branch
+    branches=$(git --no-pager branch -vv --sort=-committerdate) &&
+        branch=$(echo "$branches" | fzf +m) &&
+        git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
 }
 
 # tig
@@ -47,7 +47,7 @@ alias nv.='nvim .'
 alias nano='nvim'
 
 # other
-function rr() {  # retry cmd
+function rr() { # retry cmd
     until "$@"; do
         sleep 2
     done

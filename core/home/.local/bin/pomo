@@ -2,6 +2,8 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
+"""Run and record terminal Pomodoro sessions in a local SQLite database."""
+
 from __future__ import annotations
 
 import os
@@ -15,17 +17,25 @@ import termios
 import time
 import tty
 from dataclasses import dataclass
-from datetime import date, datetime, time as dt_time, timedelta
+from datetime import date, datetime, timedelta
+from datetime import time as dt_time
 from pathlib import Path
-from types import FrameType
-from typing import Callable, NoReturn, TextIO, cast
+from typing import TYPE_CHECKING, NoReturn, Self, TextIO, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import FrameType
 
 VERSION = "0.1.0"
+MAX_DURATION_MINUTES = 24 * 60
+DATE_PREFIX_LENGTH = len("YYYY-MM-DD")
+TAG_COLUMN_WIDTH = 32
+CONFIG_GET_ARG_COUNT = 2
+CONFIG_SET_ARG_COUNT = 3
 
 DB_PATH_ENV = "POMO_DB_PATH"
 DB_PATH = Path(
-    os.environ.get(DB_PATH_ENV)
-    or Path.home() / ".local" / "share" / "pomo" / "pomo.db"
+    os.environ.get(DB_PATH_ENV) or Path.home() / ".local" / "share" / "pomo" / "pomo.db"
 )
 
 SESSION_STATUSES = {"running", "completed", "cancelled"}
@@ -70,11 +80,13 @@ Config keys:
 
 
 class PomoError(Exception):
-    pass
+    """Report an expected user input, database, or terminal error."""
 
 
 @dataclass(frozen=True)
 class ConfigSpec:
+    """Describe a supported configuration key and its normalization function."""
+
     default: str
     validate: Callable[[str], str]
     description: str
@@ -82,6 +94,8 @@ class ConfigSpec:
 
 @dataclass(frozen=True)
 class Session:
+    """Represent a stored timer session with lazily parsed timestamps."""
+
     id: int
     start_time_raw: str
     end_time_raw: str | None
@@ -93,10 +107,12 @@ class Session:
 
     @property
     def start_time(self) -> datetime:
+        """Return the session start time in the local timezone."""
         return parse_datetime(self.start_time_raw)
 
     @property
     def end_time(self) -> datetime | None:
+        """Return the local end time, or None while the session is running."""
         if self.end_time_raw is None:
             return None
         return parse_datetime(self.end_time_raw)
@@ -104,35 +120,44 @@ class Session:
 
 @dataclass(frozen=True)
 class TimerArgs:
+    """Hold the duration override and tags supplied to a timer invocation."""
+
     duration_minutes: int | None
     tags: list[str]
 
 
 @dataclass(frozen=True)
 class ListArgs:
+    """Hold inclusive calendar-date bounds for listing sessions."""
+
     after: date | None
     before: date | None
 
 
 def validate_duration(value: str) -> str:
+    """Normalize a duration between one minute and one day."""
     try:
         minutes = int(value)
     except ValueError as exc:
-        raise PomoError("duration must be an integer number of minutes") from exc
+        msg = "duration must be an integer number of minutes"
+        raise PomoError(msg) from exc
 
-    if minutes < 1 or minutes > 1440:
-        raise PomoError("duration must be between 1 and 1440 minutes")
+    if minutes < 1 or minutes > MAX_DURATION_MINUTES:
+        msg = "duration must be between 1 and 1440 minutes"
+        raise PomoError(msg)
 
     return str(minutes)
 
 
 def validate_bool(value: str) -> str:
+    """Normalize common boolean spellings to true or false."""
     normalized = value.strip().lower()
     if normalized in {"true", "1", "yes", "on"}:
         return "true"
     if normalized in {"false", "0", "no", "off"}:
         return "false"
-    raise PomoError("boolean config values must be true or false")
+    msg = "boolean config values must be true or false"
+    raise PomoError(msg)
 
 
 CONFIG_SPECS: dict[str, ConfigSpec] = {
@@ -155,23 +180,32 @@ CONFIG_SPECS: dict[str, ConfigSpec] = {
 
 
 class RawTerminal:
+    """Read individual terminal keys while restoring settings on exit."""
+
     def __init__(self, stream: TextIO) -> None:
+        """Remember the input stream and its terminal file descriptor."""
         self._stream = stream
         self._fd = stream.fileno()
         self._old_attrs: list[int | list[bytes | int]] | None = None
 
-    def __enter__(self) -> RawTerminal:
+    def __enter__(self) -> Self:
+        """Enable cbreak mode on an interactive terminal."""
         if not self._stream.isatty():
-            raise PomoError("timer requires an interactive terminal")
-        self._old_attrs = cast(list[int | list[bytes | int]], termios.tcgetattr(self._fd))
+            msg = "timer requires an interactive terminal"
+            raise PomoError(msg)
+        self._old_attrs = cast(
+            "list[int | list[bytes | int]]", termios.tcgetattr(self._fd)
+        )
         tty.setcbreak(self._fd)
         return self
 
     def __exit__(self, _exc_type: object, _exc: object, _tb: object) -> None:
+        """Restore the terminal attributes even when the timer fails."""
         if self._old_attrs is not None:
             termios.tcsetattr(self._fd, termios.TCSADRAIN, self._old_attrs)
 
     def read_key(self, timeout_seconds: float) -> str | None:
+        """Return a normalized key, or None if no decodable input is ready."""
         readable, _, _ = select.select([self._stream], [], [], timeout_seconds)
         if not readable:
             return None
@@ -190,6 +224,7 @@ class RawTerminal:
 
 
 def connect() -> sqlite3.Connection:
+    """Open and initialize the user's timer database."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -199,6 +234,7 @@ def connect() -> sqlite3.Connection:
 
 
 def initialize_db(conn: sqlite3.Connection) -> None:
+    """Migrate session data and populate any missing configuration defaults."""
     with conn:
         ensure_pomodori_table(conn)
         ensure_single_running_session(conn)
@@ -222,6 +258,7 @@ def initialize_db(conn: sqlite3.Connection) -> None:
 
 
 def ensure_single_running_session(conn: sqlite3.Connection) -> None:
+    """Cancel older active sessions and enforce at most one running timer."""
     running_rows = conn.execute(
         """
         SELECT id
@@ -252,6 +289,7 @@ def ensure_single_running_session(conn: sqlite3.Connection) -> None:
 
 
 def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
+    """Create the session table or migrate supported legacy schemas."""
     if not table_exists(conn, "pomodori"):
         create_pomodori_table(conn, "pomodori")
         return
@@ -302,7 +340,8 @@ def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
     conn.execute(
         f"""
         INSERT INTO pomodori_new (
-            id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
+            id, start_time, end_time, duration_minutes, status, tags,
+            process_id, created_at
         )
         SELECT
             id,
@@ -314,13 +353,15 @@ def ensure_pomodori_table(conn: sqlite3.Connection) -> None:
             {process_id_expr},
             COALESCE({created_expr}, {start_expr})
         FROM pomodori
-        """
+        """  # noqa: S608 - Interpolated expressions are fixed schema constants above.
     )
     conn.execute("DROP TABLE pomodori")
     conn.execute("ALTER TABLE pomodori_new RENAME TO pomodori")
 
 
 def create_pomodori_table(conn: sqlite3.Connection, table_name: str) -> None:
+    """Create a session table under an internal migration table name."""
+    _validate_table_name(table_name)
     conn.execute(
         f"""
         CREATE TABLE {table_name} (
@@ -338,6 +379,7 @@ def create_pomodori_table(conn: sqlite3.Connection, table_name: str) -> None:
 
 
 def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
+    """Check whether the SQLite database contains the named table."""
     row = conn.execute(
         "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
         (table_name,),
@@ -345,20 +387,32 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
     return row is not None
 
 
+def _validate_table_name(table_name: str) -> None:
+    """Restrict interpolated identifiers to the two internal session tables."""
+    if table_name not in {"pomodori", "pomodori_new"}:
+        message = f"unsupported session table: {table_name}"
+        raise PomoError(message)
+
+
 def table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    """Return the column names of an internal session table."""
+    _validate_table_name(table_name)
     rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
     return {str(row["name"]) for row in rows}
 
 
 def now_local() -> datetime:
+    """Return the current time as a timezone-aware local datetime."""
     return datetime.now().astimezone()
 
 
 def format_datetime(value: datetime) -> str:
+    """Serialize a local timestamp to ISO 8601 with second precision."""
     return value.astimezone().isoformat(timespec="seconds")
 
 
 def parse_datetime(value: str) -> datetime:
+    """Parse stored ISO timestamps and normalize them to the local timezone."""
     normalized = value.strip()
     if normalized.endswith("Z"):
         normalized = f"{normalized[:-1]}+00:00"
@@ -374,9 +428,10 @@ def parse_datetime(value: str) -> datetime:
 
 
 def parse_datetime_with_trimmed_fraction(value: str) -> datetime:
+    """Retry parsing a legacy timestamp using six fractional-second digits."""
     for sign in ("+", "-"):
         split_at = value.rfind(sign)
-        if split_at > 10:
+        if split_at > DATE_PREFIX_LENGTH:
             main = value[:split_at]
             tz_part = value[split_at:]
             break
@@ -386,7 +441,8 @@ def parse_datetime_with_trimmed_fraction(value: str) -> datetime:
 
     dot_at = main.rfind(".")
     if dot_at == -1:
-        raise PomoError(f"could not parse datetime: {value}")
+        msg = f"could not parse datetime: {value}"
+        raise PomoError(msg)
 
     prefix = main[:dot_at]
     fraction = main[dot_at + 1 :]
@@ -394,19 +450,24 @@ def parse_datetime_with_trimmed_fraction(value: str) -> datetime:
     try:
         return datetime.fromisoformat(trimmed)
     except ValueError as exc:
-        raise PomoError(f"could not parse datetime: {value}") from exc
+        msg = f"could not parse datetime: {value}"
+        raise PomoError(msg) from exc
 
 
 def parse_date(value: str) -> date:
+    """Parse a calendar date or report the expected command-line format."""
     try:
         return date.fromisoformat(value)
     except ValueError as exc:
-        raise PomoError(f"invalid date {value!r}; expected YYYY-MM-DD") from exc
+        msg = f"invalid date {value!r}; expected YYYY-MM-DD"
+        raise PomoError(msg) from exc
 
 
 def get_config(conn: sqlite3.Connection, key: str) -> str:
+    """Read a supported configuration key, falling back to its default."""
     if key not in CONFIG_SPECS:
-        raise PomoError(f"unknown config key: {key}")
+        msg = f"unknown config key: {key}"
+        raise PomoError(msg)
 
     row = conn.execute("SELECT value FROM config WHERE key = ?", (key,)).fetchone()
     if row is None or row["value"] is None:
@@ -415,9 +476,11 @@ def get_config(conn: sqlite3.Connection, key: str) -> str:
 
 
 def set_config(conn: sqlite3.Connection, key: str, value: str) -> str:
+    """Validate and persist a setting, returning its normalized value."""
     spec = CONFIG_SPECS.get(key)
     if spec is None:
-        raise PomoError(f"unknown config key: {key}")
+        msg = f"unknown config key: {key}"
+        raise PomoError(msg)
 
     normalized = spec.validate(value)
     with conn:
@@ -435,10 +498,12 @@ def set_config(conn: sqlite3.Connection, key: str, value: str) -> str:
 
 
 def get_bool_config(conn: sqlite3.Connection, key: str) -> bool:
+    """Return whether a stored boolean setting is enabled."""
     return get_config(conn, key) == "true"
 
 
 def get_default_duration(conn: sqlite3.Connection) -> int:
+    """Return the configured default timer duration in minutes."""
     return int(get_config(conn, "default_duration_minutes"))
 
 
@@ -448,12 +513,14 @@ def create_running_session(
     tags: list[str],
     started_at: datetime,
 ) -> int:
+    """Insert a running session, rejecting another active timer atomically."""
     try:
         with conn:
             cursor = conn.execute(
                 """
                 INSERT INTO pomodori (
-                    start_time, end_time, duration_minutes, status, tags, process_id, created_at
+                    start_time, end_time, duration_minutes, status, tags,
+                    process_id, created_at
                 )
                 VALUES (?, NULL, ?, 'running', ?, ?, ?)
                 """,
@@ -466,13 +533,16 @@ def create_running_session(
                 ),
             )
     except sqlite3.IntegrityError as exc:
-        raise PomoError("a pomodoro is already running") from exc
+        msg = "a pomodoro is already running"
+        raise PomoError(msg) from exc
     return int(cursor.lastrowid)
 
 
 def finish_session(conn: sqlite3.Connection, session_id: int, status: str) -> None:
+    """Mark a session completed or cancelled and clear its process identifier."""
     if status not in {"completed", "cancelled"}:
-        raise PomoError(f"invalid finished status: {status}")
+        msg = f"invalid finished status: {status}"
+        raise PomoError(msg)
 
     with conn:
         conn.execute(
@@ -486,9 +556,11 @@ def finish_session(conn: sqlite3.Connection, session_id: int, status: str) -> No
 
 
 def get_active_session(conn: sqlite3.Connection) -> Session | None:
+    """Return the most recently started active session, if one exists."""
     row = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags,
+               process_id, created_at
         FROM pomodori
         WHERE status = 'running' AND end_time IS NULL
         ORDER BY start_time DESC
@@ -501,10 +573,12 @@ def get_active_session(conn: sqlite3.Connection) -> Session | None:
 
 
 def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
+    """Cancel sessions whose owning processes are no longer running."""
     current_time = now_local()
     rows = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags,
+               process_id, created_at
         FROM pomodori
         WHERE status = 'running' AND end_time IS NULL
         """
@@ -513,7 +587,9 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
     stale_ids: list[int] = []
     for row in rows:
         session = row_to_session(row)
-        if session.process_id is not None and not process_is_running(session.process_id):
+        if session.process_id is not None and not process_is_running(
+            session.process_id
+        ):
             stale_ids.append(session.id)
 
     if not stale_ids:
@@ -531,6 +607,7 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
 
 
 def process_is_running(process_id: int) -> bool:
+    """Check process existence without treating permission denial as absence."""
     if process_id <= 0:
         return False
 
@@ -544,9 +621,11 @@ def process_is_running(process_id: int) -> bool:
 
 
 def list_sessions(conn: sqlite3.Connection, args: ListArgs) -> list[Session]:
+    """Return sessions newest first within inclusive local calendar dates."""
     rows = conn.execute(
         """
-        SELECT id, start_time, end_time, duration_minutes, status, tags, process_id, created_at
+        SELECT id, start_time, end_time, duration_minutes, status, tags,
+               process_id, created_at
         FROM pomodori
         """
     ).fetchall()
@@ -554,16 +633,21 @@ def list_sessions(conn: sqlite3.Connection, args: ListArgs) -> list[Session]:
 
     if args.after is not None:
         after_start = datetime.combine(args.after, dt_time.min).astimezone()
-        sessions = [session for session in sessions if session.start_time >= after_start]
+        sessions = [
+            session for session in sessions if session.start_time >= after_start
+        ]
 
     if args.before is not None:
-        before_end = datetime.combine(args.before + timedelta(days=1), dt_time.min).astimezone()
+        before_end = datetime.combine(
+            args.before + timedelta(days=1), dt_time.min
+        ).astimezone()
         sessions = [session for session in sessions if session.start_time < before_end]
 
     return sorted(sessions, key=lambda session: session.start_time, reverse=True)
 
 
 def row_to_session(row: sqlite3.Row) -> Session:
+    """Convert a database row into a session with normalized optional fields."""
     status = str(row["status"])
     if status not in SESSION_STATUSES:
         status = "cancelled"
@@ -584,10 +668,13 @@ def row_to_session(row: sqlite3.Row) -> Session:
 
 
 def run_playerctl(command: str) -> None:
-    if shutil.which("playerctl") is None:
+    """Send an optional media-control command without failing the timer."""
+    executable = shutil.which("playerctl")
+    if executable is None:
         return
-    subprocess.run(
-        ["playerctl", command],
+    # The command is an internal action passed as one argument, without a shell.
+    subprocess.run(  # noqa: S603
+        [executable, command],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=False,
@@ -595,27 +682,33 @@ def run_playerctl(command: str) -> None:
 
 
 def play_music(conn: sqlite3.Connection) -> None:
+    """Start or resume media playback when music control is enabled."""
     if get_bool_config(conn, "music_control_enabled"):
         run_playerctl("play")
 
 
 def pause_music(conn: sqlite3.Connection) -> None:
+    """Pause media playback when music control is enabled."""
     if get_bool_config(conn, "music_control_enabled"):
         run_playerctl("pause")
 
 
 def stop_music(conn: sqlite3.Connection) -> None:
+    """Stop media playback when music control is enabled."""
     if get_bool_config(conn, "music_control_enabled"):
         run_playerctl("stop")
 
 
 def send_notification(conn: sqlite3.Connection, message: str) -> None:
+    """Send a completion notification when configured and available."""
     if not get_bool_config(conn, "notifications_enabled"):
         return
-    if shutil.which("notify-send") is None:
+    executable = shutil.which("notify-send")
+    if executable is None:
         return
-    subprocess.run(
-        ["notify-send", message],
+    # Notification text is a single argument; no shell interprets its contents.
+    subprocess.run(  # noqa: S603
+        [executable, message],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=False,
@@ -623,16 +716,19 @@ def send_notification(conn: sqlite3.Connection, message: str) -> None:
 
 
 def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
+    """Run an interactive session and finalize its database and media state."""
     parsed = parse_timer_args(args)
     cleanup_stale_running_sessions(conn)
 
     active = get_active_session(conn)
     if active is not None:
         start = active.start_time.strftime("%Y-%m-%d %H:%M:%S")
-        raise PomoError(f"a pomodoro is already running since {start}")
+        msg = f"a pomodoro is already running since {start}"
+        raise PomoError(msg)
 
     if not sys.stdin.isatty():
-        raise PomoError("timer requires an interactive terminal")
+        msg = "timer requires an interactive terminal"
+        raise PomoError(msg)
 
     duration = parsed.duration_minutes or get_default_duration(conn)
     session_id: int | None = None
@@ -661,11 +757,18 @@ def run_timer_command(conn: sqlite3.Connection, args: list[str]) -> None:
         print("\nCancelled.")
 
 
+def _invoke_callback(callback: Callable[[], None] | None) -> None:
+    """Invoke an optional timer event handler."""
+    if callback is not None:
+        callback()
+
+
 def run_timer(
     duration_minutes: int,
     on_pause: Callable[[], None] | None = None,
     on_resume: Callable[[], None] | None = None,
 ) -> bool:
+    """Poll terminal input until a monotonic timer completes or is cancelled."""
     duration = timedelta(minutes=duration_minutes)
     started = time.monotonic()
     paused = False
@@ -697,19 +800,19 @@ def run_timer(
                         paused_total += time.monotonic() - paused_at
                     paused_at = None
                     paused = False
-                    if on_resume is not None:
-                        on_resume()
+                    _invoke_callback(on_resume)
                 else:
                     paused_at = time.monotonic()
                     paused = True
-                    if on_pause is not None:
-                        on_pause()
+                    _invoke_callback(on_pause)
 
 
-def render_timer(elapsed: timedelta, duration: timedelta, paused: bool, done: bool) -> None:
+def render_timer(
+    elapsed: timedelta, duration: timedelta, *, paused: bool, done: bool
+) -> None:
+    """Render the remaining time, progress bar, and keyboard controls."""
     remaining = duration - elapsed
-    if remaining < timedelta():
-        remaining = timedelta()
+    remaining = max(remaining, timedelta())
 
     total_seconds = int(remaining.total_seconds())
     minutes = total_seconds // 60
@@ -731,6 +834,7 @@ def render_timer(elapsed: timedelta, duration: timedelta, paused: bool, done: bo
 
 
 def terminal_width() -> int:
+    """Return the terminal column count with a conservative fallback."""
     try:
         return shutil.get_terminal_size().columns
     except OSError:
@@ -738,6 +842,7 @@ def terminal_width() -> int:
 
 
 def parse_timer_args(args: list[str]) -> TimerArgs:
+    """Parse duration and repeatable tags while preserving help behavior."""
     duration: int | None = None
     tags: list[str] = []
     index = 0
@@ -750,29 +855,29 @@ def parse_timer_args(args: list[str]) -> TimerArgs:
         if arg in {"-d", "--duration"}:
             index += 1
             if index >= len(args):
-                raise PomoError(f"{arg} requires a value")
+                msg = f"{arg} requires a value"
+                raise PomoError(msg)
             duration = int(validate_duration(args[index]))
-        elif arg.startswith("--duration="):
-            duration = int(validate_duration(arg.removeprefix("--duration=")))
-        elif arg.startswith("-d="):
-            duration = int(validate_duration(arg.removeprefix("-d=")))
+        elif arg.startswith(("--duration=", "-d=")):
+            duration = int(validate_duration(arg.partition("=")[2]))
         elif arg in {"-t", "--tag"}:
             index += 1
             if index >= len(args):
-                raise PomoError(f"{arg} requires a value")
+                msg = f"{arg} requires a value"
+                raise PomoError(msg)
             tags.append(args[index])
-        elif arg.startswith("--tag="):
-            tags.append(arg.removeprefix("--tag="))
-        elif arg.startswith("-t="):
-            tags.append(arg.removeprefix("-t="))
+        elif arg.startswith(("--tag=", "-t=")):
+            tags.append(arg.partition("=")[2])
         else:
-            raise PomoError(f"unknown timer argument: {arg}")
+            msg = f"unknown timer argument: {arg}"
+            raise PomoError(msg)
         index += 1
 
     return TimerArgs(duration_minutes=duration, tags=tags)
 
 
 def parse_list_args(args: list[str]) -> ListArgs:
+    """Parse inclusive before and after calendar-date filters."""
     after: date | None = None
     before: date | None = None
     index = 0
@@ -785,25 +890,29 @@ def parse_list_args(args: list[str]) -> ListArgs:
         if arg == "--after":
             index += 1
             if index >= len(args):
-                raise PomoError("--after requires a value")
+                msg = "--after requires a value"
+                raise PomoError(msg)
             after = parse_date(args[index])
         elif arg.startswith("--after="):
             after = parse_date(arg.removeprefix("--after="))
         elif arg == "--before":
             index += 1
             if index >= len(args):
-                raise PomoError("--before requires a value")
+                msg = "--before requires a value"
+                raise PomoError(msg)
             before = parse_date(args[index])
         elif arg.startswith("--before="):
             before = parse_date(arg.removeprefix("--before="))
         else:
-            raise PomoError(f"unknown list argument: {arg}")
+            msg = f"unknown list argument: {arg}"
+            raise PomoError(msg)
         index += 1
 
     return ListArgs(after=after, before=before)
 
 
 def run_list_command(conn: sqlite3.Connection, args: list[str]) -> None:
+    """Clean up stale sessions and print the requested date range."""
     parsed = parse_list_args(args)
     cleanup_stale_running_sessions(conn)
     sessions = list_sessions(conn, parsed)
@@ -811,23 +920,28 @@ def run_list_command(conn: sqlite3.Connection, args: list[str]) -> None:
 
 
 def run_today_command(conn: sqlite3.Connection) -> None:
+    """List sessions started during the current local calendar day."""
     today = now_local().date().isoformat()
     run_list_command(conn, ["--after", today, "--before", today])
 
 
 def print_session_table(sessions: list[Session]) -> None:
+    """Display a compact session table or explain that no sessions exist."""
     if not sessions:
         print("No pomodoro sessions recorded yet.")
         return
 
     print("-" * 96)
-    print(f"{'ID':<5} {'Date':<12} {'Duration':<10} {'Status':<10} {'Start':<8} {'Tags':<32}")
+    print(
+        f"{'ID':<5} {'Date':<12} {'Duration':<10} "
+        f"{'Status':<10} {'Start':<8} {'Tags':<32}"
+    )
     print("-" * 96)
     for session in sessions:
         started = session.start_time
         tags = session.tags or ""
-        if len(tags) > 32:
-            tags = f"{tags[:29]}..."
+        if len(tags) > TAG_COLUMN_WIDTH:
+            tags = f"{tags[: TAG_COLUMN_WIDTH - len('...')]}..."
         print(
             f"{session.id:<5} "
             f"{started.strftime('%Y-%m-%d'):<12} "
@@ -841,9 +955,11 @@ def print_session_table(sessions: list[Session]) -> None:
 
 
 def run_config_command(conn: sqlite3.Connection, args: list[str]) -> None:
+    """Dispatch configuration listing, reading, and validated updates."""
     if not args or args[0] == "list":
         if len(args) > 1:
-            raise PomoError("config list does not accept arguments")
+            msg = "config list does not accept arguments"
+            raise PomoError(msg)
         print_config(conn)
         return
 
@@ -853,22 +969,26 @@ def run_config_command(conn: sqlite3.Connection, args: list[str]) -> None:
         return
 
     if command == "get":
-        if len(args) != 2:
-            raise PomoError("usage: pomo config get <key>")
+        if len(args) != CONFIG_GET_ARG_COUNT:
+            msg = "usage: pomo config get <key>"
+            raise PomoError(msg)
         print(get_config(conn, args[1]))
         return
 
     if command == "set":
-        if len(args) != 3:
-            raise PomoError("usage: pomo config set <key> <value>")
+        if len(args) != CONFIG_SET_ARG_COUNT:
+            msg = "usage: pomo config set <key> <value>"
+            raise PomoError(msg)
         normalized = set_config(conn, args[1], args[2])
         print(f"{args[1]} = {normalized}")
         return
 
-    raise PomoError(f"unknown config command: {command}")
+    msg = f"unknown config command: {command}"
+    raise PomoError(msg)
 
 
 def print_config(conn: sqlite3.Connection) -> None:
+    """Print supported settings alongside their values and descriptions."""
     width = max(len(key) for key in CONFIG_SPECS)
     for key, spec in CONFIG_SPECS.items():
         value = get_config(conn, key)
@@ -876,6 +996,7 @@ def print_config(conn: sqlite3.Connection) -> None:
 
 
 def main(argv: list[str]) -> int:
+    """Dispatch the command line and return a status for expected user errors."""
     if argv and argv[0] in {"-h", "--help", "help"}:
         print(HELP)
         return 0
@@ -905,6 +1026,7 @@ def main(argv: list[str]) -> int:
 
 
 def handle_termination_signal(_signum: int, _frame: FrameType | None) -> NoReturn:
+    """Convert termination signals into the timer's normal cleanup path."""
     raise KeyboardInterrupt
 
 

@@ -2,10 +2,10 @@
 set -eu
 
 for cmd in grim slurp wl-copy; do
-	if ! command -v "$cmd" >/dev/null 2>&1; then
-		echo "$cmd is required" >&2
-		exit 1
-	fi
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "$cmd is required" >&2
+        exit 1
+    fi
 done
 
 geometry=$(slurp)
