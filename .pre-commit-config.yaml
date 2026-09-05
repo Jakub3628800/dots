@@ -7,6 +7,9 @@
 #
 # To regenerate: pre-commit-template [--interactive]
 # ===============================================================================
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
 repos:
   # =====================
   # Base hooks
@@ -42,6 +45,10 @@ repos:
       name: Check for case conflicts
     - id: check-executables-have-shebangs
       name: Check executables have shebangs
+    - id: check-symlinks
+      name: Check tracked symlink targets
+    - id: destroyed-symlinks
+      name: Check for symlinks replaced with text
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
@@ -68,6 +75,43 @@ repos:
       name: Lint shell scripts with ShellCheck
       files: (^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases)$
 
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+    - id: shfmt
+      name: Format shell scripts with shfmt
+      args: [--write, --indent, '4']
+      files: (^|/)([^/]*\.sh|screencopy|screensave|pass-type|\.bash_aliases)$
+      exclude_types: [csh, tcsh, zsh]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
+    hooks:
+    - id: ruff-check
+      name: Lint Python with Ruff
+      args:
+      - --isolated
+      - --target-version=py312
+      - --select=ALL
+      - --fix
+      # COM812 overlaps the formatter; D203/D213 conflict with D211/D212.
+      # CPY001 would require inventing a repository copyright-header policy.
+      - --ignore=COM812,D203,D213,CPY001
+      # These programs deliberately print their CLI output, not debug messages.
+      - --per-file-ignores=core/home/.local/bin/cmd-picker:T201
+      - --per-file-ignores=core/home/.local/bin/pomo:T201
+      # Keep assertions native to the existing dependency-free unittest runner.
+      - --per-file-ignores=tests/*.py:PT009
+      - --per-file-ignores=tests/*.py:PT027
+      # The extensionless utilities use a uv shebang, not a Python shebang.
+      types_or: [file]
+      files: (^|/)(cmd-picker|pomo|.*\.py)$
+    - id: ruff-format
+      name: Format Python with Ruff
+      args: [--isolated, --target-version=py312]
+      types_or: [file]
+      files: (^|/)(cmd-picker|pomo|.*\.py)$
+
   - repo: local
     hooks:
     - id: zsh-syntax
@@ -85,14 +129,37 @@ repos:
       entry: python3 -m unittest discover -s tests
       language: system
       pass_filenames: false
-      files: (^|/)(cmd-picker|pomo|test_.*\.py|nvim/Makefile|nvim/test-config\.lua)$
+      files: (^|/)(cmd-picker|pomo)$|^tests/.*\.py$|^nvim/(Makefile|test-config\.lua)$
 
   - repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2
     hooks:
     - id: stylua
       name: Format Lua with StyLua
-      files: ^nvim/.+\.lua$
+      files: ^(nvim/.+\.lua|desktop/home/\.wezterm\.lua)$
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.2
+    hooks:
+    - id: markdownlint-cli2
+      name: Lint Markdown
+      # Use a full version for compatibility with pre-commit's nodeenv runner.
+      language_version: '22.23.2'
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.50.1
+    hooks:
+    - id: typos
+      name: Check spelling with typos
+      # Report rather than rewrite identifiers or configuration values.
+      args: [--force-exclude]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+    - id: conventional-pre-commit
+      name: Check Conventional Commit messages
+      stages: [commit-msg]
 
   # =====================
   # GitHub Actions hooks

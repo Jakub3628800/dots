@@ -1,0 +1,7 @@
+[default.extend-words]
+# Neovim UI plugin (folke/noice.nvim).
+noice = "noice"
+
+[default.extend-identifiers]
+# Ruff's copyright-header rule identifier.
+CPY001 = "CPY001"
