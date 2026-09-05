@@ -21,10 +21,9 @@ from abc import ABC, abstractmethod
 
 ANSI_ESCAPE_RE = re.compile(
     r"""
-    \x1b\][^\x07]*(?:\x07|\x1b\\|$)
+    (?:\x1b\]|\x9d)[^\x07]*?(?:\x07|\x1b\\|\x9c|$)
     |\x1b(?:P|X|\^|_)[\s\S]*?(?:\x1b\\|$)
     |\x1b\[[0-?]*[ -/]*[@-~]
-    |\x9d[^\x07]*(?:\x07|\x1b\\|\x9c|$)
     |[\x90\x98\x9e\x9f][\s\S]*?(?:\x9c|$)
     |\x9b[0-?]*[ -/]*[@-~]
     |\x1b(?:\([0-2A-Z]|\)[0-2A-Z])

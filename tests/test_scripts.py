@@ -66,6 +66,25 @@ class CmdPickerTests(unittest.TestCase):
 
         self.assertEqual("beforeredafter\n", cmd_picker.sanitize_terminal_text(text))
 
+    def test_sanitize_terminal_text_preserves_osc_hyperlink_labels_and_suffixes(self):
+        for opener in ("\x1b]", "\x9d"):
+            for terminator in ("\x07", "\x1b\\", "\x9c"):
+                with self.subTest(opener=repr(opener), terminator=repr(terminator)):
+                    text = (
+                        f"before{opener}8;;https://example.com{terminator}"
+                        f"label{opener}8;;{terminator}after\nnext line"
+                    )
+                    self.assertEqual(
+                        "beforelabelafter\nnext line", cmd_picker.sanitize_terminal_text(text)
+                    )
+
+    def test_sanitize_terminal_text_removes_unterminated_osc(self):
+        for opener in ("\x1b]", "\x9d"):
+            with self.subTest(opener=repr(opener)):
+                self.assertEqual(
+                    "before", cmd_picker.sanitize_terminal_text(f"before{opener}52;c;secret")
+                )
+
     def test_tmux_display_sanitizes_session_metadata(self):
         display = cmd_picker.TmuxTool().get_item_display(
             {"name": "session\x1b[31m", "windows": "1\x1b]52;c;secret\x07"}, selected=False
