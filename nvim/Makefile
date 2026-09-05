@@ -1,4 +1,5 @@
 STOW_FLAGS ?=
+NVIM ?= /opt/nvim-linux64/bin/nvim
 
 .PHONY: install update upgrade clean help stow unstow test install-nvim
 
@@ -12,10 +13,11 @@ clean: unstow
 
 test:
 	@echo "Loading the Neovim configuration..."
-	@if [ -x "/opt/nvim-linux64/bin/nvim" ]; then \
-		/opt/nvim-linux64/bin/nvim --headless -i NONE -u home/.config/nvim/init.lua +qa; \
+	@if [ -x "$(NVIM)" ]; then \
+		XDG_CONFIG_HOME="$(CURDIR)/home/.config" NVIM_APPNAME=nvim \
+			"$(NVIM)" --headless -i NONE -u NONE -l test-config.lua; \
 	else \
-		echo "Neovim not installed"; \
+		echo "Neovim not installed at $(NVIM)"; \
 		exit 1; \
 	fi
 

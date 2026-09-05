@@ -85,14 +85,14 @@ repos:
       entry: python3 -m unittest discover -s tests
       language: system
       pass_filenames: false
-      files: (^|/)(cmd-picker|pomo|test_scripts\.py)$
+      files: (^|/)(cmd-picker|pomo|test_.*\.py|nvim/Makefile|nvim/test-config\.lua)$
 
   - repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2
     hooks:
     - id: stylua
       name: Format Lua with StyLua
-      files: ^nvim/home/.+\.lua$
+      files: ^nvim/.+\.lua$
 
   # =====================
   # GitHub Actions hooks
