@@ -13,7 +13,7 @@ set $mod Mod4
 
 # set default apps
 set $browser google-chrome
-set $terminal wezterm
+set $terminal ghostty
 
 # Machine-local values can override the defaults above.
 include ~/.config/sway/config.local
@@ -49,7 +49,7 @@ floating_modifier $mod
 # ____________________________________________________________________________
 
 # Start a terminal
-bindsym $mod+Return exec $terminal start -- zsh
+bindsym $mod+Return exec $terminal -e zsh
 
 # kill focused window
 bindsym $mod+c kill
@@ -252,11 +252,11 @@ exec {
   swayidle -w before-sleep 'swaylock -f'
   systemctl --user start kanshi.service
   systemctl --user start gammastep.service
-  swaymsg 'workspace 1; exec $terminal start -- bash -c "cd ~/repos; zsh"'
+  swaymsg 'workspace 1; exec $terminal -e bash -c "cd ~/repos; zsh"'
   swaymsg 'workspace 2; exec $browser'
-  swaymsg 'workspace 3; exec $terminal start -- bash -c "cd ~/repos/dots; zsh"'
-  swaymsg 'workspace 4; exec $terminal start'
-  swaymsg 'workspace 5; exec $terminal start'
+  swaymsg 'workspace 3; exec $terminal -e bash -c "cd ~/repos/dots; zsh"'
+  swaymsg 'workspace 4; exec $terminal'
+  swaymsg 'workspace 5; exec $terminal'
   command -v 1password >/dev/null && 1password
 
 }
