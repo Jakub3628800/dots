@@ -1,3 +1,6 @@
+# Install Neovim before linking, even with make -j.
+.NOTPARALLEL:
+
 STOW_FLAGS ?=
 NVIM ?= /opt/nvim-linux64/bin/nvim
 
