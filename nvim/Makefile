@@ -4,7 +4,7 @@
 STOW_FLAGS ?=
 NVIM ?= /opt/nvim-linux64/bin/nvim
 
-.PHONY: install update upgrade clean help stow unstow test install-nvim
+.PHONY: install update upgrade clean help stow unstow test prepare-test install-nvim
 
 install: install-nvim stow
 
@@ -14,15 +14,13 @@ upgrade: install-nvim stow
 
 clean: unstow
 
+# Explicit network-dependent setup, kept out of normal fast checks.
+prepare-test:
+	@sh ./run-test.sh "$(NVIM)" prepare
+
 test:
-	@echo "Loading the Neovim configuration..."
-	@if [ -x "$(NVIM)" ]; then \
-		XDG_CONFIG_HOME="$(CURDIR)/home/.config" NVIM_APPNAME=nvim \
-			"$(NVIM)" --headless -i NONE -u NONE -l test-config.lua; \
-	else \
-		echo "Neovim not installed at $(NVIM)"; \
-		exit 1; \
-	fi
+	@echo "Loading the Neovim configuration in an isolated temporary home..."
+	@sh ./run-test.sh "$(NVIM)" check
 
 stow:
 	@stow -R -v -d . -t $(HOME) --no-folding $(STOW_FLAGS) home
@@ -34,4 +32,4 @@ install-nvim:
 	@./install-nvim.sh
 
 help:
-	@echo "Neovim targets: install update upgrade stow unstow test clean"
+	@echo "Neovim targets: install update upgrade stow unstow prepare-test test clean"
