@@ -98,8 +98,9 @@ Machine-specific settings stay outside the repository:
 - `~/.zshrc_local` for machine-specific paths and shell startup.
 - `~/.config/sway/config.local` for Sway variable or input overrides.
 
-Both terminal configs are linked. Sway currently starts WezTerm; the Ghostty
-config is available for manual use while the transition is in progress.
+Both terminal configs are linked. Sway starts Ghostty by default; the WezTerm
+config remains available for manual use. Override `$terminal` in
+`~/.config/sway/config.local` to select a different terminal.
 WezTerm, Ghostty, Google Chrome, Slack, and 1Password are intentionally not
 installed by these Makefiles. Slack and 1Password are started only when found;
 install the terminal/browser you use or override the Sway defaults locally.
