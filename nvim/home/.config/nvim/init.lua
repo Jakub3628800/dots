@@ -314,34 +314,6 @@ local TMUX_SESSION = vim.g.tmux_test_session or "test"
 local TMUX_CAPTURE_LINES = 1000
 local MAX_OUTPUT_LINES = 50
 
--- Helper: Find code block boundaries around cursor
-local function find_code_block_bounds()
-	local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
-	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-
-	-- Find start of code block
-	local start_line = nil
-	for i = cursor_line, 1, -1 do
-		if lines[i] and lines[i]:match("^```") then
-			start_line = i
-			break
-		end
-	end
-
-	if not start_line then
-		return nil, nil
-	end
-
-	-- Find end of code block
-	for i = cursor_line, #lines do
-		if lines[i] and lines[i]:match("^```") and i ~= start_line then
-			return start_line, i
-		end
-	end
-
-	return nil, nil
-end
-
 -- Helper: Extract code content from block
 local function extract_code_content(start_line, end_line)
 	local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line - 1, false)
@@ -350,7 +322,10 @@ end
 
 -- Yank code block content
 vim.keymap.set("n", "<space>yc", function()
-	local start_line, end_line = find_code_block_bounds()
+	local start_line, end_line = require("code-block").find_bounds(
+		vim.api.nvim_buf_get_lines(0, 0, -1, false),
+		vim.api.nvim_win_get_cursor(0)[1]
+	)
 
 	if not start_line or not end_line then
 		vim.api.nvim_echo({ { "No code block found", "ErrorMsg" } }, true, {})
@@ -360,57 +335,6 @@ vim.keymap.set("n", "<space>yc", function()
 	vim.fn.setreg("+", extract_code_content(start_line, end_line))
 	vim.api.nvim_echo({ { "Code block copied to clipboard", "Normal" } }, true, {})
 end, { noremap = true, silent = true, desc = "Yank code block content" })
-
--- Send code block to tmux session
-vim.keymap.set("n", "<space>yt", function()
-	local start_line, end_line = find_code_block_bounds()
-
-	if not start_line or not end_line then
-		vim.api.nvim_echo({ { "No code block found at cursor position", "ErrorMsg" } }, true, {})
-		return
-	end
-
-	local code_content = extract_code_content(start_line, end_line)
-
-	-- Check if tmux session exists
-	local check_cmd = string.format("tmux has-session -t %s 2>/dev/null", TMUX_SESSION)
-	vim.fn.system(check_cmd)
-
-	if vim.v.shell_error ~= 0 then
-		vim.api.nvim_echo({
-			{
-				string.format(
-					"Tmux session '%s' not found. Create it with: tmux new -s %s",
-					TMUX_SESSION,
-					TMUX_SESSION
-				),
-				"ErrorMsg",
-			},
-		}, true, {})
-		return
-	end
-
-	-- Send code to tmux
-	local escaped_content = vim.fn.shellescape(code_content)
-	local send_cmd = string.format("tmux send-keys -t %s %s Enter", TMUX_SESSION, escaped_content)
-	local result = vim.fn.system(send_cmd)
-
-	if vim.v.shell_error == 0 then
-		vim.api.nvim_echo(
-			{ {
-				string.format("Code sent to tmux session '%s'", TMUX_SESSION),
-				"Normal",
-			} },
-			true,
-			{}
-		)
-	else
-		vim.api.nvim_echo({ {
-			"Failed to send to tmux: " .. result,
-			"ErrorMsg",
-		} }, true, {})
-	end
-end, { noremap = true, silent = true, desc = "Send code block to tmux test session" })
 
 -- Helper: Detect shell prompt lines
 local function is_prompt_line(line, hostname, username)

@@ -69,6 +69,15 @@ class NeovimConfigTestTests(unittest.TestCase):
         )
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
+    def test_code_block_selection_matches_complete_fence_pairs(self) -> None:
+        """Reject prose and unclosed fences without loading plugins or using tmux."""
+        shutil.copyfile(
+            ROOT / "nvim/home/.config/nvim/lua/code-block.lua",
+            self.config / "lua/code-block.lua",
+        )
+        result = self.check_config((ROOT / "nvim/test-code-blocks.lua").read_text())
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
     def test_suppressed_command_error_does_not_fail_valid_config(self) -> None:
         """Honor explicit error suppression in a valid configuration."""
         result = self.check_config("vim.cmd('silent! autocmd! MissingTestGroup *')\n")
