@@ -59,6 +59,10 @@ installation test.
 
 `make test-bootstrap` performs the slower clean-Ubuntu Docker builds. The full
 pre-commit suite can be run with `prek run --all-files`.
+CI runs the real component checks on Ubuntu 24.04 for pull requests and pushes to
+master. Clean core/desktop bootstrap builds run weekly and can also be started with
+the configuration-and-bootstrap workflow's manual dispatch. To force the same clean
+builds locally, use `make test-bootstrap DOCKER_BUILD_FLAGS='--pull --no-cache'`.
 
 ## Development checks
 

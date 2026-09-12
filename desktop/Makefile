@@ -18,6 +18,8 @@ APT_PACKAGES := \
 	wl-clipboard \
 	wtype
 
+DOCKER_BUILD_FLAGS ?=
+
 .PHONY: all install update upgrade packages stow unstow clean system-upgrade test test-bootstrap help
 
 # Keep `all` as a compatibility alias without depending on the active session.
@@ -60,7 +62,7 @@ test:
 	@for script in home/.local/bin/*; do sh -n "$$script"; done
 
 test-bootstrap:
-	@docker build -t desktop-dotfiles-test .
+	@docker build $(DOCKER_BUILD_FLAGS) -t desktop-dotfiles-test .
 
 help:
 	@echo "Desktop targets: install update upgrade packages stow unstow test test-bootstrap clean"
