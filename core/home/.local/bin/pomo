@@ -573,7 +573,7 @@ def get_active_session(conn: sqlite3.Connection) -> Session | None:
 
 
 def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
-    """Cancel sessions whose owning processes are no longer running."""
+    """Cancel sessions with no owner or whose owning processes no longer run."""
     current_time = now_local()
     rows = conn.execute(
         """
@@ -587,9 +587,7 @@ def cleanup_stale_running_sessions(conn: sqlite3.Connection) -> None:
     stale_ids: list[int] = []
     for row in rows:
         session = row_to_session(row)
-        if session.process_id is not None and not process_is_running(
-            session.process_id
-        ):
+        if session.process_id is None or not process_is_running(session.process_id):
             stale_ids.append(session.id)
 
     if not stale_ids:
