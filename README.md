@@ -48,6 +48,15 @@ make clean            # remove managed links
 ```
 
 `make test` runs the fast script, Stow, Sway, WezTerm, and Neovim config checks.
+Before the first Neovim check, run `make -C nvim prepare-test`. This downloads the
+locked plugins, prepares parsers and the Mason registry, and saves dedicated test
+data in the ignored `nvim/.test-data/` directory. Rerun it after changing the Neovim
+configuration or binary; normal checks fail fast if preparation is missing or stale.
+Every Neovim check uses a disposable copy of the configuration and prepared data,
+with separate HOME and XDG directories; it never reuses your installed plugins or
+rewrites the tracked lockfile. This is a startup check, not a language-server
+installation test.
+
 `make test-bootstrap` performs the slower clean-Ubuntu Docker builds. The full
 pre-commit suite can be run with `prek run --all-files`.
 

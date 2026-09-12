@@ -129,7 +129,7 @@ repos:
       entry: python3 -m unittest discover -s tests
       language: system
       pass_filenames: false
-      files: (^|/)(cmd-picker|pomo)$|^tests/.*\.py$|^(Makefile|(core|desktop|nvim)/Makefile|nvim/.*\.lua)$
+      files: (^|/)(cmd-picker|pomo)$|^tests/.*\.py$|^(Makefile|(core|desktop|nvim)/Makefile|nvim/.*\.(lua|sh))$
 
   - repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2

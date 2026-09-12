@@ -25,7 +25,7 @@ class NeovimConfigTestTests(unittest.TestCase):
         self.component = root / "nvim checkout"
         self.config = self.component / "home/.config/nvim"
         (self.config / "lua/plugins").mkdir(parents=True)
-        for name in ("Makefile", "test-config.lua"):
+        for name in ("Makefile", "test-config.lua", "run-test.sh"):
             shutil.copyfile(ROOT / "nvim" / name, self.component / name)
         (self.config / "lua/plugins/fixture.lua").write_text(
             "return 'checkout module'\n"
@@ -47,12 +47,14 @@ class NeovimConfigTestTests(unittest.TestCase):
         for name in ("MAKEFLAGS", "MFLAGS", "MAKEOVERRIDES", "VIMINIT", "EXINIT"):
             self.env.pop(name, None)
 
-    def check_config(self, source: str) -> subprocess.CompletedProcess[str]:
+    def check_config(
+        self, source: str, *, target: str = "test"
+    ) -> subprocess.CompletedProcess[str]:
         """Run the component target against the supplied Lua fixture."""
         (self.config / "init.lua").write_text(source)
         # Only the isolated fixture and the installed Make executable are invoked.
         return subprocess.run(  # noqa: S603
-            [str(MAKE), "-C", str(self.component), "test", f"NVIM={NVIM}"],
+            [str(MAKE), "-C", str(self.component), target, f"NVIM={NVIM}"],
             check=False,
             env=self.env,
             capture_output=True,
@@ -68,6 +70,61 @@ class NeovimConfigTestTests(unittest.TestCase):
             "vim.notify('informational message', vim.log.levels.INFO)\n"
         )
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+    def test_all_user_state_is_disposable_and_seed_is_read_only(self) -> None:
+        """Protect user and seed files; clean scratch paths on success or error."""
+        report = self.component / "paths"
+        self.env["TEST_PATH_REPORT"] = str(report)
+        seed = self.component / ".test-data/data/nvim/seed"
+        seed.parent.mkdir(parents=True)
+        seed.write_text("original\n")
+        source = (
+            "local paths = { vim.env.HOME }\n"
+            "for _, name in ipairs({'config', 'data', 'state', 'cache'}) do\n"
+            "  table.insert(paths, vim.fn.stdpath(name))\n"
+            "end\n"
+            "vim.fn.writefile(paths, vim.env.TEST_PATH_REPORT)\n"
+            "for _, path in ipairs(paths) do\n"
+            "  vim.fn.mkdir(path, 'p')\n"
+            "  assert(vim.fn.filereadable(path .. '/marker') == 0)\n"
+            "  vim.fn.writefile({'test'}, path .. '/marker')\n"
+            "end\n"
+            "local seed = vim.fn.stdpath('data') .. '/seed'\n"
+            "assert(vim.fn.readfile(seed)[1] == 'original')\n"
+            "vim.fn.writefile({'modified'}, seed)\n"
+        )
+        for fail in (False, True):
+            with self.subTest(fail=fail):
+                fixture = source + ("error('intentional failure')\n" if fail else "")
+                result = self.check_config(fixture)
+                self.assertEqual(fail, result.returncode != 0, result.stderr)
+                for path in report.read_text().splitlines():
+                    self.assertFalse(Path(path).exists(), path)
+                self.assertEqual("original\n", seed.read_text())
+                self.assertEqual(fixture, (self.config / "init.lua").read_text())
+                self.assertFalse((self.config / "marker").exists())
+                for name in (
+                    "HOME",
+                    "XDG_DATA_HOME",
+                    "XDG_STATE_HOME",
+                    "XDG_CACHE_HOME",
+                ):
+                    self.assertFalse(Path(self.env[name]).exists())
+
+    def test_locked_config_requires_fresh_explicit_preparation(self) -> None:
+        """Reject absent or stale test data instead of downloading during checks."""
+        (self.config / "lazy-lock.json").write_text("{}\n")
+        source = "assert(vim.o.loadplugins)\n"
+        missing = self.check_config(source)
+        self.assertNotEqual(0, missing.returncode)
+        self.assertIn("prepare-test", missing.stderr)
+        prepared = self.check_config(source, target="prepare-test")
+        self.assertEqual(0, prepared.returncode, prepared.stderr)
+        valid = self.check_config(source)
+        self.assertEqual(0, valid.returncode, valid.stderr)
+        stale = self.check_config(source + "-- changed config\n")
+        self.assertNotEqual(0, stale.returncode)
+        self.assertIn("stale", stale.stderr)
 
     def test_code_block_selection_matches_complete_fence_pairs(self) -> None:
         """Reject prose and unclosed fences without loading plugins or using tmux."""
