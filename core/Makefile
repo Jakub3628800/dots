@@ -23,6 +23,7 @@ APT_PACKAGES := \
 	zsh
 
 CARGO_PACKAGES := git-delta prek@0.4.8 starship uv@0.11.28
+DOCKER_BUILD_FLAGS ?=
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
 .PHONY: cargo-packages stow unstow system-upgrade test test-bootstrap help
@@ -72,7 +73,7 @@ test:
 		test -f "$$tmp_home/.profile"
 
 test-bootstrap:
-	@docker build -t core-dotfiles-test .
+	@docker build $(DOCKER_BUILD_FLAGS) -t core-dotfiles-test .
 
 help:
 	@grep -hE '^[a-zA-Z0-9][a-zA-Z0-9_.-]*:([^=]|$$)' $(MAKEFILE_LIST) | cut -d: -f1 | sort -u
