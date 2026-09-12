@@ -11,10 +11,12 @@ import argparse
 import json
 import os
 import re
+import select
 import shutil
 import subprocess
 import sys
 import termios
+import time
 import tty
 import webbrowser
 from abc import ABC, abstractmethod
@@ -39,6 +41,9 @@ ANSI_ESCAPE_RE = re.compile(
 CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 TMUX_FIELD_COUNT = 3
 DOCKER_FIELD_COUNT = 4
+ESCAPE_TIMEOUT_SECONDS = 0.1
+MAX_ESCAPE_LENGTH = 32
+ESCAPE_PREFIX_LENGTH = 2
 
 
 def sanitize_terminal_text(value: object) -> str:
@@ -870,16 +875,36 @@ class CmdPicker:
         self.preview_height: int = 20
 
     def get_key(self) -> str:
-        """Read one keypress, including a three-byte cursor escape sequence."""
+        """Read a key, bounding escape sequences without buffered text read-ahead."""
         fd = self.input_stream.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
-            tty.setraw(fd)
-            key = self.input_stream.read(1)
-            if key == "\x1b":  # ESC sequence
-                key += self.input_stream.read(2)
+            # Do not discard type-ahead when entering raw mode.
+            tty.setraw(fd, termios.TCSANOW)
+            key = os.read(fd, 1).decode("utf-8", errors="replace")
+            if key == "\x1b":
+                key = self._read_escape(fd)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return key
+
+    def _read_escape(self, fd: int) -> str:
+        """Distinguish standalone Escape from bounded CSI/SS3 key sequences."""
+        key = "\x1b"
+        deadline = time.monotonic() + ESCAPE_TIMEOUT_SECONDS
+        while len(key) < MAX_ESCAPE_LENGTH:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([fd], [], [], remaining)[0]:
+                break
+            char = os.read(fd, 1).decode("ascii", errors="replace")
+            if not char or char == "\x03":
+                return char
+            key += char
+            if len(key) == ESCAPE_PREFIX_LENGTH:
+                if char not in {"[", "O"}:
+                    break
+            elif "@" <= char <= "~":
+                break
         return key
 
     def display_interface(self) -> None:
@@ -973,10 +998,10 @@ class CmdPicker:
 
     def _move_selection(self, key: str) -> bool:
         """Move within the list bounds and report whether a navigation key matched."""
-        if key in {"j", "\x1b[B"}:
+        if key in {"j", "\x1b[B", "\x1bOB"}:
             self.selected_index = min(len(self.items) - 1, self.selected_index + 1)
             return True
-        if key in {"k", "\x1b[A"}:
+        if key in {"k", "\x1b[A", "\x1bOA"}:
             self.selected_index = max(0, self.selected_index - 1)
             return True
         return False
@@ -1014,7 +1039,7 @@ class CmdPicker:
             self.display_interface()
             key = self.get_key()
 
-            if key == "q":
+            if key in {"q", "\x1b", "\x03", ""}:
                 return None
             if self._move_selection(key):
                 continue

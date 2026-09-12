@@ -6,11 +6,14 @@ import importlib.machinery
 import importlib.util
 import io
 import os
+import pty
 import shutil
 import sqlite3
 import subprocess
 import sys
 import tempfile
+import termios
+import time
 import unittest
 from pathlib import Path
 from typing import TYPE_CHECKING, Self, override
@@ -129,6 +132,69 @@ class CmdPickerTests(unittest.TestCase):
         self.assertNotIn("\x1b]52", display)
         self.assertIn("session", display)
         self.assertIn("1", display)
+
+
+class CmdPickerTerminalTests(unittest.TestCase):
+    """Exercise real terminal input with bounded child-process timeouts."""
+
+    def test_raw_key_reader_handles_escape_arrows_and_ctrl_c(self) -> None:
+        """Read complete sequences and restore terminal attributes after each key."""
+        source = (
+            "from tests.test_scripts import cmd_picker\n"
+            "picker = cmd_picker.CmdPicker(cmd_picker.TmuxTool())\n"
+            "print(repr(picker.get_key()), flush=True)\n"
+        )
+        for keys in (b"\x1b", b"\x1b[A", b"\x1bOB", b"\x1b[1;5A", b"\x03", b"\x1b["):
+            with self.subTest(keys=keys):
+                master, slave = pty.openpty()
+                try:
+                    original = termios.tcgetattr(slave)
+                    # The child only imports the picker and reads its test PTY.
+                    with subprocess.Popen(  # noqa: S603
+                        [sys.executable, "-c", source],
+                        cwd=ROOT,
+                        stdin=slave,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    ) as child:
+                        try:
+                            deadline = time.monotonic() + 3
+                            while termios.tcgetattr(slave)[3] & termios.ICANON:
+                                if time.monotonic() >= deadline:
+                                    self.fail("picker did not enter raw mode")
+                                time.sleep(0.01)
+                            os.write(master, keys)
+                            stdout, stderr = child.communicate(timeout=3)
+                        finally:
+                            if child.poll() is None:
+                                child.kill()
+                                child.communicate()
+                    self.assertEqual(0, child.returncode, stderr)
+                    self.assertEqual(repr(keys.decode()), stdout.strip())
+                    self.assertEqual(original, termios.tcgetattr(slave))
+                finally:
+                    os.close(master)
+                    os.close(slave)
+
+    def test_quit_keys_do_not_execute_backend_actions(self) -> None:
+        """Treat Escape, Ctrl-C, EOF, and q as cancellation in both picker modes."""
+        for key in ("\x1b", "\x03", "", "q"):
+            for execute_on_select in (True, False):
+                with self.subTest(key=repr(key), execute=execute_on_select):
+                    tool = DummyTool()
+                    picker = cmd_picker.CmdPicker(
+                        tool, output=io.StringIO(), execute_on_select=execute_on_select
+                    )
+                    with (
+                        mock.patch.object(
+                            tool, "get_items", return_value=[{"name": "item"}]
+                        ),
+                        mock.patch.object(tool, "execute_action") as execute,
+                        mock.patch.object(picker, "get_key", return_value=key),
+                    ):
+                        self.assertIsNone(picker.run())
+                    execute.assert_not_called()
 
 
 class BackendCommandTests(unittest.TestCase):
