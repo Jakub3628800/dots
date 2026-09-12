@@ -53,6 +53,8 @@ export XDG_CONFIG_DIRS="$TEST_ROOT/config-dirs"
 export XDG_DATA_DIRS="$TEST_ROOT/data-dirs"
 export NVIM_APPNAME=nvim
 export DOTS_NVIM_TEST_MODE="$MODE"
+export DOTS_NVIM_TEST_SCRIPT="$COMPONENT_DIR/test-config.lua"
+export DOTS_NVIM_TEST_DONE="$TEST_ROOT/completed"
 unset VIMINIT EXINIT MYVIMRC LUA_PATH LUA_CPATH
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR
 mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
@@ -61,8 +63,14 @@ if [ "$MODE" = check ] && [ -d "$TEST_DATA/data" ]; then
     cp -R "$TEST_DATA/data/." "$XDG_DATA_HOME/"
 fi
 
-# Bound hangs from downloads, plugin startup, and scheduled callbacks.
-timeout 300 "$NVIM" --headless -i NONE -u NONE -l "$COMPONENT_DIR/test-config.lua"
+# Use the normal headless event loop: -l can exit during nested plugin waits.
+# Catch runner errors explicitly instead of hiding them behind a later +qa.
+timeout 300 "$NVIM" --headless -i NONE -u NONE \
+    -c 'lua local ok, err = pcall(dofile, vim.env.DOTS_NVIM_TEST_SCRIPT); if not ok then io.stderr:write(tostring(err) .. "\n"); vim.cmd("cquit 1") end'
+if [ ! -f "$DOTS_NVIM_TEST_DONE" ]; then
+    echo "Neovim exited before completing the configuration checks" >&2
+    exit 1
+fi
 
 if [ "$MODE" = prepare ]; then
     # Publish only successful setup; normal checks never modify the reusable seed.

@@ -126,6 +126,37 @@ class NeovimConfigTestTests(unittest.TestCase):
         self.assertNotEqual(0, stale.returncode)
         self.assertIn("stale", stale.stderr)
 
+    def test_preparation_waits_for_scheduled_parser_builds(self) -> None:
+        """Do not publish test data until a delayed parser build has completed."""
+        result = self.check_config(
+            "local directory = vim.fn.stdpath('data') .. '/parser'\n"
+            "package.loaded['nvim-treesitter.configs'] = {\n"
+            "  get_ensure_installed_parsers = function() return {'fixture'} end,\n"
+            "  get_parser_install_dir = function() return directory end,\n"
+            "}\n"
+            "vim.defer_fn(function()\n"
+            "  vim.fn.mkdir(directory, 'p')\n"
+            "  vim.fn.writefile({'built'}, directory .. '/fixture.so')\n"
+            "end, 300)\n",
+            target="prepare-test",
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+        parser = self.component / ".test-data/data/nvim/parser/fixture.so"
+        self.assertEqual("built\n", parser.read_text())
+
+    def test_early_successful_exit_cannot_bypass_checks(self) -> None:
+        """Reject a plugin exiting with code zero before the runner completes."""
+        result = self.check_config("vim.cmd('qa!')\n")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("before completing", result.stderr)
+
+    def test_broken_runner_fails_without_waiting_for_timeout(self) -> None:
+        """Surface runner syntax errors through the guarded headless entry point."""
+        (self.component / "test-config.lua").write_text("local = invalid syntax\n")
+        result = self.check_config("-- valid config\n")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("test-config.lua", result.stderr)
+
     def test_code_block_selection_matches_complete_fence_pairs(self) -> None:
         """Reject prose and unclosed fences without loading plugins or using tmux."""
         shutil.copyfile(
