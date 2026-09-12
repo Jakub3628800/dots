@@ -412,6 +412,47 @@ class PomoTests(unittest.TestCase):
         self.assertEqual(row["start_time"], row["created_at"])
         self.assertIsNone(row["tags"])
 
+    def test_cleanup_recovers_unfinished_legacy_session_without_owner(self) -> None:
+        """Allow a new timer after migrating an unfinished session with no PID."""
+        conn = sqlite3.connect(":memory:")
+        self.addCleanup(conn.close)
+        conn.row_factory = sqlite3.Row
+        conn.execute(
+            "CREATE TABLE pomodori "
+            "(id INTEGER PRIMARY KEY, start_time TEXT, "
+            "end_time TEXT, completed INTEGER)"
+        )
+        conn.execute(
+            "INSERT INTO pomodori VALUES (?, ?, NULL, 0)",
+            (1, "2020-01-01T09:00:00+00:00"),
+        )
+        pomo.initialize_db(conn)
+
+        pomo.cleanup_stale_running_sessions(conn)
+
+        row = conn.execute("SELECT * FROM pomodori WHERE id = 1").fetchone()
+        self.assertEqual("cancelled", row["status"])
+        self.assertIsNotNone(row["end_time"])
+        self.assertIsNone(pomo.get_active_session(conn))
+        pomo.create_running_session(conn, 25, [], pomo.now_local())
+        self.assertIsNotNone(pomo.get_active_session(conn))
+
+    def test_cleanup_preserves_live_owner_and_cancels_dead_owner(self) -> None:
+        """Keep active timers protected while still recovering dead processes."""
+        for running in (True, False):
+            with self.subTest(running=running):
+                conn = sqlite3.connect(":memory:")
+                self.addCleanup(conn.close)
+                conn.row_factory = sqlite3.Row
+                pomo.initialize_db(conn)
+                pomo.create_running_session(conn, 25, [], pomo.now_local())
+                with mock.patch.object(
+                    pomo, "process_is_running", return_value=running
+                ) as process_is_running:
+                    pomo.cleanup_stale_running_sessions(conn)
+                process_is_running.assert_called_once_with(os.getpid())
+                self.assertEqual(running, pomo.get_active_session(conn) is not None)
+
     def test_database_defaults_are_initialized(self) -> None:
         """Populate default duration and notification settings in a new database."""
         conn = sqlite3.connect(":memory:")
