@@ -1,4 +1,5 @@
--- Run with -u NONE -l so an init.lua error cannot be hidden by a later +qa.
+-- Run with -u NONE in the normal headless event loop so nested plugin waits
+-- complete. Only exit successfully after all explicit checks have finished.
 -- run-test.sh supplies a disposable config/home and a copy of dedicated test data.
 local config_dir = vim.fn.stdpath("config")
 vim.opt.rtp:prepend(config_dir)
@@ -106,3 +107,6 @@ if #failures > 0 then
 	io.stderr:write(table.concat(failures, "\n") .. "\n")
 	vim.cmd("cquit 1")
 end
+
+vim.fn.writefile({ "ok" }, vim.env.DOTS_NVIM_TEST_DONE)
+vim.cmd("qa!")
