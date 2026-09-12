@@ -1,0 +1,56 @@
+---
+name: configuration and bootstrap tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: '37 5 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  configuration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install configuration-test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential ca-certificates curl git make python3 unzip \
+            zsh stow sway i3status lua5.4
+      - name: Install the repository-pinned Neovim
+        run: make -C nvim install-nvim
+      - name: Prepare isolated Neovim test data
+        run: make -C nvim prepare-test
+      - name: Run Python and actual component configuration checks
+        env:
+          WLR_BACKENDS: headless
+          WLR_LIBINPUT_NO_DEVICES: '1'
+        run: |
+          export XDG_RUNTIME_DIR
+          XDG_RUNTIME_DIR=$(mktemp -d)
+          trap 'rm -rf -- "$XDG_RUNTIME_DIR"' EXIT
+          make test
+
+  bootstrap:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [core, desktop]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Build from clean Ubuntu without cached installation layers
+        run: make test-bootstrap-${{ matrix.component }} DOCKER_BUILD_FLAGS='--pull --no-cache'
