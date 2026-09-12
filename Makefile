@@ -1,3 +1,6 @@
+# Package managers and Stow must run sequentially, even with make -j.
+.NOTPARALLEL:
+
 .PHONY: install update link upgrade system-upgrade test test-scripts test-bootstrap clean help
 .PHONY: install-core install-desktop install-nvim
 .PHONY: link-core link-desktop link-nvim

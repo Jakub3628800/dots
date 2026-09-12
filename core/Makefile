@@ -1,3 +1,6 @@
+# Install packages before linking, even with make -j.
+.NOTPARALLEL:
+
 APT_PACKAGES := \
 	build-essential \
 	ca-certificates \
