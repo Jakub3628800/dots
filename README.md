@@ -115,6 +115,25 @@ agent instead. After login or reboot, load a key once and enter its passphrase:
 ssh-add ~/.ssh/id_ed25519
 ```
 
+### Ghostty SSH tint
+
+Local interactive Zsh shells in Ghostty tint the background during `ssh`, inspired
+by [Anna's ssh-tint](https://github.com/anna-oake/nixos-config/blob/main/modules/home/profiles/workstation/ssh-tint.zsh).
+A saved host key selects one of 32 muted colors (preferring Ed25519); unknown
+hosts use muted red. Aliases, custom ports, and hashed `known_hosts` are supported.
+The configured background returns when SSH exits, including connection failures.
+The helper runs only in Ghostty (`TERM_PROGRAM=ghostty`); other terminals are unchanged.
+
+This is a visual reminder, **not host verification**: colors can collide, and the
+saved key may differ from the one negotiated. First connections stay red until
+the next connection. CA-only entries and known-hosts paths containing spaces may
+also fall back to red. No keys are fetched or accepted by this helper.
+
+Pipes, redirected output, remote shells, background tunnels, and `ssh -T` are left
+alone. Use `command ssh ...` to bypass it, or set `DOTS_SSH_TINT=0` in
+`~/.zshrc_local` to disable it. New shells pick it up after `make link-core`;
+existing shells can run `source ~/.config/zsh/ssh-tint.zsh`.
+
 ## Included utilities
 
 - `cmd-picker` selects tmux sessions, containers, pull requests, or worktrees.
