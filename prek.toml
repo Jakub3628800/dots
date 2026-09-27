@@ -1,0 +1,219 @@
+# Hook configuration for prek. Keep TOML 1.0 syntax for Python's check-toml hook.
+#:schema https://www.schemastore.org/prek.json
+
+default_install_hook_types = ["pre-commit", "commit-msg"]
+default_stages = ["pre-commit"]
+
+# Base hooks
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+
+[[repos.hooks]]
+id = "trailing-whitespace"
+name = "Trim trailing whitespace"
+
+[[repos.hooks]]
+id = "end-of-file-fixer"
+name = "Fix end of files"
+
+[[repos.hooks]]
+id = "check-yaml"
+name = "Check YAML"
+
+[[repos.hooks]]
+id = "check-json"
+name = "Check JSON"
+
+[[repos.hooks]]
+id = "check-toml"
+name = "Check TOML"
+
+[[repos.hooks]]
+id = "check-added-large-files"
+name = "Check for added large files"
+
+[[repos.hooks]]
+id = "check-merge-conflict"
+name = "Check for merge conflict strings"
+
+[[repos.hooks]]
+id = "detect-private-key"
+name = "Detect private keys"
+
+[[repos.hooks]]
+id = "detect-aws-credentials"
+name = "Detect AWS credentials"
+args = ["--allow-missing-credentials"]
+
+[[repos.hooks]]
+id = "no-commit-to-branch"
+name = "Prevent commits to main/master"
+always_run = false
+args = ["--branch", "main", "--branch", "master"]
+
+[[repos.hooks]]
+id = "check-case-conflict"
+name = "Check for case conflicts"
+
+[[repos.hooks]]
+id = "check-executables-have-shebangs"
+name = "Check executables have shebangs"
+
+[[repos.hooks]]
+id = "check-symlinks"
+name = "Check tracked symlink targets"
+
+[[repos.hooks]]
+id = "destroyed-symlinks"
+name = "Check for symlinks replaced with text"
+
+[[repos]]
+repo = "https://github.com/gitleaks/gitleaks"
+rev = "v8.30.1"
+
+[[repos.hooks]]
+id = "gitleaks"
+name = "Detect hardcoded secrets with Gitleaks"
+
+# Docker hooks
+[[repos]]
+repo = "https://github.com/hadolint/hadolint"
+rev = "v2.15.1"
+
+[[repos.hooks]]
+id = "hadolint-docker"
+name = "Lint Dockerfiles with hadolint"
+files = '(^|/)Dockerfile$'
+types = ["dockerfile"]
+args = ["--ignore", "DL3008"]
+
+# Shell hooks
+[[repos]]
+repo = "https://github.com/shellcheck-py/shellcheck-py"
+rev = "v0.11.0.1"
+
+[[repos.hooks]]
+id = "shellcheck"
+name = "Lint shell scripts with ShellCheck"
+files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases)$'
+
+[[repos]]
+repo = "https://github.com/scop/pre-commit-shfmt"
+rev = "v3.13.1-1"
+
+[[repos.hooks]]
+id = "shfmt"
+name = "Format shell scripts with shfmt"
+args = ["--write", "--indent", "4"]
+files = '(^|/)([^/]*\.sh|screencopy|screensave|pass-type|\.bash_aliases)$'
+exclude_types = ["csh", "tcsh", "zsh"]
+
+# Python hooks
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.16.7"
+
+[[repos.hooks]]
+id = "ruff-check"
+name = "Lint Python with Ruff"
+args = [
+  "--isolated",
+  "--target-version=py312",
+  "--select=ALL",
+  "--fix",
+  # COM812 overlaps the formatter; D203/D213 conflict with D211/D212.
+  # CPY001 would require inventing a repository copyright-header policy.
+  "--ignore=COM812,D203,D213,CPY001",
+  # These programs deliberately print their CLI output, not debug messages.
+  "--per-file-ignores=core/home/.local/bin/cmd-picker:T201",
+  "--per-file-ignores=core/home/.local/bin/pomo:T201",
+  # Keep assertions native to the existing dependency-free unittest runner.
+  "--per-file-ignores=tests/*.py:PT009",
+  "--per-file-ignores=tests/*.py:PT027",
+]
+# The extensionless utilities use a uv shebang, not a Python shebang.
+types_or = ["file"]
+files = '(^|/)(cmd-picker|pomo|.*\.py)$'
+
+[[repos.hooks]]
+id = "ruff-format"
+name = "Format Python with Ruff"
+args = ["--isolated", "--target-version=py312"]
+types_or = ["file"]
+files = '(^|/)(cmd-picker|pomo|.*\.py)$'
+
+# Local syntax checks and regression tests
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "zsh-syntax"
+name = "Check zsh syntax"
+entry = "zsh -n"
+language = "system"
+files = '(^|/)(\.zshrc|.*\.zsh)$'
+
+[[repos.hooks]]
+id = "python-syntax"
+name = "Check Python syntax"
+entry = """python3 -c 'import pathlib, sys; [compile(pathlib.Path(path).read_bytes(), path, "exec") for path in sys.argv[1:]]'"""
+language = "system"
+files = '(^|/)(cmd-picker|pomo|.*\.py)$'
+
+[[repos.hooks]]
+id = "script-tests"
+name = "Test command-line utilities"
+entry = "python3 -m unittest discover -s tests"
+language = "system"
+pass_filenames = false
+files = '(^|/)(cmd-picker|pomo)$|^tests/.*\.py$|^(Makefile|(core|desktop|nvim)/Makefile|nvim/.*\.(lua|sh))$'
+
+[[repos]]
+repo = "https://github.com/JohnnyMorganz/StyLua"
+rev = "v2.5.2"
+
+[[repos.hooks]]
+id = "stylua"
+name = "Format Lua with StyLua"
+files = '^(nvim/.+\.lua|desktop/home/\.wezterm\.lua)$'
+
+[[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "v0.23.2"
+
+[[repos.hooks]]
+id = "markdownlint-cli2"
+name = "Lint Markdown"
+# Keep the full Node version pin used by the previous pre-commit configuration.
+language_version = "22.23.2"
+
+[[repos]]
+repo = "https://github.com/crate-ci/typos"
+rev = "v1.50.1"
+
+[[repos.hooks]]
+id = "typos"
+name = "Check spelling with typos"
+# Report rather than rewrite identifiers or configuration values.
+args = ["--force-exclude"]
+
+[[repos]]
+repo = "https://github.com/compilerla/conventional-pre-commit"
+rev = "v4.4.0"
+
+[[repos.hooks]]
+id = "conventional-pre-commit"
+name = "Check Conventional Commit messages"
+stages = ["commit-msg"]
+
+# GitHub Actions hooks
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "v1.7.12"
+
+[[repos.hooks]]
+id = "actionlint"
+name = "Lint GitHub Actions workflows"
+description = "Lint GitHub Actions workflow files"
+files = '^\.github/workflows/.*\.(yml|yaml)$'

@@ -66,8 +66,11 @@ builds locally, use `make test-bootstrap DOCKER_BUILD_FLAGS='--pull --no-cache'`
 
 ## Development checks
 
+Hooks are configured in `prek.toml` and run with prek locally and in CI.
 Run `prek install` once per clone to enable both the pre-commit and commit-message
-hooks. Commits use Conventional Commits, for example `fix(core): handle empty input`.
+hooks (or `prek install --overwrite` to replace hooks installed by pre-commit).
+Commits use Conventional Commits, for example `fix(core): handle empty input`.
+The configuration uses TOML 1.0-compatible tables so Python 3.12 can validate it.
 
 The hooks lint and format Python (including the extensionless utilities), Bash/POSIX
 shell scripts, and Lua, and check Markdown, spelling, secrets, and tracked symlinks.
@@ -77,7 +80,7 @@ Markdown allows long lines and the README logo. Spelling exceptions belong in
 `_typos.toml`; keep them limited to intentional names and abbreviations.
 
 Ruff enables `ALL` stable rules, targeting Python 3.12. Its lint and formatter
-settings live directly in `.pre-commit-config.yaml`, not a separate Ruff config.
+settings live directly in `prek.toml`, not a separate Ruff config.
 The hook ignores ambient Ruff settings so local runs and CI use the same rules.
 Exceptions are documented beside the hook arguments: conflicting formatter/docstring
 rules, copyright headers, intentional CLI output, and unittest-native assertions.
@@ -89,6 +92,11 @@ Use `prek run --all-files` to run the file checks manually, or
 Commit-message checks run separately at the `commit-msg` stage. Desktop/Neovim
 configuration checks and Docker bootstrap tests remain in the Make targets rather
 than running on every commit.
+
+Dependabot's pre-commit updater does not support `prek.toml`, so hook updates are
+manual for now. Run `prek update --cooldown-days 14` to retain the previous minimum
+release age, review the changed pins, then run `prek run --all-files` before
+committing. Preserve TOML 1.0 syntax and the comments explaining hook exceptions.
 
 ## Local choices
 
