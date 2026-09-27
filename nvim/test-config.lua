@@ -85,6 +85,38 @@ local ok, err = xpcall(function()
 		end
 		assert(vim.wait(120000, dependencies_ready, 50), "Timed out preparing parsers or the Mason registry")
 	end
+	if lock and lock["nvim-treesitter"] then
+		-- Startup alone misses query API incompatibilities. Markdown fences run
+		-- the legacy set-lang-from-info-string! directive during injection parsing.
+		local bufnr = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
+			"# Tree-sitter regression",
+			"Some **bold** text.",
+			"```lua",
+			'print("hello")',
+			"```",
+		})
+		vim.bo[bufnr].filetype = "markdown"
+		local parser = vim.treesitter.get_parser(bufnr, "markdown")
+		parser:parse(true)
+		assert(parser:children().lua, "Markdown Lua fence was not parsed")
+		assert(parser:children().markdown_inline, "Markdown inline content was not parsed")
+		assert(vim.treesitter.highlighter.active[bufnr], "Markdown highlighting was not enabled")
+		parser:invalidate(true)
+		local completed, parse_error = false, nil
+		parser:parse(true, function(err)
+			parse_error = err
+			completed = true
+		end)
+		assert(
+			vim.wait(2000, function()
+				return completed
+			end),
+			"Timed out parsing Markdown asynchronously"
+		)
+		assert(not parse_error, parse_error)
+		vim.api.nvim_buf_delete(bufnr, { force = true })
+	end
 end, debug.traceback)
 if not ok then
 	table.insert(failures, err)
