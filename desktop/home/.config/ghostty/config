@@ -10,6 +10,7 @@ scrollback-limit = 3500000
 scrollbar = system
 
 confirm-close-surface = true
+tab-inherit-working-directory = true
 copy-on-select = clipboard
 link-url = true
 
