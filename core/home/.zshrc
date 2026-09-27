@@ -35,6 +35,7 @@ _source_if_safe "$HOME/.profile"
 _source_if_safe "$HOME/.bash_aliases"
 _source_if_safe "$HOME/.bash_aliases_local"
 _source_if_safe "$HOME/.zshrc_local"
+_source_if_safe "$HOME/.config/zsh/ssh-tint.zsh"
 
 setopt PROMPT_SUBST
 setopt HIST_FIND_NO_DUPS
