@@ -916,6 +916,9 @@ class CmdPicker:
                 f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}",
                 file=self.output,
             )
+            if self.tool.can_create_new():
+                print("a: Create new | q: Quit", file=self.output)
+            self.output.flush()
             return
 
         # Get terminal size
@@ -1017,8 +1020,14 @@ class CmdPicker:
             self.tool.execute_action(item)
         return item
 
-    def run(self) -> dict[str, Any] | None:
-        """Run the picker interface and return the selected item, if any."""
+    def _handle_empty_action(self, key: str) -> None:
+        """Offer creation without passing a nonexistent item to the backend."""
+        if key == "a" and self.tool.create_new_item():
+            self.items = self.tool.get_items()
+            self.selected_index = 0
+
+    def _load_initial_items(self) -> None:
+        """Check backend availability and load items before entering the UI."""
         if not self.tool.is_available():
             print(
                 f"{Colors.RED}Error: {self.tool.name} is not available{Colors.RESET}",
@@ -1028,19 +1037,25 @@ class CmdPicker:
 
         self.items = self.tool.get_items()
 
-        if not self.items:
+        if not self.items and not self.tool.can_create_new():
             print(
                 f"{Colors.RED}No {self.tool.name} items found{Colors.RESET}",
                 file=self.output,
             )
             sys.exit(1)
 
+    def run(self) -> dict[str, Any] | None:
+        """Run the picker interface and return the selected item, if any."""
+        self._load_initial_items()
         while True:
             self.display_interface()
             key = self.get_key()
 
             if key in {"q", "\x1b", "\x03", ""}:
                 return None
+            if not self.items:
+                self._handle_empty_action(key)
+                continue
             if self._move_selection(key):
                 continue
             if key == "\r":  # Enter
@@ -1053,9 +1068,11 @@ class CmdPicker:
             ):
                 # Refresh items if action was handled and might have changed state
                 self.items = self.tool.get_items()
-                if not self.items:
+                if not self.items and not self.tool.can_create_new():
                     return None
-                self.selected_index = min(self.selected_index, len(self.items) - 1)
+                self.selected_index = max(
+                    0, min(self.selected_index, len(self.items) - 1)
+                )
 
 
 TOOLS = {

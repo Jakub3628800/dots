@@ -78,6 +78,59 @@ class DummyTool(cmd_picker.Tool):
 class CmdPickerTests(unittest.TestCase):
     """Check picker layout and sanitization of untrusted terminal text."""
 
+    def test_empty_picker_can_create_and_select(self) -> None:
+        """Use generic creation hooks without requiring an existing item."""
+        tool = DummyTool()
+        output = io.StringIO()
+        picker = cmd_picker.CmdPicker(tool, output=output)
+        item = {"name": "new"}
+        with (
+            mock.patch.object(tool, "can_create_new", return_value=True),
+            mock.patch.object(tool, "get_items", side_effect=[[], [item]]),
+            mock.patch.object(tool, "create_new_item", return_value=True) as create,
+            mock.patch.object(tool, "execute_action") as execute,
+            mock.patch.object(picker, "get_key", side_effect=["j", "\r", "a", "\r"]),
+        ):
+            self.assertEqual(item, picker.run())
+        create.assert_called_once_with()
+        execute.assert_called_once_with(item)
+        self.assertIn("a: Create new", output.getvalue())
+
+    def test_empty_picker_can_retry_creation_and_quit(self) -> None:
+        """Keep an empty picker usable after cancellation or an empty refresh."""
+        tool = DummyTool()
+        picker = cmd_picker.CmdPicker(tool, output=io.StringIO())
+        with (
+            mock.patch.object(tool, "can_create_new", return_value=True),
+            mock.patch.object(tool, "create_new_item", side_effect=[False, True]),
+            mock.patch.object(tool, "execute_action") as execute,
+            mock.patch.object(picker, "get_key", side_effect=["a", "a", "q"]),
+        ):
+            self.assertIsNone(picker.run())
+        execute.assert_not_called()
+
+    def test_empty_picker_without_creation_exits(self) -> None:
+        """Preserve empty-list behavior for backends without creation support."""
+        picker = cmd_picker.CmdPicker(DummyTool(), output=io.StringIO())
+        with self.assertRaises(SystemExit) as raised:
+            picker.run()
+        self.assertEqual(1, raised.exception.code)
+
+    def test_deleting_last_item_offers_creation(self) -> None:
+        """Return to the creation screen when the final item disappears."""
+        tool = DummyTool()
+        item = {"name": "item"}
+        picker = cmd_picker.CmdPicker(tool, output=io.StringIO())
+        with (
+            mock.patch.object(tool, "can_create_new", return_value=True),
+            mock.patch.object(tool, "get_items", side_effect=[[item], [], [item]]),
+            mock.patch.object(tool, "handle_additional_action", return_value=True),
+            mock.patch.object(tool, "create_new_item", return_value=True),
+            mock.patch.object(picker, "get_key", side_effect=["d", "a", "\r"]),
+        ):
+            self.assertEqual(item, picker.run())
+        self.assertEqual(0, picker.selected_index)
+
     def test_selected_item_remains_visible_in_short_terminal(self) -> None:
         """Scroll far enough to show the selection in a short terminal."""
         output = io.StringIO()
