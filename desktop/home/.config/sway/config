@@ -170,13 +170,12 @@ workspace 9 output $secondary
 workspace 10 output $secondary
 
 # Configure default placement of apps
-assign [class="Code"] number 1
-assign [class="Brave"] number 2
-assign [class="chrome"] number 2
-assign [class="Chromium"] number 2
-assign [class="Slack"] number 3
+# Native Wayland windows have an app_id; XWayland windows have a class.
+assign [app_id="^(google-chrome|chromium)$"] number 2
+assign [class="^(Google-chrome|Chromium)$"] number 2
+assign [app_id="^Slack$"] number 3
+assign [class="^Slack$"] number 3
 #assign [class="obsidian"] number 3
-assign [class="Spotify"] number 6
 
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
