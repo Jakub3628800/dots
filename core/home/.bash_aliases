@@ -15,7 +15,6 @@ alias g='git'
 alias gs='git status'
 alias gl='git log --decorate --graph'
 alias gc='git checkout'
-alias gpf='git push --force'
 alias gds='git diff --staged'
 gbb() {
     local branches branch
