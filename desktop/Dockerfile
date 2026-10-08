@@ -41,6 +41,7 @@ RUN command -v sway && \
     command -v pactl && \
     command -v pass && \
     command -v swaylock && \
+    command -v waybar && \
     test -f ~/.config/sway/config
 
 CMD ["/bin/bash"]

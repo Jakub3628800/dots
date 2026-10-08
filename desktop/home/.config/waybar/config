@@ -1,0 +1,85 @@
+{
+    "layer": "bottom",
+    "position": "top",
+    "height": 30,
+    "spacing": 6,
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": [],
+    "modules-right": [
+        "network",
+        "pulseaudio",
+        "battery",
+        "disk",
+        "cpu",
+        "memory",
+        "clock",
+        "tray"
+    ],
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "format": "{name}"
+    },
+    "sway/mode": {
+        "format": "  {}"
+    },
+    "network": {
+        "interval": 5,
+        "format-wifi": "  {essid}",
+        "format-ethernet": "  {ipaddr}",
+        "format-linked": "  no IP",
+        "format-disconnected": "  offline",
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr} via {gwaddr}\nLeft click: pick a network\nRight click: nmtui",
+        "tooltip-format-ethernet": "{ifname}: {ipaddr} via {gwaddr}\nRight click: nmtui",
+        "tooltip-format-disconnected": "Left click: pick a network\nRight click: nmtui",
+        "on-click": "$HOME/.local/bin/wifi-menu",
+        "on-click-right": "ghostty --title=nmtui -e nmtui"
+    },
+    "pulseaudio": {
+        "format": "{icon}  {volume}%",
+        "format-muted": "  muted",
+        "format-icons": {
+            "default": ["", "", ""]
+        },
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "scroll-step": 5
+    },
+    "battery": {
+        "interval": 30,
+        "states": {
+            "warning": 25,
+            "critical": 10
+        },
+        "format": "{icon}  {capacity}%",
+        "format-charging": "  {capacity}%",
+        "format-plugged": "  {capacity}%",
+        "format-icons": ["", "", "", "", ""],
+        "tooltip-format": "{timeTo}"
+    },
+    "disk": {
+        "interval": 60,
+        "path": "/",
+        "format": "  {free}",
+        "tooltip-format": "{used} used of {total} on {path}"
+    },
+    "cpu": {
+        "interval": 5,
+        "format": "  {load:0.2f}",
+        "tooltip": true
+    },
+    "memory": {
+        "interval": 5,
+        "states": {
+            "warning": 85
+        },
+        "format": "  {used:0.1f}G",
+        "tooltip-format": "{used:0.1f}G used, {avail:0.1f}G available"
+    },
+    "clock": {
+        "interval": 1,
+        "format": "  {:%Y-%m-%d %H:%M:%S}",
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "tray": {
+        "spacing": 8
+    }
+}

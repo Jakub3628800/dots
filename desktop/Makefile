@@ -15,6 +15,7 @@ APT_PACKAGES := \
 	sway \
 	swayidle \
 	swaylock \
+	waybar \
 	wl-clipboard \
 	wtype
 
@@ -56,6 +57,7 @@ test:
 		HOME="$$tmp_home" sway --validate --config "$$tmp_home/.config/sway/config"; \
 		status=0; timeout 1 i3status --config "$$tmp_home/.config/i3status/config" >/dev/null 2>&1 || status=$$?; \
 		test "$$status" -eq 0 || test "$$status" -eq 124
+	@python3 -m json.tool home/.config/waybar/config >/dev/null
 	@if command -v luac >/dev/null 2>&1; then luac -p home/.wezterm.lua; \
 	elif command -v wezterm >/dev/null 2>&1; then wezterm --config-file home/.wezterm.lua show-keys --lua >/dev/null; \
 	else echo "Skipping WezTerm syntax check (luac/wezterm unavailable)"; fi

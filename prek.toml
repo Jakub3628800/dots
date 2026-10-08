@@ -96,7 +96,7 @@ rev = "v0.11.0.1"
 [[repos.hooks]]
 id = "shellcheck"
 name = "Lint shell scripts with ShellCheck"
-files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|wifi-menu|\.bash_aliases)$'
 
 [[repos]]
 repo = "https://github.com/scop/pre-commit-shfmt"
@@ -106,7 +106,7 @@ rev = "v3.13.1-1"
 id = "shfmt"
 name = "Format shell scripts with shfmt"
 args = ["--write", "--indent", "4"]
-files = '(^|/)([^/]*\.sh|screencopy|screensave|pass-type|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|screencopy|screensave|pass-type|wifi-menu|\.bash_aliases)$'
 exclude_types = ["csh", "tcsh", "zsh"]
 
 # Python hooks

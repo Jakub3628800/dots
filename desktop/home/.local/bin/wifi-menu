@@ -1,0 +1,102 @@
+#!/bin/sh
+# Pick a Wi-Fi network with bemenu and connect to it with NetworkManager.
+set -eu
+
+for cmd in nmcli bemenu; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "$cmd is required" >&2
+        exit 1
+    fi
+done
+
+menu() {
+    bemenu -i -l 15 -W 0.5 --fn "monospace 14" "$@"
+}
+
+notify() {
+    notify-send -a wifi-menu "Wi-Fi" "$1" 2>/dev/null || true
+}
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+trap 'exit 1' INT TERM
+
+# Terse nmcli output escapes ":" and "\" in values. SSID is the last field.
+# Show the active network first, then each SSID once at its strongest signal.
+nmcli -t -f IN-USE,SIGNAL,SECURITY,SSID device wifi list |
+    LC_ALL=C sort -t: -k1,1r -k2,2nr |
+    awk -F: -v dir="$tmp" '
+        {
+            ssid = $0
+            sub(/^[^:]*:[^:]*:[^:]*:/, "", ssid)
+            gsub(/\\:/, ":", ssid)
+            gsub(/\\\\/, "\\", ssid)
+            if (ssid == "" || seen[ssid]++) next
+
+            mark = ($1 == "*") ? "●" : " "
+            if ($2 >= 75) bars = "▂▄▆█"
+            else if ($2 >= 50) bars = "▂▄▆_"
+            else if ($2 >= 25) bars = "▂▄__"
+            else bars = "▂___"
+            lock = ($3 == "" || $3 == "--") ? "  " : "🔒"
+
+            printf "%s %-32s %s %3d%%  %s\n", mark, ssid, bars, $2, lock > (dir "/display")
+            print ssid > (dir "/ssids")
+            print $3 > (dir "/security")
+            print $1 > (dir "/active")
+        }'
+
+if [ ! -s "$tmp/display" ]; then
+    notify "No networks found."
+    exit 0
+fi
+
+choice=$(menu -p "Wi-Fi" <"$tmp/display") || exit 0
+line=$(grep -Fxn -- "$choice" "$tmp/display" | head -n 1 | cut -d: -f1)
+[ -n "$line" ] || exit 0
+
+ssid=$(sed -n "${line}p" "$tmp/ssids")
+security=$(sed -n "${line}p" "$tmp/security")
+
+if [ "$(sed -n "${line}p" "$tmp/active")" = "*" ]; then
+    notify "Already connected to $ssid."
+    exit 0
+fi
+
+has_profile() {
+    nmcli -t -f NAME,TYPE connection show | NAME="$1" awk '
+        {
+            type = $0
+            sub(/.*:/, "", type)
+            name = substr($0, 1, length($0) - length(type) - 1)
+            gsub(/\\:/, ":", name)
+            gsub(/\\\\/, "\\", name)
+            if (type == "802-11-wireless" && name == ENVIRON["NAME"]) found = 1
+        }
+        END { exit !found }'
+}
+
+if has_profile "$ssid"; then
+    set -- nmcli connection up id "$ssid"
+    new_profile=false
+elif [ -z "$security" ] || [ "$security" = "--" ]; then
+    set -- nmcli device wifi connect "$ssid"
+    new_profile=true
+else
+    password=$(menu -x -p "Password for $ssid" </dev/null) || exit 0
+    [ -n "$password" ] || exit 0
+    set -- nmcli device wifi connect "$ssid" password "$password"
+    new_profile=true
+fi
+
+notify "Connecting to $ssid..."
+if "$@" >/dev/null 2>"$tmp/error"; then
+    notify "Connected to $ssid."
+else
+    # Do not keep a new profile with a wrong password.
+    if [ "$new_profile" = true ]; then
+        nmcli connection delete id "$ssid" >/dev/null 2>&1 || true
+    fi
+    notify "Could not connect to $ssid: $(cat "$tmp/error")"
+    exit 1
+fi
