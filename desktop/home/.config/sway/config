@@ -14,6 +14,7 @@ set $mod Mod4
 # set default apps
 set $browser google-chrome
 set $terminal ghostty
+set $lock swaylock -f
 
 # Machine-local values can override the defaults above.
 include ~/.config/sway/config.local
@@ -247,7 +248,7 @@ input "type:keyboard" {
 exec {
   dbus-update-activation-environment --systemd --all
   dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway
-  swayidle -w before-sleep 'swaylock -f'
+  swayidle -w before-sleep '$lock' lock '$lock'
   systemctl --user start kanshi.service
   systemctl --user start gammastep.service
   swaymsg 'workspace 1; exec $terminal -e bash -c "cd ~/repos; zsh"'

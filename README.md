@@ -106,6 +106,11 @@ Machine-specific settings stay outside the repository:
 - `~/.zshrc_local` for machine-specific paths and shell startup.
 - `~/.config/sway/config.local` for Sway variable or input overrides.
 
+Super+L and Super+Right focus the window to the right.
+The default `$lock` command is `swaylock -f`. Set `$lock` in
+`~/.config/sway/config.local` to use another locker. Swayidle uses the same
+command before suspend and for session lock requests.
+
 Both terminal configs are linked. Sway starts Ghostty by default; the WezTerm
 config remains available for manual use. Override `$terminal` in
 `~/.config/sway/config.local` to select a different terminal.
