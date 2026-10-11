@@ -1,6 +1,6 @@
 # Port of desktop/home/.wezterm.lua.
 
-background-opacity = 1
+background-opacity = 0.85
 window-padding-x = 0
 window-padding-y = 0
 cursor-style-blink = false
