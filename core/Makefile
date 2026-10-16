@@ -64,6 +64,7 @@ system-upgrade: apt-update
 	@sudo apt-get upgrade -y
 
 test:
+	@bash -n home/.local/bin/cmd-picker
 	@zsh -n home/.zshrc
 	@for script in home/.config/zsh/*.zsh; do zsh -n "$$script" || exit; done
 	@set -e; tmp_home=$$(mktemp -d); \
