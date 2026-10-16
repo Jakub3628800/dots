@@ -55,11 +55,14 @@ alias nn='cd ~/repos/notes'
 alias dots='make -C ~/repos/dots link'
 
 alias wget='wget --no-hsts' # disable history file
+
+# Interactive tmux and worktree pickers (cd must run in this shell).
 alias tm='cmd-picker tmux'
 wt() {
     local dir
-    dir="$(cmd-picker worktree --print-path)" || return
-    [ -n "$dir" ] && cd "$dir" || return
+    dir="$(cmd-picker worktree --print-path && printf .)" || return
+    dir=${dir%$'\n.'}
+    [ -n "$dir" ] && cd -- "$dir" || return
 }
 xcc() {
     if [ "$#" -gt 0 ]; then
