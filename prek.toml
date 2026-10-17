@@ -96,7 +96,7 @@ rev = "v0.11.0.1"
 [[repos.hooks]]
 id = "shellcheck"
 name = "Lint shell scripts with ShellCheck"
-files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|wifi-menu|cmd-picker|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|pass-type|wifi-menu|cmd-picker|pomo|\.bash_aliases)$'
 
 [[repos]]
 repo = "https://github.com/scop/pre-commit-shfmt"
@@ -106,7 +106,7 @@ rev = "v3.13.1-1"
 id = "shfmt"
 name = "Format shell scripts with shfmt"
 args = ["--write", "--indent", "4"]
-files = '(^|/)([^/]*\.sh|screencopy|screensave|pass-type|wifi-menu|cmd-picker|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|screencopy|screensave|pass-type|wifi-menu|cmd-picker|pomo|\.bash_aliases)$'
 exclude_types = ["csh", "tcsh", "zsh"]
 
 # Python hooks
@@ -125,22 +125,15 @@ args = [
   # COM812 overlaps the formatter; D203/D213 conflict with D211/D212.
   # CPY001 would require inventing a repository copyright-header policy.
   "--ignore=COM812,D203,D213,CPY001",
-  # These programs deliberately print their CLI output, not debug messages.
-  "--per-file-ignores=core/home/.local/bin/pomo:T201",
   # Keep assertions native to the existing dependency-free unittest runner.
   "--per-file-ignores=tests/*.py:PT009",
   "--per-file-ignores=tests/*.py:PT027",
 ]
-# The extensionless pomo utility uses a uv shebang, not a Python shebang.
-types_or = ["file"]
-files = '(^|/)(pomo|.*\.py)$'
 
 [[repos.hooks]]
 id = "ruff-format"
 name = "Format Python with Ruff"
 args = ["--isolated", "--target-version=py312"]
-types_or = ["file"]
-files = '(^|/)(pomo|.*\.py)$'
 
 # Local syntax checks and regression tests
 [[repos]]
@@ -158,7 +151,7 @@ id = "python-syntax"
 name = "Check Python syntax"
 entry = """python3 -c 'import pathlib, sys; [compile(pathlib.Path(path).read_bytes(), path, "exec") for path in sys.argv[1:]]'"""
 language = "system"
-files = '(^|/)(pomo|.*\.py)$'
+files = '\.py$'
 
 [[repos.hooks]]
 id = "script-tests"

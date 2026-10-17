@@ -38,6 +38,7 @@ RUN command -v uv && \
     command -v delta && \
     command -v zsh && \
     command -v tig && \
+    command -v sqlite3 && \
     test -f ~/.profile && \
     test -f ~/.zshrc && \
     test -f ~/.bash_aliases

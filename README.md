@@ -72,8 +72,9 @@ hooks (or `prek install --overwrite` to replace hooks installed by pre-commit).
 Commits use Conventional Commits, for example `fix(core): handle empty input`.
 The configuration uses TOML 1.0-compatible tables so Python 3.12 can validate it.
 
-The hooks lint and format Python (including the extensionless utilities), Bash/POSIX
-shell scripts, and Lua, and check Markdown, spelling, secrets, and tracked symlinks.
+The hooks lint and format Python, Bash/POSIX shell scripts (including the
+extensionless utilities), and Lua, and check Markdown, spelling, secrets, and tracked
+symlinks.
 Zsh has a syntax check but is deliberately excluded from shfmt. Formatters update
 files in place; review their changes and stage them before retrying a commit.
 Markdown allows long lines and the README logo. Spelling exceptions belong in
@@ -83,8 +84,8 @@ Ruff enables `ALL` stable rules, targeting Python 3.12. Its lint and formatter
 settings live directly in `prek.toml`, not a separate Ruff config.
 The hook ignores ambient Ruff settings so local runs and CI use the same rules.
 Exceptions are documented beside the hook arguments: conflicting formatter/docstring
-rules, copyright headers, intentional CLI output, and unittest-native assertions.
-Reviewed SQL/subprocess false positives have individual `noqa` comments; safety
+rules, copyright headers, and unittest-native assertions.
+Reviewed subprocess false positives have individual `noqa` comments; safety
 rules remain enabled elsewhere. Ruff upgrades can introduce new rules and findings.
 
 Use `prek run --all-files` to run the file checks manually, or
