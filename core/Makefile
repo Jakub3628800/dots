@@ -15,6 +15,7 @@ APT_PACKAGES := \
 	openssh-client \
 	ripgrep \
 	rustup \
+	sqlite3 \
 	stow \
 	tig \
 	tmux \
@@ -65,6 +66,7 @@ system-upgrade: apt-update
 
 test:
 	@bash -n home/.local/bin/cmd-picker
+	@bash -n home/.local/bin/pomo
 	@zsh -n home/.zshrc
 	@for script in home/.config/zsh/*.zsh; do zsh -n "$$script" || exit; done
 	@set -e; tmp_home=$$(mktemp -d); \
