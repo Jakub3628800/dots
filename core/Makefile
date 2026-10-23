@@ -23,7 +23,7 @@ APT_PACKAGES := \
 	vim \
 	zsh
 
-CARGO_PACKAGES := git-delta prek@0.4.8 starship uv@0.11.28
+CARGO_PACKAGES := git-delta prek@0.5.7 starship uv@0.13.5
 DOCKER_BUILD_FLAGS ?=
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
@@ -44,7 +44,9 @@ apt-update:
 apt-packages: apt-update
 	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
 
+# Refresh existing toolchains too: the pinned uv and prek require Rust 1.97+.
 rust-toolchain: apt-packages
+	@rustup update stable --no-self-update
 	@rustup default stable
 
 cargo-packages: rust-toolchain
