@@ -27,6 +27,9 @@ tools in `core/Makefile`, so it takes longer than later runs. Existing regular
 files are not overwritten by Stow; move any reported conflicts and rerun the
 command.
 
+The pinned uv and prek require Rust 1.97 or newer. Every core install or upgrade
+refreshes stable Rust before compiling Cargo tools.
+
 For a machine without the Sway desktop:
 
 ```sh
