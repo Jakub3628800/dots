@@ -1,11 +1,9 @@
-# Port of desktop/home/.wezterm.lua.
-
 background-opacity = 0.85
 window-padding-x = 0
 window-padding-y = 0
 cursor-style-blink = false
 
-# WezTerm uses lines; Ghostty uses bytes. This approximates 3500 lines.
+# Ghostty measures scrollback in bytes. This approximates 3500 lines.
 scrollback-limit = 3500000
 scrollbar = system
 
@@ -16,7 +14,7 @@ link-url = true
 
 keybind = clear
 
-# Ghostty 1.3.1 has no equivalent for WezTerm's ActivateCopyMode.
+# Ghostty 1.3.1 has no copy mode; search is the closest substitute.
 keybind = ctrl+shift+y=start_search
 
 keybind = ctrl+shift+v=paste_from_clipboard

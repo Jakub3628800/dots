@@ -168,7 +168,7 @@ rev = "v2.5.2"
 [[repos.hooks]]
 id = "stylua"
 name = "Format Lua with StyLua"
-files = '^(nvim/.+\.lua|desktop/home/\.wezterm\.lua)$'
+files = '^nvim/.+\.lua$'
 
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
