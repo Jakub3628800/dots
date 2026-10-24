@@ -25,7 +25,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
             build-essential ca-certificates curl git make python3 sqlite3 unzip \
-            zsh stow sway i3status lua5.4
+            zsh stow sway i3status
       - name: Install the repository-pinned Neovim
         run: make -C nvim install-nvim
       - name: Prepare isolated Neovim test data
