@@ -6,7 +6,7 @@ Small, personal dotfiles for an Ubuntu development machine. GNU Stow owns the
 links; the Makefiles install only the packages required by the tracked setup.
 
 - `core/` contains Zsh, Git, tmux-related helpers, and small command-line tools.
-- `desktop/` contains the Sway/Wayland setup plus WezTerm and Ghostty configs.
+- `desktop/` contains the Sway/Wayland setup plus the Ghostty config.
 - `nvim/` installs a pinned Neovim release and its plugin configuration.
 
 The supported baseline is Ubuntu 24.04 on x86-64 with APT, `sudo`, and a
@@ -50,7 +50,7 @@ make system-upgrade   # explicitly upgrade all host APT packages
 make clean            # remove managed links
 ```
 
-`make test` runs the fast script, Stow, Sway, WezTerm, and Neovim config checks.
+`make test` runs the fast script, Stow, Sway, and Neovim config checks.
 Before the first Neovim check, run `make -C nvim prepare-test`. This downloads the
 locked plugins, prepares parsers and the Mason registry, and saves dedicated test
 data in the ignored `nvim/.test-data/` directory. Rerun it after changing the Neovim
@@ -115,10 +115,9 @@ The default `$lock` command is `swaylock -f`. Set `$lock` in
 `~/.config/sway/config.local` to use another locker. Swayidle uses the same
 command before suspend and for session lock requests.
 
-Both terminal configs are linked. Sway starts Ghostty by default; the WezTerm
-config remains available for manual use. Override `$terminal` in
+Sway starts Ghostty by default. Override `$terminal` in
 `~/.config/sway/config.local` to select a different terminal.
-WezTerm, Ghostty, Google Chrome, Slack, and 1Password are intentionally not
+Ghostty, Google Chrome, Slack, and 1Password are intentionally not
 installed by these Makefiles. Slack and 1Password are started only when found;
 install the terminal/browser you use or override the Sway defaults locally.
 
