@@ -43,6 +43,9 @@ if current_lazy_commit ~= lazy_commit then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Mason installs these servers, and only these start.
+local lsp_servers = { "pyrefly", "gopls" }
+
 -- Set up plugins
 require("lazy").setup({
 	require("plugins.treesitter"),
@@ -87,7 +90,9 @@ require("lazy").setup({
 		dependencies = { "williamboman/mason.nvim" },
 		config = function()
 			require("mason-lspconfig").setup({
-				ensure_installed = { "pyright", "gopls" },
+				ensure_installed = lsp_servers,
+				-- Otherwise every server Mason has installed starts, including leftovers.
+				automatic_enable = false,
 			})
 		end,
 	},
@@ -199,11 +204,13 @@ vim.lsp.config("*", {
 	capabilities = capabilities,
 })
 
-vim.lsp.config("pyright", {
+vim.lsp.config("pyrefly", {
 	settings = {
 		python = {
-			analysis = {
-				autoImportCompletions = true,
+			pyrefly = {
+				-- Without a pyrefly.toml, Pyrefly falls back to the "basic" preset,
+				-- which misses common errors such as wrong argument types.
+				typeCheckingMode = "default",
 			},
 		},
 	},
@@ -222,7 +229,7 @@ vim.lsp.config("gopls", {
 	},
 })
 
-vim.lsp.enable({ "pyright", "gopls" })
+vim.lsp.enable(lsp_servers)
 local cmp = require("cmp")
 require("cmp").setup({
 	preselect = cmp.PreselectMode.None,
