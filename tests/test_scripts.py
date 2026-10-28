@@ -291,6 +291,29 @@ class PomoTests(unittest.TestCase):
         self.assert_pomo(("config", "get", "notifications_enabled"), "true\n")
         self.assertTrue((self.home / "-pomo.db").is_file())
 
+    def test_new_database_and_directory_are_private(self) -> None:
+        """Create the data directory with mode 0700 and the database with 0600."""
+        self.assertEqual(0, self.pomo("config").returncode)
+        self.assertEqual(0o700, self.db.parent.stat().st_mode & 0o777)
+        self.assertEqual(0o600, self.db.stat().st_mode & 0o777)
+
+    def test_existing_default_database_and_directory_become_private(self) -> None:
+        """Repair loose modes at the default path, but keep a custom parent's mode."""
+        default = self.home / ".local/share/pomo/pomo.db"
+        for db in (default, self.db):
+            db.parent.mkdir(parents=True)
+            db.parent.chmod(0o755)
+            db.touch(mode=0o644)
+            db.chmod(0o644)
+        del self.env["POMO_DB_PATH"]
+        self.assertEqual(0, self.pomo("config").returncode)
+        self.env["POMO_DB_PATH"] = str(self.db)
+        self.assertEqual(0, self.pomo("config").returncode)
+        self.assertEqual(0o700, default.parent.stat().st_mode & 0o777)
+        self.assertEqual(0o755, self.db.parent.stat().st_mode & 0o777)
+        for db in (default, self.db):
+            self.assertEqual(0o600, db.stat().st_mode & 0o777)
+
     def test_cleanup_cancels_dead_owners_and_keeps_live_ones(self) -> None:
         """Cancel a session whose process is gone; let a live one block new timers."""
         self.add_sessions(

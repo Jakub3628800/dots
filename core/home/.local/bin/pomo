@@ -4,10 +4,14 @@
 set -euo pipefail
 # Let an exported COLUMNS set the bar width; bash would otherwise overwrite it.
 shopt -u checkwinsize
+# Session history is private: new directories get 0700, and the database and its
+# journal files get 0600.
+umask 077
 
 VERSION=0.1.0
 # Unlike $HOME, ~ still finds the home directory when HOME is unset.
-DB=${POMO_DB_PATH:-~/.local/share/pomo/pomo.db}
+DEFAULT_DB=~/.local/share/pomo/pomo.db
+DB=${POMO_DB_PATH:-$DEFAULT_DB}
 HELP="pomo - a lean pomodoro timer
 
 Usage:
@@ -75,6 +79,9 @@ quote() {
 
 init_db() {
     mkdir -p -- "$(dirname -- "$DB")"
+    # The umask covers new files; these repair modes left by older versions. Only
+    # the default directory belongs to pomo, so a custom parent keeps its mode.
+    [[ $DB != "$DEFAULT_DB" ]] || chmod 700 -- "${DB%/*}"
     sql "CREATE TABLE IF NOT EXISTS pomodori (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     start_time TEXT NOT NULL,
@@ -89,6 +96,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS pomodori_one_running ON pomodori(status) WHERE
 CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT, updated_at TEXT NOT NULL);
 $SETTINGS INSERT OR IGNORE INTO config (key, value, updated_at)
 SELECT key, default_value, '$NOW' FROM setting;"
+    chmod 600 -- "$DB"
 }
 
 # The parse_* helpers store the normalized value in REPLY.
