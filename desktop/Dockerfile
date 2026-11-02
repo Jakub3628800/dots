@@ -34,6 +34,7 @@ RUN make packages && \
 # Verify installation
 RUN command -v sway && \
     command -v bemenu && \
+    command -v nm-applet && \
     command -v grim && \
     command -v slurp && \
     command -v wl-copy && \

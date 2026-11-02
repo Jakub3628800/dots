@@ -28,11 +28,8 @@
         "format-ethernet": "  {ipaddr}",
         "format-linked": "  no IP",
         "format-disconnected": "  offline",
-        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr} via {gwaddr}\nLeft click: pick a network\nRight click: nmtui",
-        "tooltip-format-ethernet": "{ifname}: {ipaddr} via {gwaddr}\nRight click: nmtui",
-        "tooltip-format-disconnected": "Left click: pick a network\nRight click: nmtui",
-        "on-click": "$HOME/.local/bin/wifi-menu",
-        "on-click-right": "ghostty --title=nmtui -e nmtui"
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr} via {gwaddr}",
+        "tooltip-format-ethernet": "{ifname}: {ipaddr} via {gwaddr}"
     },
     "pulseaudio": {
         "format": "{icon}  {volume}%",
