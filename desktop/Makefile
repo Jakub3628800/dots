@@ -8,6 +8,7 @@ APT_PACKAGES := \
 	i3status \
 	kanshi \
 	mako-notifier \
+	network-manager-gnome \
 	pass \
 	pass-extension-otp \
 	pulseaudio-utils \
