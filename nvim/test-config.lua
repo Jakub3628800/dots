@@ -73,13 +73,6 @@ local ok, err = xpcall(function()
 					end
 				end
 			end
-			local org_installer = package.loaded["orgmode.utils.treesitter.install"]
-			if org_installer then
-				local version = org_installer.get_version_info()
-				if not version.installed or version.outdated or version.version_mismatch then
-					return false
-				end
-			end
 			local registry = package.loaded["mason-registry"]
 			return not registry or #registry.get_all_package_names() > 0
 		end

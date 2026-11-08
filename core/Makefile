@@ -16,7 +16,6 @@ APT_PACKAGES := \
 	rustup \
 	sqlite3 \
 	stow \
-	tig \
 	tmux \
 	unzip \
 	vim \

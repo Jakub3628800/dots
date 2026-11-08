@@ -1,6 +1,5 @@
 return {
 	"sonph/onehalf",
-	enabled = true, -- disable here and enable plugins/gruvbox.lua to switch back
 	lazy = false,
 	priority = 1000,
 	config = function(plugin)
