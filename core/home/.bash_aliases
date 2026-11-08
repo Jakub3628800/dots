@@ -22,9 +22,17 @@ gbb() {
         branch=$(echo "$branches" | fzf +m) &&
         git checkout "$(echo "$branch" | awk '{print $1}' | sed "s/.* //")"
 }
-
-# tig
-alias tg='tig'
+# Pick one of the last N commits (default 10) and show it; quitting returns to the shell.
+tg() {
+    local commits commit count=${1:-10}
+    if [[ ! $count =~ ^[1-9][0-9]*$ ]]; then
+        echo 'Usage: tg [count]' >&2
+        return 2
+    fi
+    commits=$(git log -n "$count" --color=always --format='%C(auto)%h%C(reset) %s %C(dim)(%cr, %an)%C(reset)') &&
+        commit=$(fzf --ansi --no-sort +m <<<"$commits") &&
+        git show "${commit%% *}"
+}
 
 # gh
 alias ghmerge='gh pr merge --squash --delete-branch'
