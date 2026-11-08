@@ -75,11 +75,11 @@ hooks (or `prek install --overwrite` to replace hooks installed by pre-commit).
 Commits use Conventional Commits, for example `fix(core): handle empty input`.
 
 The hooks lint and format Python, Bash/POSIX shell scripts (including the
-extensionless utilities), and Lua, and check Markdown, spelling, secrets, and tracked
+extensionless utilities), and Lua, and check spelling, secrets, and tracked
 symlinks.
 Zsh has a syntax check but is deliberately excluded from shfmt. Formatters update
 files in place; review their changes and stage them before retrying a commit.
-Markdown allows long lines and the README logo. Spelling exceptions belong in
+Spelling exceptions belong in
 `_typos.toml`; keep them limited to intentional names and abbreviations.
 
 Ruff enables `ALL` stable rules, targeting Python 3.12. Its lint and formatter
