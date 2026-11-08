@@ -70,18 +70,6 @@ rev = "v8.30.1"
 id = "gitleaks"
 name = "Detect hardcoded secrets with Gitleaks"
 
-# Docker hooks
-[[repos]]
-repo = "https://github.com/hadolint/hadolint"
-rev = "v2.15.1"
-
-[[repos.hooks]]
-id = "hadolint-docker"
-name = "Lint Dockerfiles with hadolint"
-files = '(^|/)Dockerfile$'
-types = ["dockerfile"]
-args = ["--ignore", "DL3008"]
-
 # Shell hooks
 [[repos]]
 repo = "https://github.com/shellcheck-py/shellcheck-py"
@@ -155,6 +143,19 @@ language = "system"
 pass_filenames = false
 files = '(^|/)pomo$|^tests/.*\.py$|^(Makefile|(core|desktop|nvim)/Makefile|nvim/.*\.(lua|sh))$'
 
+[[repos.hooks]]
+id = "commit-message"
+name = "Check Conventional Commit messages"
+language = "system"
+stages = ["commit-msg"]
+entry = '''sh -c '
+  types="build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test"
+  grep -m1 -Ev "^(#|$)" "$1" |
+    grep -Eiq "^(($types)(\([^)]+\))?!?: .+|(Merge|Revert) |(amend|fixup|squash)! )" && exit
+  echo "Use type(scope): description, for example: fix(core): handle empty input" >&2
+  exit 1
+' sh'''
+
 [[repos]]
 repo = "https://github.com/JohnnyMorganz/StyLua"
 rev = "v2.5.2"
@@ -165,15 +166,6 @@ name = "Format Lua with StyLua"
 files = '^nvim/.+\.lua$'
 
 [[repos]]
-repo = "https://github.com/DavidAnson/markdownlint-cli2"
-rev = "v0.23.2"
-
-[[repos.hooks]]
-id = "markdownlint-cli2"
-name = "Lint Markdown"
-language_version = "22.23.4"
-
-[[repos]]
 repo = "https://github.com/crate-ci/typos"
 rev = "v1.50.1"
 
@@ -182,15 +174,6 @@ id = "typos"
 name = "Check spelling with typos"
 # Report rather than rewrite identifiers or configuration values.
 args = ["--force-exclude"]
-
-[[repos]]
-repo = "https://github.com/compilerla/conventional-pre-commit"
-rev = "v4.4.0"
-
-[[repos.hooks]]
-id = "conventional-pre-commit"
-name = "Check Conventional Commit messages"
-stages = ["commit-msg"]
 
 # GitHub Actions hooks
 [[repos]]

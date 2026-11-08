@@ -20,7 +20,6 @@ COPY . .
 RUN chown -R testuser:testuser /tmp/desktop
 
 # Resolve the dynamically allocated UID inside this bootstrap-test image.
-# hadolint ignore=DL3066
 USER testuser
 WORKDIR /tmp/desktop
 
