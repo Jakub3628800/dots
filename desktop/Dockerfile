@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install make, sudo, and stow (required for installation)
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y make sudo stow jq ca-certificates && \
+    apt-get install --no-install-recommends -y make sudo stow ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Allocate a free UID; Ubuntu 24.04 already assigns UID 1000 to ubuntu.
@@ -38,7 +38,6 @@ RUN command -v sway && \
     command -v grim && \
     command -v slurp && \
     command -v wl-copy && \
-    command -v i3status && \
     command -v pactl && \
     command -v pass && \
     command -v swaylock && \

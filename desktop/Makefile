@@ -5,7 +5,6 @@ APT_PACKAGES := \
 	bemenu \
 	gammastep \
 	grim \
-	i3status \
 	kanshi \
 	mako-notifier \
 	network-manager-gnome \
@@ -55,9 +54,7 @@ test:
 	@set -e; tmp_home=$$(mktemp -d); \
 		trap 'rm -rf "$$tmp_home"' 0 1 2 15; \
 		stow -R -d . -t "$$tmp_home" --no-folding home; \
-		HOME="$$tmp_home" sway --validate --config "$$tmp_home/.config/sway/config"; \
-		status=0; timeout 1 i3status --config "$$tmp_home/.config/i3status/config" >/dev/null 2>&1 || status=$$?; \
-		test "$$status" -eq 0 || test "$$status" -eq 124
+		HOME="$$tmp_home" sway --validate --config "$$tmp_home/.config/sway/config"
 	@python3 -m json.tool home/.config/waybar/config >/dev/null
 	@for script in home/.local/bin/*; do sh -n "$$script"; done
 
