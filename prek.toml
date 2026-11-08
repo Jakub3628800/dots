@@ -1,4 +1,4 @@
-# Hook configuration for prek. Keep TOML 1.0 syntax for Python's check-toml hook.
+# Hook configuration for prek.
 #:schema https://www.schemastore.org/prek.json
 
 default_install_hook_types = ["pre-commit", "commit-msg"]
@@ -6,8 +6,7 @@ default_stages = ["pre-commit"]
 
 # Base hooks
 [[repos]]
-repo = "https://github.com/pre-commit/pre-commit-hooks"
-rev = "v6.0.0"
+repo = "builtin"
 
 [[repos.hooks]]
 id = "trailing-whitespace"
@@ -40,11 +39,6 @@ name = "Check for merge conflict strings"
 [[repos.hooks]]
 id = "detect-private-key"
 name = "Detect private keys"
-
-[[repos.hooks]]
-id = "detect-aws-credentials"
-name = "Detect AWS credentials"
-args = ["--allow-missing-credentials"]
 
 [[repos.hooks]]
 id = "no-commit-to-branch"
