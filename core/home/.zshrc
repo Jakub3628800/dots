@@ -104,6 +104,4 @@ _rr() {
 }
 compdef _rr rr
 
-_source_if_safe "$HOME/.gvm/scripts/gvm"
-
 unfunction _source_if_safe
