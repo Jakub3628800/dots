@@ -49,13 +49,11 @@ local lsp_servers = { "pyrefly", "gopls" }
 -- Set up plugins
 require("lazy").setup({
 	require("plugins.treesitter"),
-	require("plugins.gruvbox"),
 	require("plugins.onehalfdark"),
 	require("plugins.lualine"),
 	require("plugins.nvim-tree"),
 	require("plugins.telescope"),
 	require("plugins.git-blame"),
-	require("plugins.orgmode"),
 	require("plugins.navic"),
 	{
 		"hrsh7th/nvim-cmp",
