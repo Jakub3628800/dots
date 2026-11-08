@@ -9,7 +9,6 @@ APT_PACKAGES := \
 	fzf \
 	gh \
 	git \
-	gnupg2 \
 	jq \
 	nodejs \
 	openssh-client \
