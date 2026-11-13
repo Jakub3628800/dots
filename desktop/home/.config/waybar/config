@@ -6,6 +6,7 @@
     "modules-left": ["sway/workspaces", "sway/mode"],
     "modules-center": [],
     "modules-right": [
+        "custom/pomo",
         "network",
         "pulseaudio",
         "battery",
@@ -15,6 +16,18 @@
         "clock",
         "tray"
     ],
+    "custom/pomo": {
+        "exec": "$HOME/.local/bin/pomo status --follow --waybar",
+        "restart-interval": 10,
+        "return-type": "json",
+        "format": "{icon}{}",
+        "format-icons": {
+            "running": "🍅 ",
+            "paused": "⏸ "
+        },
+        "on-click": "$HOME/.local/bin/pomo pause --toggle",
+        "on-click-right": "$HOME/.local/bin/pomo stop"
+    },
     "sway/workspaces": {
         "disable-scroll": true,
         "format": "{name}"

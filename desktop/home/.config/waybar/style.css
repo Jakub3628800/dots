@@ -82,6 +82,7 @@ tooltip label {
     border-radius: 10px;
 }
 
+#custom-pomo,
 #network,
 #pulseaudio,
 #battery,
@@ -98,6 +99,14 @@ tooltip label {
 
 #tray {
     margin-right: 6px;
+}
+
+#custom-pomo {
+    color: @red;
+}
+
+#custom-pomo.paused {
+    color: @subtext;
 }
 
 #network {

@@ -17,7 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Install syntax and test dependencies
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y zsh neovim sqlite3
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y zsh neovim
       - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         with:
           prek-version: '0.5.7'

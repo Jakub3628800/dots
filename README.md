@@ -153,5 +153,7 @@ existing shells can run `source ~/.config/zsh/ssh-tint.zsh`.
 
 - [cmd-picker](core/home/.local/bin/cmd-picker) selects tmux sessions (`tm`) or
   Git worktrees (`wt`); usage details are in the script.
-- `pomo` is an interactive Pomodoro timer. Its database defaults to
-  `~/.local/share/pomo/pomo.db`; set `POMO_DB_PATH` to override it.
+- [pomo](https://github.com/Jakub3628800/pomo) is a Pomodoro timer daemon
+  and CLI, shown in waybar. It lives in its own repository;
+  `make -C desktop pomo` installs it to `~/.local/bin` and enables its
+  systemd user unit (needs Go and a C compiler).

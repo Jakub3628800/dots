@@ -20,8 +20,9 @@ APT_PACKAGES := \
 	wtype
 
 DOCKER_BUILD_FLAGS ?=
+POMO_MODULE := github.com/Jakub3628800/pomo/cmd/pomo@latest
 
-.PHONY: all install update upgrade packages stow unstow clean system-upgrade test test-bootstrap help
+.PHONY: all install update upgrade packages stow unstow clean system-upgrade test test-bootstrap pomo help
 
 # Keep `all` as a compatibility alias without depending on the active session.
 all: install
@@ -46,6 +47,20 @@ unstow:
 
 clean: unstow
 
+# Install or update pomo from its repository into ~/.local/bin, where the
+# systemd unit and the waybar module expect it, then restart its daemon.
+# Needs Go and a C compiler: CGO_ENABLED=1 makes a missing compiler fail the
+# build instead of producing a binary without SQLite. A symlink left there by
+# the old stowed bash script is removed first, so go install can't write
+# through it.
+pomo: stow
+	@command -v go >/dev/null || { echo "pomo needs Go: https://go.dev/dl/" >&2; exit 1; }
+	@if [ -L "$(HOME)/.local/bin/pomo" ]; then rm "$(HOME)/.local/bin/pomo"; fi
+	@CGO_ENABLED=1 GOBIN="$(HOME)/.local/bin" go install $(POMO_MODULE)
+	@systemctl --user daemon-reload
+	@systemctl --user enable pomo.service
+	@systemctl --user restart pomo.service
+
 system-upgrade:
 	@sudo apt-get update
 	@sudo apt-get upgrade -y
@@ -62,4 +77,4 @@ test-bootstrap:
 	@docker build $(DOCKER_BUILD_FLAGS) -t desktop-dotfiles-test .
 
 help:
-	@echo "Desktop targets: install update upgrade packages stow unstow test test-bootstrap clean"
+	@echo "Desktop targets: install update upgrade packages stow unstow test test-bootstrap pomo clean"
