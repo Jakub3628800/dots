@@ -1,0 +1,15 @@
+# pomo daemon (https://github.com/Jakub3628800/pomo). `make -C desktop pomo`
+# installs the binary to ~/.local/bin and enables this unit.
+
+[Unit]
+Description=pomo Pomodoro timer daemon
+
+[Service]
+ExecStart=%h/.local/bin/pomo d
+# A crash restarts the daemon, which resumes the running session from the
+# database. `systemctl --user stop pomo` stops it for good.
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=default.target
