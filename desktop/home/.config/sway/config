@@ -54,8 +54,8 @@ bindsym $mod+Return exec $terminal -e zsh
 # kill focused window
 bindsym $mod+c kill
 
-# bemenu can be installed with nix - adjust path so that it can be found
-set $extended_path "PATH=$PATH:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$HOME/.local/bin"
+# Let bemenu find commands installed in ~/.local/bin
+set $extended_path "PATH=$PATH:$HOME/.local/bin"
 
 bindsym $mod+d exec env $extended_path bemenu-run -l 10 -W 0.7 --fn "monospace 14"
 # start bookmark dmenu
@@ -63,10 +63,6 @@ bindsym $mod+o exec wtype "$(grep -v "^#" ~/.local/share/snippets/bookmarks | en
 
 # commands not used now
 #bindsym $mod+n exec wtype $(eval "$(grep -v "^#" ~/.local/share/snippets/cmds | bemenu -i -l 50 )")
-
-# Record for as long as the key is pressed
-bindsym --no-repeat Mod4+u exec test -x "$HOME/repos/gists/s2t/record.sh" && env $extended_path bash "$HOME/repos/gists/s2t/record.sh"
-bindsym --release Mod4+u exec mkdir -p "$HOME/tmp" && touch "$HOME/tmp/stop_recording"
 
 # Start a browser
 bindsym $mod+f exec $browser
@@ -76,9 +72,6 @@ bindsym $mod+n exec makoctl dismiss
 
 # Reload the configuration file
 bindsym $mod+Shift+c reload
-
-# Restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
 
 # Exit Sway after confirmation.
 bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit Sway?' -b 'Yes' 'swaymsg exit'
@@ -253,10 +246,6 @@ exec {
   swaymsg 'workspace 4; exec $terminal'
   swaymsg 'workspace 5; exec $terminal'
   command -v 1password >/dev/null && 1password
-
-}
-
-exec_always {
   command -v slack >/dev/null && slack
   mako
 }
