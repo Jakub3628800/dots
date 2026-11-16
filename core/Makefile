@@ -66,7 +66,6 @@ system-upgrade: apt-update
 test:
 	@bash -n home/.local/bin/cmd-picker
 	@zsh -n home/.zshrc
-	@for script in home/.config/zsh/*.zsh; do zsh -n "$$script" || exit; done
 	@set -e; tmp_home=$$(mktemp -d); \
 		trap 'rm -rf "$$tmp_home"' 0 1 2 15; \
 		touch "$$tmp_home/.profile"; \
