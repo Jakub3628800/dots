@@ -20,7 +20,7 @@ APT_PACKAGES := \
 	vim \
 	zsh
 
-CARGO_PACKAGES := git-delta prek@0.5.7 starship uv@0.13.5
+CARGO_PACKAGES := git-delta prek@0.5.11 starship uv@0.13.8
 DOCKER_BUILD_FLAGS ?=
 
 .PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
