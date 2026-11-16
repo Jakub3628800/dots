@@ -10,57 +10,57 @@ repo = "builtin"
 
 [[repos.hooks]]
 id = "trailing-whitespace"
-name = "Trim trailing whitespace"
+name = "prek: trim trailing whitespace"
 
 [[repos.hooks]]
 id = "end-of-file-fixer"
-name = "Fix end of files"
+name = "prek: fix end of file"
 
 [[repos.hooks]]
 id = "check-yaml"
-name = "Check YAML"
+name = "prek: check YAML"
 
 [[repos.hooks]]
 id = "check-json"
-name = "Check JSON"
+name = "prek: check JSON"
 
 [[repos.hooks]]
 id = "check-toml"
-name = "Check TOML"
+name = "prek: check TOML"
 
 [[repos.hooks]]
 id = "check-added-large-files"
-name = "Check for added large files"
+name = "prek: check large files"
 
 [[repos.hooks]]
 id = "check-merge-conflict"
-name = "Check for merge conflict strings"
+name = "prek: check merge conflicts"
 
 [[repos.hooks]]
 id = "detect-private-key"
-name = "Detect private keys"
+name = "prek: detect private keys"
 
 [[repos.hooks]]
 id = "no-commit-to-branch"
-name = "Prevent commits to main/master"
+name = "prek: prevent commits to main or master"
 always_run = false
 args = ["--branch", "main", "--branch", "master"]
 
 [[repos.hooks]]
 id = "check-case-conflict"
-name = "Check for case conflicts"
+name = "prek: check case conflicts"
 
 [[repos.hooks]]
 id = "check-executables-have-shebangs"
-name = "Check executables have shebangs"
+name = "prek: check executable shebangs"
 
 [[repos.hooks]]
 id = "check-symlinks"
-name = "Check tracked symlink targets"
+name = "prek: check symlinks"
 
 [[repos.hooks]]
 id = "destroyed-symlinks"
-name = "Check for symlinks replaced with text"
+name = "prek: check replaced symlinks"
 
 [[repos]]
 repo = "https://github.com/gitleaks/gitleaks"
@@ -68,7 +68,7 @@ rev = "v8.30.1"
 
 [[repos.hooks]]
 id = "gitleaks"
-name = "Detect hardcoded secrets with Gitleaks"
+name = "gitleaks: detect secrets"
 
 # Shell hooks
 [[repos]]
@@ -77,7 +77,7 @@ rev = "v0.11.0.1"
 
 [[repos.hooks]]
 id = "shellcheck"
-name = "Lint shell scripts with ShellCheck"
+name = "shellcheck: check shell scripts"
 files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|cmd-picker|\.bash_aliases)$'
 
 [[repos]]
@@ -86,7 +86,7 @@ rev = "v3.14.1-1"
 
 [[repos.hooks]]
 id = "shfmt"
-name = "Format shell scripts with shfmt"
+name = "shfmt: format shell scripts"
 args = ["--write", "--indent", "4"]
 files = '(^|/)([^/]*\.sh|screencopy|screensave|cmd-picker|\.bash_aliases)$'
 exclude_types = ["csh", "tcsh", "zsh"]
@@ -98,7 +98,7 @@ rev = "v0.17.5"
 
 [[repos.hooks]]
 id = "ruff-check"
-name = "Lint Python with Ruff"
+name = "ruff: check Python"
 args = [
   "--isolated",
   "--target-version=py312",
@@ -114,7 +114,7 @@ args = [
 
 [[repos.hooks]]
 id = "ruff-format"
-name = "Format Python with Ruff"
+name = "ruff: format Python"
 args = ["--isolated", "--target-version=py312"]
 
 # Local syntax checks and regression tests
@@ -123,21 +123,14 @@ repo = "local"
 
 [[repos.hooks]]
 id = "zsh-syntax"
-name = "Check zsh syntax"
+name = "zsh: check syntax"
 entry = "zsh -n"
 language = "system"
 files = '(^|/)(\.zshrc|.*\.zsh)$'
 
 [[repos.hooks]]
-id = "python-syntax"
-name = "Check Python syntax"
-entry = """python3 -c 'import pathlib, sys; [compile(pathlib.Path(path).read_bytes(), path, "exec") for path in sys.argv[1:]]'"""
-language = "system"
-files = '\.py$'
-
-[[repos.hooks]]
 id = "script-tests"
-name = "Test command-line utilities"
+name = "unittest: run repository tests"
 entry = "python3 -m unittest discover -s tests"
 language = "system"
 pass_filenames = false
@@ -145,7 +138,7 @@ files = '^tests/.*\.py$|^(Makefile|(core|desktop|nvim)/Makefile|nvim/.*\.(lua|sh
 
 [[repos.hooks]]
 id = "commit-message"
-name = "Check Conventional Commit messages"
+name = "grep: check Conventional Commits"
 language = "system"
 stages = ["commit-msg"]
 entry = '''sh -c '
@@ -162,7 +155,7 @@ rev = "v2.6.0"
 
 [[repos.hooks]]
 id = "stylua"
-name = "Format Lua with StyLua"
+name = "stylua: format Lua"
 files = '^nvim/.+\.lua$'
 
 [[repos]]
@@ -171,7 +164,7 @@ rev = "v1.52.2"
 
 [[repos.hooks]]
 id = "typos"
-name = "Check spelling with typos"
+name = "typos: check spelling"
 # Report rather than rewrite identifiers or configuration values.
 args = ["--force-exclude"]
 
@@ -182,6 +175,6 @@ rev = "v1.7.12"
 
 [[repos.hooks]]
 id = "actionlint"
-name = "Lint GitHub Actions workflows"
+name = "actionlint: check GitHub Actions"
 description = "Lint GitHub Actions workflow files"
 files = '^\.github/workflows/.*\.(yml|yaml)$'
