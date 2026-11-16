@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-NVIM_VERSION="v0.12.5"
+NVIM_VERSION="v0.12.6"
 NVIM_ARCHIVE="nvim-linux-x86_64.tar.gz"
 NVIM_URL="https://github.com/neovim/neovim/releases/download/$NVIM_VERSION/$NVIM_ARCHIVE"
 NVIM_SHA256="bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875"

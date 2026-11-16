@@ -82,7 +82,7 @@ files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|cmd-picker|\.bas
 
 [[repos]]
 repo = "https://github.com/scop/pre-commit-shfmt"
-rev = "v3.13.1-1"
+rev = "v3.14.1-1"
 
 [[repos.hooks]]
 id = "shfmt"
@@ -94,7 +94,7 @@ exclude_types = ["csh", "tcsh", "zsh"]
 # Python hooks
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.16.7"
+rev = "v0.17.5"
 
 [[repos.hooks]]
 id = "ruff-check"
@@ -158,7 +158,7 @@ entry = '''sh -c '
 
 [[repos]]
 repo = "https://github.com/JohnnyMorganz/StyLua"
-rev = "v2.5.2"
+rev = "v2.6.0"
 
 [[repos.hooks]]
 id = "stylua"
@@ -167,7 +167,7 @@ files = '^nvim/.+\.lua$'
 
 [[repos]]
 repo = "https://github.com/crate-ci/typos"
-rev = "v1.50.1"
+rev = "v1.52.2"
 
 [[repos.hooks]]
 id = "typos"
