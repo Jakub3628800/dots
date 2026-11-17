@@ -10,7 +10,6 @@ path=(
   $path
 )
 
-export NVM_DIR="$HOME/.nvm"
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 export LESSHISTFILE="$HOME/.cache/.lesshst"
@@ -79,9 +78,6 @@ bindkey '^R' fzf-history-widget
 # Word jumping with Ctrl+Left/Right arrows
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
-
-_source_if_safe "$NVM_DIR/nvm.sh"
-_source_if_safe "$NVM_DIR/bash_completion"
 
 if (( $+commands[starship] )); then
   eval "$(starship init zsh)"
