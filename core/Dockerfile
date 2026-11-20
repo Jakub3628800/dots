@@ -28,7 +28,7 @@ ENV PATH="/home/testuser/.local/bin:/home/testuser/.cargo/bin:${PATH}"
 
 # Run the installation
 RUN make packages && \
-    make stow
+    make link
 
 # Verify installation
 RUN command -v uv && \

@@ -1,5 +1,8 @@
+.DEFAULT_GOAL := help
 # Install packages before linking, even with make -j.
 .NOTPARALLEL:
+# Stow refuses conflicts and never overwrites files, so link is safe to repeat.
+STOW_FLAGS ?=
 
 APT_PACKAGES := \
 	bemenu \
@@ -22,30 +25,13 @@ APT_PACKAGES := \
 DOCKER_BUILD_FLAGS ?=
 POMO_MODULE := github.com/Jakub3628800/pomo/cmd/pomo@latest
 
-.PHONY: all install update upgrade packages stow unstow clean system-upgrade test test-bootstrap pomo help
+.PHONY: install packages link clean test test-bootstrap pomo help
 
-# Keep `all` as a compatibility alias without depending on the active session.
-all: install
-
-install: packages stow
-	@echo "Desktop environment installation complete!"
-
-update: stow
-
-upgrade: packages stow
-	@echo "Desktop packages updated!"
+install: packages link
 
 packages:
 	@sudo apt-get update
 	@sudo apt-get install --no-install-recommends -y $(APT_PACKAGES)
-
-stow:
-	@stow -R -v -d . -t $(HOME) --no-folding home
-
-unstow:
-	@stow -v -D -d . -t $(HOME) --no-folding home
-
-clean: unstow
 
 # Install or update pomo from its repository into ~/.local/bin, where the
 # systemd unit and the waybar module expect it, then restart its daemon.
@@ -53,7 +39,7 @@ clean: unstow
 # build instead of producing a binary without SQLite. A symlink left there by
 # the old stowed bash script is removed first, so go install can't write
 # through it.
-pomo: stow
+pomo: link
 	@command -v go >/dev/null || { echo "pomo needs Go: https://go.dev/dl/" >&2; exit 1; }
 	@if [ -L "$(HOME)/.local/bin/pomo" ]; then rm "$(HOME)/.local/bin/pomo"; fi
 	@CGO_ENABLED=1 GOBIN="$(HOME)/.local/bin" go install $(POMO_MODULE)
@@ -61,9 +47,11 @@ pomo: stow
 	@systemctl --user enable pomo.service
 	@systemctl --user restart pomo.service
 
-system-upgrade:
-	@sudo apt-get update
-	@sudo apt-get upgrade -y
+link:
+	@stow -R -v -d . -t "$(HOME)" --no-folding $(STOW_FLAGS) home
+
+clean:
+	@stow -D -v -d . -t "$(HOME)" --no-folding home
 
 test:
 	@set -e; tmp_home=$$(mktemp -d); \
@@ -82,4 +70,4 @@ test-bootstrap:
 	@docker build $(DOCKER_BUILD_FLAGS) -t desktop-dotfiles-test .
 
 help:
-	@echo "Desktop targets: install update upgrade packages stow unstow test test-bootstrap pomo clean"
+	@echo "Desktop targets: install packages link clean test test-bootstrap pomo"

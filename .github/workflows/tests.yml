@@ -53,4 +53,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Build from clean Ubuntu without cached installation layers
-        run: make test-bootstrap-${{ matrix.component }} DOCKER_BUILD_FLAGS='--pull --no-cache'
+        run: make -C ${{ matrix.component }} test-bootstrap DOCKER_BUILD_FLAGS='--pull --no-cache'

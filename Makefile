@@ -1,93 +1,35 @@
+# Bare make only shows the verbs. Each verb names one operation.
+.DEFAULT_GOAL := help
 # Package managers and Stow must run sequentially, even with make -j.
 .NOTPARALLEL:
+# Select fewer components for a machine without a desktop:
+# make install COMPONENTS="core nvim"
+COMPONENTS ?= core desktop nvim
+BOOTSTRAP_COMPONENTS := $(filter core desktop,$(COMPONENTS))
+# The recipes use + because make -n cannot see $(MAKE) inside this macro.
+each = @set -eu; for component in $(1); do $(MAKE) -C "$$component" $(2); done
 
-.PHONY: install update link upgrade system-upgrade test test-scripts test-bootstrap clean help
-.PHONY: install-core install-desktop install-nvim
-.PHONY: link-core link-desktop link-nvim
-.PHONY: update-core update-desktop update-nvim
-.PHONY: upgrade-core upgrade-desktop upgrade-nvim
-.PHONY: test-core test-desktop test-nvim
-.PHONY: test-bootstrap-core test-bootstrap-desktop
+.PHONY: install packages link clean system-upgrade test test-scripts test-bootstrap help
 
-install: install-core install-desktop install-nvim
+install packages link clean test:
+	+$(call each,$(COMPONENTS),$@)
 
-# Backward-compatible, cheap configuration refresh.
-update: link
-
-link: link-core link-desktop link-nvim
-
-upgrade: upgrade-core upgrade-desktop upgrade-nvim
-
-system-upgrade:
-	@sudo apt-get update
-	@sudo apt-get upgrade -y
-
-test: test-scripts test-core test-desktop test-nvim
-
+test: test-scripts
 test-scripts:
 	@python3 -m unittest discover -s tests
 
-test-bootstrap: test-bootstrap-core test-bootstrap-desktop
+system-upgrade:
+	+@$(MAKE) -C core system-upgrade
 
-install-core:
-	@$(MAKE) -C core install
-
-install-desktop:
-	@$(MAKE) -C desktop install
-
-install-nvim:
-	@$(MAKE) -C nvim install
-
-link-core:
-	@$(MAKE) -C core stow
-
-link-desktop:
-	@$(MAKE) -C desktop stow
-
-link-nvim:
-	@$(MAKE) -C nvim stow
-
-update-core: link-core
-
-update-desktop: link-desktop
-
-update-nvim: link-nvim
-
-upgrade-core:
-	@$(MAKE) -C core upgrade
-
-upgrade-desktop:
-	@$(MAKE) -C desktop upgrade
-
-upgrade-nvim:
-	@$(MAKE) -C nvim upgrade
-
-test-core:
-	@$(MAKE) -C core test
-
-test-desktop:
-	@$(MAKE) -C desktop test
-
-test-nvim:
-	@$(MAKE) -C nvim test
-
-test-bootstrap-core:
-	@$(MAKE) -C core test-bootstrap
-
-test-bootstrap-desktop:
-	@$(MAKE) -C desktop test-bootstrap
-
-clean:
-	@$(MAKE) -C core unstow
-	@$(MAKE) -C desktop unstow
-	@$(MAKE) -C nvim unstow
+test-bootstrap:
+	+$(call each,$(BOOTSTRAP_COMPONENTS),test-bootstrap)
 
 help:
-	@echo "Dotfiles targets:"
-	@echo "  install         Install packages, Neovim, and dotfiles"
-	@echo "  link / update   Refresh dotfile links only"
-	@echo "  upgrade         Reconcile managed packages and dotfile links"
-	@echo "  system-upgrade  Upgrade all APT packages on the host"
-	@echo "  test             Run fast configuration tests"
-	@echo "  test-bootstrap   Test clean Ubuntu package bootstrap in Docker"
-	@echo "  clean            Remove managed dotfile links"
+	@echo 'make install         install packages, Neovim, and links'
+	@echo 'make packages        install the managed packages and Neovim'
+	@echo 'make link            refresh links only'
+	@echo 'make clean           remove links'
+	@echo 'make system-upgrade  upgrade all APT packages on the host'
+	@echo 'make test            run fast configuration tests'
+	@echo 'make test-bootstrap  test a clean Ubuntu package bootstrap in Docker'
+	@echo 'Set COMPONENTS to select components, for example COMPONENTS="core nvim".'
