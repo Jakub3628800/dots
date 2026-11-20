@@ -1,5 +1,8 @@
+.DEFAULT_GOAL := help
 # Install packages before linking, even with make -j.
 .NOTPARALLEL:
+# Stow refuses conflicts and never overwrites files, so link is safe to repeat.
+STOW_FLAGS ?=
 
 APT_PACKAGES := \
 	build-essential \
@@ -23,15 +26,10 @@ APT_PACKAGES := \
 CARGO_PACKAGES := git-delta prek@0.5.11 starship uv@0.13.8
 DOCKER_BUILD_FLAGS ?=
 
-.PHONY: install update upgrade packages apt-update apt-packages rust-toolchain
-.PHONY: cargo-packages stow unstow system-upgrade test test-bootstrap help
+.PHONY: install packages link clean apt-update apt-packages rust-toolchain
+.PHONY: cargo-packages system-upgrade test test-bootstrap help
 
-install: packages stow
-
-# Configuration refreshes should stay cheap. Use `make upgrade` for packages.
-update: stow
-
-upgrade: packages stow
+install: packages link
 
 packages: apt-packages cargo-packages
 
@@ -54,11 +52,11 @@ cargo-packages: rust-toolchain
 			cargo install "$$pkg" --locked; \
 		done
 
-stow:
-	@stow -R -v -d . -t $(HOME) --no-folding home
+link:
+	@stow -R -v -d . -t "$(HOME)" --no-folding $(STOW_FLAGS) home
 
-unstow:
-	@stow -v -D -d . -t $(HOME) --no-folding home
+clean:
+	@stow -D -v -d . -t "$(HOME)" --no-folding home
 
 system-upgrade: apt-update
 	@sudo apt-get upgrade -y

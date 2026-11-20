@@ -27,13 +27,13 @@ tools in `core/Makefile`, so it takes longer than later runs. Existing regular
 files are not overwritten by Stow; move any reported conflicts and rerun the
 command.
 
-The pinned uv and prek require Rust 1.97 or newer. Every core install or upgrade
+The pinned uv and prek require Rust 1.97 or newer. Every core `install` or `packages` run
 refreshes stable Rust before compiling Cargo tools.
 
 For a machine without the Sway desktop:
 
 ```sh
-make install-core install-nvim
+make install COMPONENTS="core nvim"
 ```
 
 The repository does not replace `~/.profile`. Zsh continues to source the
@@ -44,11 +44,14 @@ and is not group/world writable.
 
 ```sh
 make link             # refresh links only
-make update           # compatibility alias for `make link`
-make upgrade          # reconcile managed packages, Neovim, and links
-make system-upgrade   # explicitly upgrade all host APT packages
+make packages         # install the managed packages and Neovim
+make system-upgrade   # upgrade all host APT packages
 make clean            # remove managed links
 ```
+
+Bare `make` shows these verbs and changes nothing. Each verb does one
+operation. Keep identity, host inventory, and agent configuration out of this
+repository. Put them in the local override files below.
 
 `make test` runs the fast script, Stow, Sway, and Neovim config checks.
 Before the first Neovim check, run `make -C nvim prepare-test`. This downloads the

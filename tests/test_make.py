@@ -27,10 +27,10 @@ class MakeOrderingTests(unittest.TestCase):
                     "apt-packages",
                     "rust-toolchain",
                     "cargo-packages",
-                    "stow",
+                    "link",
                 ),
-                "desktop": ("packages", "stow"),
-                "nvim": ("install-nvim", "stow"),
+                "desktop": ("packages", "link"),
+                "nvim": ("install-nvim", "link"),
             }
             for component, names in targets.items():
                 directory = root / component
@@ -60,7 +60,7 @@ class MakeOrderingTests(unittest.TestCase):
                             str(root / component),
                             "-j8",
                             "install",
-                            "upgrade",
+                            "packages",
                             f"EVENT_LOG={log}",
                         ],
                         env=env,
@@ -83,7 +83,7 @@ class MakeOrderingTests(unittest.TestCase):
                         )
                         self.assertLess(
                             events.index(f"end-{name}-{prerequisite}"),
-                            events.index(f"start-{name}-stow"),
+                            events.index(f"start-{name}-link"),
                         )
 
 

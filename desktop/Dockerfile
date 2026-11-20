@@ -28,7 +28,7 @@ ENV XDG_SESSION_TYPE=wayland
 
 # Run the installation
 RUN make packages && \
-    make stow
+    make link
 
 # Verify installation
 RUN command -v sway && \
