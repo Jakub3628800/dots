@@ -134,6 +134,11 @@ ssh-add ~/.ssh/id_ed25519
 
 - [cmd-picker](core/home/.local/bin/cmd-picker) selects tmux sessions (`tm`) or
   Git worktrees (`wt`); usage details are in the script.
+- [btc](desktop/home/.local/bin/btc) and [btdc](desktop/home/.local/bin/btdc)
+  connect and disconnect Bluetooth devices with fzf. `btc` also moves the
+  audio output to the device.
+- [wic](desktop/home/.local/bin/wic) and [widc](desktop/home/.local/bin/widc)
+  connect a visible saved Wi-Fi profile and disconnect an active one with fzf.
 - [pomo](https://github.com/Jakub3628800/pomo) is a Pomodoro timer daemon
   and CLI, shown in waybar. It lives in its own repository;
   `make -C desktop pomo` installs it to `~/.local/bin` and enables its

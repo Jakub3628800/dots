@@ -78,7 +78,7 @@ rev = "v0.11.0.1"
 [[repos.hooks]]
 id = "shellcheck"
 name = "shellcheck: check shell scripts"
-files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|cmd-picker|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|install-nvim\.sh|screencopy|screensave|cmd-picker|btc|btdc|wic|widc|\.bash_aliases)$'
 
 [[repos]]
 repo = "https://github.com/scop/pre-commit-shfmt"
@@ -88,7 +88,7 @@ rev = "v3.14.1-1"
 id = "shfmt"
 name = "shfmt: format shell scripts"
 args = ["--write", "--indent", "4"]
-files = '(^|/)([^/]*\.sh|screencopy|screensave|cmd-picker|\.bash_aliases)$'
+files = '(^|/)([^/]*\.sh|screencopy|screensave|cmd-picker|btc|btdc|wic|widc|\.bash_aliases)$'
 exclude_types = ["csh", "tcsh", "zsh"]
 
 # Python hooks

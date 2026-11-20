@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Connect a paired Bluetooth device with fzf: btc [query]
+# A query that matches one device selects it without the picker.
+# When the device has an audio output, it becomes the default sink, and
+# playing streams move to it.
+set -euo pipefail
+
+for dependency in bluetoothctl fzf pactl; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+        printf 'Required command not found: %s\n' "$dependency" >&2
+        exit 1
+    fi
+done
+
+devices="$(bluetoothctl devices Paired)"
+if [[ -z "$devices" ]]; then
+    printf 'No paired Bluetooth devices found.\n' >&2
+    exit 1
+fi
+
+query_options=()
+if [[ -n "${1:-}" ]]; then
+    query_options=(--query="$1" --select-1)
+fi
+selection="$(printf '%s\n' "$devices" | fzf \
+    --height=40% --layout=reverse --border \
+    "${query_options[@]}" \
+    --prompt='Connect Bluetooth device: ')"
+
+mac="${selection#Device }"
+mac="${mac%% *}"
+if [[ ! "$mac" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]; then
+    printf 'Unable to read a MAC address from the selected device.\n' >&2
+    exit 1
+fi
+
+device_name="${selection#Device }"
+device_name="${device_name#"$mac" }"
+printf 'Connecting to %s (%s)...\n' "$device_name" "$mac"
+bluetoothctl connect "$mac"
+
+sink=""
+for _ in {1..20}; do
+    sink="$(pactl list short sinks | awk -v mac="${mac//:/_}" '
+        index(toupper($2), toupper(mac)) { print $2; exit }
+    ')"
+    [[ -n "$sink" ]] && break
+    sleep 0.5
+done
+
+if [[ -z "$sink" ]]; then
+    printf 'Connected, but no audio output appeared for %s.\n' "$device_name" >&2
+    exit 1
+fi
+
+pactl set-default-sink "$sink"
+while read -r stream_id _; do
+    [[ -n "$stream_id" ]] || continue
+    pactl move-sink-input "$stream_id" "$sink"
+done < <(pactl list short sink-inputs)
+
+printf 'Audio output switched to %s.\n' "$device_name"
