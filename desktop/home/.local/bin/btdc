@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Disconnect a connected Bluetooth device with fzf: btdc
+set -euo pipefail
+
+for dependency in bluetoothctl fzf; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+        printf 'Required command not found: %s\n' "$dependency" >&2
+        exit 1
+    fi
+done
+
+devices="$(bluetoothctl devices Connected)"
+if [[ -z "$devices" ]]; then
+    printf 'No connected Bluetooth devices found.\n' >&2
+    exit 1
+fi
+
+selection="$(printf '%s\n' "$devices" | fzf \
+    --height=40% --layout=reverse --border \
+    --prompt='Disconnect Bluetooth device: ')"
+
+mac="${selection#Device }"
+mac="${mac%% *}"
+if [[ ! "$mac" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]]; then
+    printf 'Unable to read a MAC address from the selected device.\n' >&2
+    exit 1
+fi
+
+device_name="${selection#Device }"
+device_name="${device_name#"$mac" }"
+printf 'Disconnecting %s (%s)...\n' "$device_name" "$mac"
+exec bluetoothctl disconnect "$mac"

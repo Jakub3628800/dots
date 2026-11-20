@@ -71,7 +71,12 @@ test:
 		stow -R -d . -t "$$tmp_home" --no-folding home; \
 		HOME="$$tmp_home" sway --validate --config "$$tmp_home/.config/sway/config"
 	@python3 -m json.tool home/.config/waybar/config >/dev/null
-	@for script in home/.local/bin/*; do sh -n "$$script"; done
+	@set -e; for script in home/.local/bin/*; do \
+		case "$$(head -n 1 "$$script")" in \
+		*bash*) bash -n "$$script" ;; \
+		*) sh -n "$$script" ;; \
+		esac; \
+	done
 
 test-bootstrap:
 	@docker build $(DOCKER_BUILD_FLAGS) -t desktop-dotfiles-test .

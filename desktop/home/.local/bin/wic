@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Connect a saved Wi-Fi profile with fzf: wic
+# The picker shows only the profiles whose SSID is visible now.
+set -euo pipefail
+
+for dependency in fzf nmcli; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+        printf 'Required command not found: %s\n' "$dependency" >&2
+        exit 1
+    fi
+done
+
+visible_ssids="$(nmcli --escape no -g SSID device wifi list --rescan yes)"
+profiles="$(nmcli --escape no -t -f UUID,TYPE connection show)"
+
+candidates=""
+while IFS=: read -r uuid type; do
+    [[ "$type" == "802-11-wireless" ]] || continue
+
+    details="$(nmcli --escape no \
+        -g connection.id,802-11-wireless.ssid \
+        connection show uuid "$uuid")" || continue
+    connection_name="${details%%$'\n'*}"
+    ssid="${details#*$'\n'}"
+    ssid="${ssid%%$'\n'*}"
+    [[ -n "$connection_name" && -n "$ssid" ]] || continue
+
+    if grep -Fqx -- "$ssid" <<<"$visible_ssids"; then
+        candidates+="${connection_name}"$'\t'"${ssid}"$'\t'"${uuid}"$'\n'
+    fi
+done <<<"$profiles"
+
+if [[ -z "$candidates" ]]; then
+    printf 'No saved Wi-Fi connections are currently available.\n' >&2
+    exit 1
+fi
+
+selection="$(printf '%s' "$candidates" | fzf \
+    --height=40% --layout=reverse --border \
+    --delimiter=$'\t' --with-nth=1,2 \
+    --prompt='Connect Wi-Fi: ')"
+
+connection_name="${selection%%$'\t'*}"
+uuid="${selection##*$'\t'}"
+printf 'Connecting to %s...\n' "$connection_name"
+exec nmcli connection up uuid "$uuid"

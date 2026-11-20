@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Disconnect an active Wi-Fi connection with fzf: widc
+set -euo pipefail
+
+for dependency in fzf nmcli; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+        printf 'Required command not found: %s\n' "$dependency" >&2
+        exit 1
+    fi
+done
+
+active_connections="$(nmcli --escape no -t -f UUID,TYPE connection show --active)"
+
+candidates=""
+while IFS=: read -r uuid type; do
+    [[ "$type" == "802-11-wireless" ]] || continue
+
+    connection_name="$(nmcli --escape no -g connection.id \
+        connection show uuid "$uuid")" || continue
+    [[ -n "$connection_name" ]] || continue
+    candidates+="${connection_name}"$'\t'"${uuid}"$'\n'
+done <<<"$active_connections"
+
+if [[ -z "$candidates" ]]; then
+    printf 'No active Wi-Fi connections found.\n' >&2
+    exit 1
+fi
+
+selection="$(printf '%s' "$candidates" | fzf \
+    --height=40% --layout=reverse --border \
+    --delimiter=$'\t' --with-nth=1 \
+    --prompt='Disconnect Wi-Fi: ')"
+
+connection_name="${selection%%$'\t'*}"
+uuid="${selection##*$'\t'}"
+printf 'Disconnecting %s...\n' "$connection_name"
+exec nmcli connection down uuid "$uuid"
