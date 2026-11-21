@@ -5,7 +5,6 @@ path=(
   "$HOME/.local/bin"
   "$HOME/.cargo/bin"
   "$HOME/go/bin"
-  /usr/local/go/bin
   /opt/nvim-linux64/bin
   $path
 )

@@ -40,7 +40,7 @@ packages:
 # the old stowed bash script is removed first, so go install can't write
 # through it.
 pomo: link
-	@command -v go >/dev/null || { echo "pomo needs Go: https://go.dev/dl/" >&2; exit 1; }
+	@command -v go >/dev/null || { echo "pomo needs Go. Install the golang-go package." >&2; exit 1; }
 	@if [ -L "$(HOME)/.local/bin/pomo" ]; then rm "$(HOME)/.local/bin/pomo"; fi
 	@CGO_ENABLED=1 GOBIN="$(HOME)/.local/bin" go install $(POMO_MODULE)
 	@systemctl --user daemon-reload
