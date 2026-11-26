@@ -73,7 +73,7 @@ name = "gitleaks: detect secrets"
 # Shell hooks
 [[repos]]
 repo = "https://github.com/shellcheck-py/shellcheck-py"
-rev = "v0.11.0.1"
+rev = "v0.11.0.1-1"
 
 [[repos.hooks]]
 id = "shellcheck"
@@ -94,7 +94,7 @@ exclude_types = ["csh", "tcsh", "zsh"]
 # Python hooks
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.17.5"
+rev = "v0.17.6"
 
 [[repos.hooks]]
 id = "ruff-check"
